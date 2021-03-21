@@ -12,4 +12,4 @@ class Config:
     symbols_list = ['EURUSD.I', 'GBPUSD.I', 'NZDUSD.I', 'USDCAD.I', 'USDCHF.I', 'USDJPY.I', 'AUDUSD.I',
                     'XAUUSD.I', 'XAGUSD.I', 'US30.JUN1']
     symbols_pip = {'EURUSD.I': 5, 'GBPUSD.I': 5, 'NZDUSD.I': 5, 'USDCAD.I': 5, 'USDCHF.I': 5,
-                     'USDJPY.I': 3, 'AUDUSD.I': 5, 'XAUUSD.I': 2, 'XAGUSD.I': 3, 'US30.JUN1': 1}
+                     'USDJPY.I': 3, 'AUDUSD.I': 5, 'XAUUSD.I': 2, 'XAGUSD.I': 3, 'US30.JUN1': 0}
