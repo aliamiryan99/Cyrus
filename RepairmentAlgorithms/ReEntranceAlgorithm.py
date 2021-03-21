@@ -16,7 +16,7 @@ class ReEntrance:
         self.limit_price_sell = 0
         pass
 
-    def on_tick(self, algorithm_history, is_buy_close, is_sell_close, is_algorithm_close, profit_in_pip, start_index_buy, start_index_sell, end_index):
+    def on_tick(self, algorithm_history, is_buy_close, is_sell_close, profit_in_pip, start_index_buy, start_index_sell, end_index):
         if is_buy_close:
             self.buy_position_trigger = 1
             self.candles_from_last_position_buy_cnt = 0
@@ -25,11 +25,8 @@ class ReEntrance:
                 a = max(a, algorithm_history[i]['High'])
             self.limit_price_buy = a
             if self.loss_enable:
-                if not is_algorithm_close:
-                    if profit_in_pip < -self.loss_threshold:
-                        self.buy_loss_cnt += 1
-                    else:
-                        self.buy_loss_cnt = 0
+                if profit_in_pip < -self.loss_threshold:
+                    self.buy_loss_cnt += 1
                 else:
                     self.buy_loss_cnt = 0
                 if self.buy_loss_cnt == self.loss_limit:
@@ -43,11 +40,8 @@ class ReEntrance:
                 b = min(b, algorithm_history[i]['Low'])
             self.limit_price_sell = b
             if self.loss_enable:
-                if not is_algorithm_close:
-                    if profit_in_pip < -self.loss_threshold:
-                        self.sell_loss_cnt += 1
-                    else:
-                        self.sell_loss_cnt = 0
+                if profit_in_pip < -self.loss_threshold:
+                    self.sell_loss_cnt += 1
                 else:
                     self.sell_loss_cnt = 0
                 if self.sell_loss_cnt == self.loss_limit:

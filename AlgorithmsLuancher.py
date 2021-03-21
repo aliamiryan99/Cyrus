@@ -327,7 +327,7 @@ def launch():
                     position = last_sell_closed[symbol]
                     profit_in_pip = (position['start_price'] - position['end_price']) * 10 ** Config.symbols_pip[position['symbol']] / 10
 
-                signal_re_entrance, price_re_entrance = re_entrance_algorithm.on_tick(algorithm_histories[symbol], is_buy_closed, is_sell_closed, is_algorithm_signal, profit_in_pip,
+                signal_re_entrance, price_re_entrance = re_entrance_algorithm.on_tick(algorithm_histories[symbol], is_buy_closed, is_sell_closed, profit_in_pip,
                                                                                       start_index_position_buy, start_index_position_sell, len(algorithm_histories[symbol])-1)
 
                 if take_profit_buy != 0:

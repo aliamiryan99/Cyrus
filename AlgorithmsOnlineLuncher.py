@@ -386,7 +386,7 @@ class Launcher(DWX_ZMQ_Strategy):
                 profit_in_pip = (position['_open_price'] - position['_close_price']) * 10 ** Config.symbols_pip[symbol] / 10
 
             signal_re_entrance, price_re_entrance = self._re_entrance_algorithms[symbol].on_tick(self._histories[symbol],
-                                                                                  self.is_buy_closed[symbol], self.is_sell_closed[symbol],is_algorithm_signal, profit_in_pip,
+                                                                                  self.is_buy_closed[symbol], self.is_sell_closed[symbol], profit_in_pip,
                                                                                   start_index_position_buy, start_index_position_sell,
                                                                                   len(self._histories[symbol]) - 1)
             if self.is_buy_closed[symbol]:

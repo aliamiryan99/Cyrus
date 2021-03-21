@@ -8,12 +8,12 @@ class LauncherConfig:
     # Hyper Parameters
     categories = ["Major", "Metal", "CFD"]
     symbols = ["GBPUSD", "XAUUSD", "US30USD"]
-    symbols_ratio = [3, 2, 2]
+    symbols_ratio = [4, 3, 3]
     history_size = 50
     algorithm_time_frame = "D"
     trailing_time_frame = "H12"
     algorithm_name = "SI&ReEntrance"
-    tag = "normal"
+    tag = "LossLimit2"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
         # Simple Idea
@@ -52,9 +52,9 @@ class LauncherConfig:
         self.max_trade_per_candle = 1  # if 1 only 1 trade can be placed for each candle
         self.re_entrance_distance_limit = 3
         self.force_re_entrance_price = False
-        self.re_entrance_loss_enable = False
+        self.re_entrance_loss_enable = True
         self.re_entrance_loss_limit = 2
-        self.re_entrance_loss_threshold = 10     # loss pip threshold
+        self.re_entrance_loss_threshold = 0     # loss pip threshold
 
         # Options
         self.multi_position = False     # if false only one position with same direction can be placed

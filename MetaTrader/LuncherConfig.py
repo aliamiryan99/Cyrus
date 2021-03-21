@@ -8,8 +8,8 @@ from AccountManagment import AccountManagment
 class LauncherConfig:
     # Hyper Parameters
     symbols = ['GBPUSD.I', 'XAUUSD.I', 'US30.JUN1']
-    managment_ratio = [4, 2, 1]
-    history_size = 20
+    managment_ratio = [2, 1, 1]
+    history_size = 50
     algorithm_time_frame = "H1"
     trailing_time_frame = "H1"
 
