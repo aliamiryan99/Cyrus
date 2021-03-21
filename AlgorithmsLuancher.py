@@ -81,7 +81,8 @@ def get_identifier(time, time_frame):
         identifier = time.minute
     return identifier
 
-def lunch():
+
+def launch():
     # Parameters Section
     symbols = LauncherConfig.symbols
     data_total, start_indexes, end_indexes, configs, algorithm_data_total, algorithm_start_indexes,\
@@ -380,5 +381,5 @@ def lunch():
 
 
 # Output Section
-market = lunch()
+market = launch()
 Simulation.get_output(market)

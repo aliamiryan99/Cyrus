@@ -47,6 +47,8 @@ class LauncherConfig:
         self.wave_alpha = 0.2
         self.wave_beta = 0.6
         # Re Entrance
+        self.enable_max_trade_per_candle = True  # if true only max_taade_per_candle can be placed on one candle
+        self.max_trade_per_candle = 1  # if 1 only 1 trade can be placed for each candle
         self.re_entrance_distance_limit = 3
         self.force_re_entrance_price = False
         self.re_entrance_loss_enable = False
@@ -57,8 +59,7 @@ class LauncherConfig:
         self.re_entrance_enable = True      # if true the re entrance algorithm will execute
         self.multi_position = False     # if false only one position with same direction can be placed
         self.force_close_on_algorithm_price = True  # if true positions only close in algorithm price ( for gaps )
-        self.enable_max_trade_per_candle = True     # if true only max_taade_per_candle can be placed on one candle
-        self.max_trade_per_candle = 1   # if 1 only 1 trade can be placed for each candle
+
 
         # Algorithm Section
         self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i],
