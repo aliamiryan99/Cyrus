@@ -1,0 +1,24 @@
+time range : 2020-01-01 00:00:00 - 2021-01-01 00:00:00
+total profit (in pip): 8689$ (15007.4)
+average AUM : 116.55071
+capacity : 554.69
+Leverage : 100
+Maximum dollar position size : 389.63
+frequency of bets : 79.83
+sharpe ratio : 0.1259
+average holding period : 2.98
+annualized turnover : 45.49487
+total trades: 191
+Long Trades(won %): 110(26%)	Ratio of longs: 57%
+Short Trades(won %): 81(31%)	Ratio of shorts: 42%
+profit trades(% of total): 54(0.28)
+loss trades(% of total): 137(0.72)
+Maximum Absolute Drawdown (%): 3.74(0.12%)
+Maximum Relative Drawdown (%): 1699.52(16.3%) [10424.09, 8724.570000000005, Timestamp('2020-06-11 00:00:00'), Timestamp('2020-10-23 00:00:00')]
+Maximal Absolute Drawdown (%): 3.74(0.12%)
+Maximal Relative Drawdown (%): 1699.52(16.3%) [10424.09, 8724.570000000005, Timestamp('2020-06-11 00:00:00'), Timestamp('2020-10-23 00:00:00')]
+Largest	Profit Trade:1345.23,	Largest Loss Trade:-630.29
+Average	Profit Trade:331.94,	Average Loss Trade:-67.41
+Maximum	consecutive wins($):3(1812.62)	consecutive loss($):14(-1589.03)
+Maximal	consecutive profit(count):2251.3(2)	consecutive loss(count):-1589.03(14)
+Average	consecutive wins:417	consecutive loss:-210

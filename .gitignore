@@ -1,0 +1,17 @@
+*.csv
+*.xlsx
+*.zip
+*.rar
+*.mat
+*.h5
+*.pyc
+*.html
+*.JPG
+*.mq4
+*.mqh
+*.dll
+*.txt
+*__pycache__*
+.idea/
+triple_barier/
+venv/
