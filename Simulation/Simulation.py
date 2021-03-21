@@ -148,8 +148,8 @@ class Simulation:
         self.start_index_show = {}
         for symbol in symbols_list:
             if start_time != None:
-                self.start_index[symbol] = Outputs.index_date(data[symbols_dict[symbol]], start_time)
-                self.start_index_show[symbol] = Outputs.index_date(data_shows[symbols_dict[symbol]], start_time)
+                self.start_index[symbol] = Outputs.index_date_v2(data[symbols_dict[symbol]], start_time)
+                self.start_index_show[symbol] = Outputs.index_date_v2(data_shows[symbols_dict[symbol]], start_time)
             else:
                 self.start_index[symbol] = 0
                 self.start_index_show[symbol] = 0
@@ -157,8 +157,8 @@ class Simulation:
         self.end_index_show = {}
         for symbol in symbols_list:
             if end_time != None:
-                self.end_index[symbol]= Outputs.index_date(data[symbols_dict[symbol]], end_time)
-                self.end_index_show[symbol] = Outputs.index_date(data_shows[symbols_dict[symbol]], end_time)
+                self.end_index[symbol] = Outputs.index_date_v2(data[symbols_dict[symbol]], end_time)
+                self.end_index_show[symbol] = Outputs.index_date_v2(data_shows[symbols_dict[symbol]], end_time)
             else:
                 self.end_index[symbol] = 0
                 self.end_index_show[symbol] = 0
@@ -170,10 +170,10 @@ class Simulation:
 
     def update(self, time):
         time = self.adjust_time(time, time_frame_input)
-        date = data[0].iloc[self.last_index[symbols_list[0]]]['GMT']
+        date = data[0][self.last_index[symbols_list[0]]]['GMT']
         if time > date:
             i = self.last_index[symbols_list[0]]
-            date_show = data_shows[0].iloc[self.last_index_show[symbols_list[0]]]['GMT']
+            date_show = data_shows[0][self.last_index_show[symbols_list[0]]]['GMT']
             if time > date_show:
                 self.update_history(i, date_show)
                 for symbol in symbols_list:
@@ -205,7 +205,7 @@ class Simulation:
 
     def exit(self):
         last_index = self.last_index[symbols_list[0]]
-        last_time = data[0].iloc[last_index]['GMT']
+        last_time = data[0][last_index]['GMT']
         if DEBUG:
             print(f"exit {last_time}")
         self.update(last_time)
@@ -261,9 +261,9 @@ class Simulation:
             create a open buy position
         """
         time = self.adjust_time(start_gmt, time_frame_input)
-        index = Outputs.index_date(data[Config.symbols_dict[symbol]], time)
+        index = Outputs.index_date_v2(data[Config.symbols_dict[symbol]], time)
         volume = min(max(round(volume, Config.volume_digit), 10 ** -Config.volume_digit), 200)
-        row = data[symbols_dict[symbol]].iloc[index]
+        row = data[symbols_dict[symbol]][index]
         if (take_profit < start_price and take_profit != 0) or (stop_loss > start_price and stop_loss != 0):
             print(f"order is invalid(tp&sl)({symbol})(buy)(price:{start_price})(tp:{take_profit})(sl:{stop_loss})[{start_gmt}]")
             return
@@ -287,9 +287,9 @@ class Simulation:
         """
 
         time = self.adjust_time(start_gmt, time_frame_input)
-        index = Outputs.index_date(data[Config.symbols_dict[symbol]], time)
+        index = Outputs.index_date_v2(data[Config.symbols_dict[symbol]], time)
         volume = min(max(round(volume, Config.volume_digit), 10 ** -Config.volume_digit), 200)
-        row = data[symbols_dict[symbol]].iloc[index]
+        row = data[symbols_dict[symbol]][index]
         if (take_profit > start_price and take_profit != 0) or (stop_loss < start_price and stop_loss != 0):
             print(f"order is invalid(tp&sl)({symbol})(sell)(price:{start_price})(tp:{take_profit})(sl:{stop_loss})[{start_gmt}]")
             return
@@ -443,11 +443,11 @@ class Simulation:
     def close_all(self, order):  # close all positions
         for position in self.open_buy_positions:
             i = self.last_index[position['symbol']]
-            price = data[symbols_dict[position['symbol']]].iloc[i]['Close']
+            price = data[symbols_dict[position['symbol']]][i]['Close']
             if position['closed_volume'] == 0:
                 self.closed_buy_positions.append(
                     {'start_gmt': position['start_gmt'], 'start_price': position['start_price'],
-                     'end_gmt': data[symbols_dict[position['symbol']]].iloc[i]['GMT'],
+                     'end_gmt': data[symbols_dict[position['symbol']]][i]['GMT'],
                      'end_price': price, 'close_type': order, 'symbol': position['symbol'],
                      'stop_loss': position['stop_loss'], 'take_profit': position['take_profit'],
                      'volume': position['volume'], 'ticket': position['ticket']})
@@ -463,12 +463,12 @@ class Simulation:
         self.open_buy_positions.clear()
         for position in self.open_sell_positions:
             i = self.last_index[position['symbol']]
-            price = data[symbols_dict[position['symbol']]].iloc[i]['Close'] \
+            price = data[symbols_dict[position['symbol']]][i]['Close'] \
                     + (spreads[position['symbol']] / 10 ** symbols_pip[position['symbol']])
             if position['closed_volume'] == 0:
                 self.closed_sell_positions.append(
                     {'start_gmt': position['start_gmt'], 'start_price': position['start_price'],
-                     'end_gmt': data[symbols_dict[position['symbol']]].iloc[i]['GMT'],
+                     'end_gmt': data[symbols_dict[position['symbol']]][i]['GMT'],
                      'end_price': price, 'close_type': order, 'symbol': position['symbol'],
                      'stop_loss': position['stop_loss'], 'take_profit': position['take_profit'],
                      'volume': position['volume'], 'ticket': position['ticket']})
@@ -507,16 +507,16 @@ class Simulation:
         for position in self.open_buy_positions:
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             i = self.last_index[position['symbol']]
-            if time != data[symbols_dict[position['symbol']]].iloc[i]['GMT']:
+            if time != data[symbols_dict[position['symbol']]][i]['GMT']:
                 self.equity += self.cal_profit('buy', position['symbol'], position['start_price'],
-                                               data[symbols_dict[position['symbol']]].iloc[i]['Open'],
+                                               data[symbols_dict[position['symbol']]][i]['Open'],
                                                position['volume'])  # add profit
         for position in self.open_sell_positions:
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             i = self.last_index[position['symbol']]
-            if time != data[symbols_dict[position['symbol']]].iloc[i]['GMT']:
+            if time != data[symbols_dict[position['symbol']]][i]['GMT']:
                 self.equity += self.cal_profit('sell', position['symbol'], position['start_price'],
-                                               data[symbols_dict[position['symbol']]].iloc[i]['Open']
+                                               data[symbols_dict[position['symbol']]][i]['Open']
                                                + (spreads[position['symbol']] / 10 ** symbols_pip[position['symbol']]),
                                                position['volume'])  # add profit
         return self.equity
@@ -556,7 +556,7 @@ class Simulation:
         open_buy_positions_origin = copy.copy(self.open_buy_positions)
         for position in open_buy_positions_origin:
             i = self.last_index[position['symbol']]
-            row = data[symbols_dict[position['symbol']]].iloc[i]
+            row = data[symbols_dict[position['symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             if time < row['GMT'] and position['stop_loss'] != 0:
                 if row['Low'] < position['stop_loss']:
@@ -566,7 +566,7 @@ class Simulation:
         open_sell_positions_origin = copy.copy(self.open_sell_positions)
         for position in open_sell_positions_origin:
             i = self.last_index[position['symbol']]
-            row = data[symbols_dict[position['symbol']]].iloc[i]
+            row = data[symbols_dict[position['symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             if time < row['GMT'] and position['stop_loss'] != 0:
                 if row['High'] > position['stop_loss']:
@@ -581,7 +581,7 @@ class Simulation:
         open_buy_positions_origin = copy.copy(self.open_buy_positions)
         for position in open_buy_positions_origin:
             i = self.last_index[position['symbol']]
-            row = data[symbols_dict[position['symbol']]].iloc[i]
+            row = data[symbols_dict[position['symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             if time <= row['GMT'] and position['take_profit'] != 0:
                 if row['High'] > position['take_profit']:
@@ -590,7 +590,7 @@ class Simulation:
         open_sell_positions_origin = copy.copy(self.open_sell_positions)
         for position in open_sell_positions_origin:
             i = self.last_index[position['symbol']]
-            row = data[symbols_dict[position['symbol']]].iloc[i]
+            row = data[symbols_dict[position['symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             if time <= row['GMT'] and position['take_profit'] != 0:
                 if row['Low'] < position['take_profit']:
@@ -600,15 +600,15 @@ class Simulation:
     def pending_orders_check(self):
         for buy in self.open_buy_limits:
             i = self.last_index[buy['symbol']]
-            if data[symbols_dict[buy['symbol']]].iloc[i]['Low'] <= buy['price']:
-                self.buy(data[symbols_dict[buy['symbol']]].iloc[i]['GMT'], buy['price'], buy['symbol'],
+            if data[symbols_dict[buy['symbol']]][i]['Low'] <= buy['price']:
+                self.buy(data[symbols_dict[buy['symbol']]][i]['GMT'], buy['price'], buy['symbol'],
                          buy['take_profit'], buy['stop_loss'], buy['volume'],
                          buy['ticket'])
                 self.open_buy_limits.remove(buy)
         for sell in self.open_sell_limits:
             i = self.last_index[sell['symbol']]
-            if data[symbols_dict[sell['symbol']]].iloc[i]['High'] >= sell['price']:
-                self.sell(data[symbols_dict[sell['symbol']]].iloc[i]['GMT'], sell['price'], sell['symbol'],
+            if data[symbols_dict[sell['symbol']]][i]['High'] >= sell['price']:
+                self.sell(data[symbols_dict[sell['symbol']]][i]['GMT'], sell['price'], sell['symbol'],
                           sell['take_profit'], sell['stop_loss'],
                           sell['volume'], sell['ticket'])
                 self.open_sell_limits.remove(sell)
@@ -624,9 +624,9 @@ class Simulation:
                 [self.cal_profit('buy', position['symbol'], position['start_price'], position['end_price'],
                                  position['volume'])] +
                 [(position['end_price'] - position['start_price']) * 10 ** symbols_pip[position['symbol']] / 10] +
-                [Outputs.index_date(data_shows[symbols_dict[position['symbol']]],
+                [Outputs.index_date_v2(data_shows[symbols_dict[position['symbol']]],
                                     self.adjust_time(position['start_gmt'], time_frame_input))]
-                + [Outputs.index_date(data_shows[symbols_dict[position['symbol']]], position['end_gmt'])])
+                + [Outputs.index_date_v2(data_shows[symbols_dict[position['symbol']]], position['end_gmt'])])
         for position in self.closed_sell_positions:
             positions.append(
                 [position['start_gmt']] + ['sell'] + [position['ticket'], position['volume'], position['symbol']] + [
@@ -636,9 +636,9 @@ class Simulation:
                 [self.cal_profit('sell', position['symbol'], position['start_price'], position['end_price'],
                                  position['volume'])] +
                 [(position['start_price'] - position['end_price']) * 10 ** symbols_pip[position['symbol']] / 10] +
-                [Outputs.index_date(data_shows[symbols_dict[position['symbol']]],
+                [Outputs.index_date_v2(data_shows[symbols_dict[position['symbol']]],
                                     self.adjust_time(position['start_gmt'], time_frame_input))]
-                + [Outputs.index_date(data_shows[symbols_dict[position['symbol']]], position['end_gmt'])])
+                + [Outputs.index_date_v2(data_shows[symbols_dict[position['symbol']]], position['end_gmt'])])
         return positions
 
     def get_total_profit(self):
@@ -660,7 +660,7 @@ class Simulation:
         for position in self.open_buy_positions:
             i = self.last_index[position['symbol']]
             profit = self.cal_profit('buy', position['symbol'], position['start_price']
-                                     , data[symbols_dict[position['symbol']]].iloc[i]['Open'],
+                                     , data[symbols_dict[position['symbol']]][i]['Open'],
                                      position['volume'])
             if profit > 0:
                 wins += 1
@@ -668,7 +668,7 @@ class Simulation:
         for position in self.open_sell_positions:
             i = self.last_index[position['symbol']]
             profit = self.cal_profit('sell', position['symbol'], position['start_price']
-                                     , data[symbols_dict[position['symbol']]].iloc[i]['Open'],
+                                     , data[symbols_dict[position['symbol']]][i]['Open'],
                                      position['volume'])
             if profit > 0:
                 wins += 1
@@ -726,6 +726,10 @@ def initialize():
     data = ut.csv_to_df(data_paths, date_format=date_format)
     data_shows = ut.csv_to_df(data_shows_paths, date_format=date_format)
 
+    for i in range(len(data)):
+        data[i] = data[i].to_dict("Records")
+        data_shows[i] = data_shows[i].to_dict("Records")
+
     if DEBUG:
         print(data[0])
 
@@ -737,8 +741,8 @@ def initialize():
 def simulate(simulation, predicts, data, start_date, end_date, risk):
     i_predict = 0
     predicts_size = len(predicts)
-    start = Outputs.index_date(data[SYMBOL], start_date)  # start index of backtesting
-    end = Outputs.index_date(data[SYMBOL], end_date)  # end index of backtesting
+    start = Outputs.index_date_v2(data[SYMBOL], start_date)  # start index of backtesting
+    end = Outputs.index_date_v2(data[SYMBOL], end_date)  # end index of backtesting
     profit = 0
     symbol = predicts[i_predict][3]
     if DEBUG:
@@ -746,7 +750,7 @@ def simulate(simulation, predicts, data, start_date, end_date, risk):
     for i in tqdm(range(start, end-1)):
         if DEBUG:
             print(i, symbol)
-        date = data[symbols_dict[symbol]].iloc[i]['GMT']
+        date = data[symbols_dict[symbol]][i]['GMT']
         # save history
         equity = simulation.get_equity(i)
         balance_history.append([i, date, simulation.balance])
@@ -760,7 +764,7 @@ def simulate(simulation, predicts, data, start_date, end_date, risk):
 
         # perform order
         while i_predict < predicts_size and predicts[i_predict][0] == date:
-            row = data[symbols_dict[symbol]].iloc[i]
+            row = data[symbols_dict[symbol]][i]
             if DEBUG:
                 print(f"predict : {predicts[i_predict]}")
             price = predicts[i_predict][7]
@@ -821,7 +825,7 @@ def simulate(simulation, predicts, data, start_date, end_date, risk):
             i_predict += 1
             if i_predict < predicts_size:
                 symbol = predicts[i_predict][3]
-                date = data[symbols_dict[symbol]].iloc[i]['GMT']
+                date = data[symbols_dict[symbol]][i]['GMT']
 
         # check positions
         simulation.take_profit_check(i)
@@ -1016,8 +1020,9 @@ def get_output(simulation, trends = None, extends=None):
 
     for symbol in symbols_list:
         if symbols_show[symbol]:
-            start = Outputs.index_date(data_shows[symbols_dict[symbol]], start_date)
-            end = Outputs.index_date(data_shows[symbols_dict[symbol]], end_date)
+            start = Outputs.index_date_v2(data_shows[symbols_dict[symbol]], start_date)
+            end = Outputs.index_date_v2(data_shows[symbols_dict[symbol]], end_date)
+            data_shows[symbols_dict[symbol]] = pd.DataFrame(data_shows[symbols_dict[symbol]])
             show_candlestick(symbol, data_shows[symbols_dict[symbol]].iloc[start:end + 5],
                              positions_df.loc[positions_df['Symbol'] == symbol],
                              df_balance_history, df_equity_history, start, trends, extends)
@@ -1071,8 +1076,8 @@ def run():
 
     for symbol in symbols_list:
         if symbols_show[symbol]:
-            start = Outputs.index_date(data[symbols_dict[symbol]], start_date)
-            end = Outputs.index_date(data[symbols_dict[symbol]], end_date)
-            show_candlestick(symbol, data[symbols_dict[symbol]].iloc[start:end],
+            start = Outputs.index_date_v2(data[symbols_dict[symbol]], start_date)
+            end = Outputs.index_date_v2(data[symbols_dict[symbol]], end_date)
+            show_candlestick(symbol, data[symbols_dict[symbol]][start:end],
                              positions_df.loc[positions_df['Symbol'] == symbol],
                              df_balance_history, df_equity_history, start)

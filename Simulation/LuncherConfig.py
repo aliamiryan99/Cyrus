@@ -8,12 +8,12 @@ class LauncherConfig:
     # Hyper Parameters
     categories = ["Major", "Metal", "CFD"]
     symbols = ["GBPUSD", "XAUUSD", "US30USD"]
-    symbols_ratio = [6, 3, 3]
+    symbols_ratio = [3, 2, 2]
     history_size = 50
     algorithm_time_frame = "D"
     trailing_time_frame = "H12"
     algorithm_name = "SI&ReEntrance"
-    tag = "normal17_18"
+    tag = "normal"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
         # Simple Idea
@@ -47,6 +47,7 @@ class LauncherConfig:
         self.wave_alpha = 0.2
         self.wave_beta = 0.6
         # Re Entrance
+        self.re_entrance_enable = True  # if true the re entrance algorithm will execute
         self.enable_max_trade_per_candle = True  # if true only max_taade_per_candle can be placed on one candle
         self.max_trade_per_candle = 1  # if 1 only 1 trade can be placed for each candle
         self.re_entrance_distance_limit = 3
@@ -56,7 +57,6 @@ class LauncherConfig:
         self.re_entrance_loss_threshold = 10     # loss pip threshold
 
         # Options
-        self.re_entrance_enable = True      # if true the re entrance algorithm will execute
         self.multi_position = False     # if false only one position with same direction can be placed
         self.force_close_on_algorithm_price = True  # if true positions only close in algorithm price ( for gaps )
 

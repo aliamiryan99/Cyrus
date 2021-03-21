@@ -36,8 +36,8 @@ def initialize():
 
     for i in range(len(symbols)):
         symbol = symbols[i]
-        start_indexes[symbol] = Outputs.index_date(data[Config.symbols_dict[symbol]], start_time)
-        end_indexes[symbol] = Outputs.index_date(data[Config.symbols_dict[symbol]], end_time)
+        start_indexes[symbol] = Outputs.index_date_v2(data[Config.symbols_dict[symbol]], start_time)
+        end_indexes[symbol] = Outputs.index_date_v2(data[Config.symbols_dict[symbol]], end_time)
 
     data_algorithm_paths = []
     data_trailing_paths = []
@@ -91,7 +91,7 @@ def launch():
     algorithm_data = {}
     trailing_data = {}
     for symbol in symbols:
-        data[symbol] = data_total[Config.symbols_dict[symbol]].to_dict('Records')
+        data[symbol] = data_total[Config.symbols_dict[symbol]]
 
     for i in range(len(symbols)):
         algorithm_data[symbols[i]] = algorithm_data_total[i].to_dict('Records')
