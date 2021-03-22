@@ -195,8 +195,10 @@ class Launcher(DWX_ZMQ_Strategy):
             data['_open_time'] = datetime.strptime(data['_open_time'], Config.date_order_format)
             if data['_type'] == 0:  # buy
                 self.open_buy_trades[data['_symbol']].append(data)
+                self.trade_buy_in_candle_cnt[data['_symbol']] += 1
             elif data['_type'] == 1:    # sell
                 self.open_sell_trades[data['_symbol']].append(data)
+                self.trade_sell_in_candle_cnt[data['_symbol']] += 1
             if self.is_algorithm_signal[data['_symbol']]:
                 self.last_algorithm_signal_ticket[data['_symbol']] = data['_ticket']
             self.is_algorithm_signal[data['_symbol']] = False
@@ -408,7 +410,6 @@ class Launcher(DWX_ZMQ_Strategy):
                             print(f"Re Entrance Buy Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
                             print("________________________________________________________________________________")
                             self.buy(symbol, volume, take_profit_buy, stop_loss_buy)
-                            self.trade_buy_in_candle_cnt[symbol] += 1
 
             elif signal_re_entrance == -1:  # re entrance sell signal
                 if self.launcher_config.multi_position or\
@@ -421,7 +422,6 @@ class Launcher(DWX_ZMQ_Strategy):
                             print(f"Re Entrance Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
                             print("________________________________________________________________________________")
                             self.sell(symbol, volume, take_profit_sell, stop_loss_sell)
-                            self.trade_sell_in_candle_cnt[symbol] += 1
 
     ##########################################################################
     def run(self):
