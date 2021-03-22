@@ -400,7 +400,8 @@ class Launcher(DWX_ZMQ_Strategy):
 
             if signal_re_entrance == 1:  # re entrance buy signal
                 if self.launcher_config.multi_position or\
-                        (not self.launcher_config.multi_position and len(self.open_buy_trades[symbol]) == 0):
+                        (not self.launcher_config.multi_position and len(self.open_buy_trades[symbol]) == 0 and
+                        not self.is_algorithm_signal[symbol]):
                     if not self.launcher_config.enable_max_trade_per_candle or \
                             (self.launcher_config.enable_max_trade_per_candle and self.trade_buy_in_candle_cnt[symbol] < self.launcher_config.max_trade_per_candle):
                         if not self.launcher_config.force_re_entrance_price or min_bid_tick_price <= price_re_entrance <= max_bid_tick_price:
@@ -411,7 +412,8 @@ class Launcher(DWX_ZMQ_Strategy):
 
             elif signal_re_entrance == -1:  # re entrance sell signal
                 if self.launcher_config.multi_position or\
-                        (not self.launcher_config.multi_position and len(self.open_sell_trades[symbol]) == 0):
+                        (not self.launcher_config.multi_position and len(self.open_sell_trades[symbol]) == 0 and
+                        not self.is_algorithm_signal[symbol]):
                     if not self.launcher_config.enable_max_trade_per_candle or \
                             (self.launcher_config.enable_max_trade_per_candle and self.trade_sell_in_candle_cnt[
                                 symbol] < self.launcher_config.max_trade_per_candle):
