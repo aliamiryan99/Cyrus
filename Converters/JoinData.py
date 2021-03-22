@@ -9,8 +9,8 @@ def join_data(data1, data2):
     total_data = data1[:middle_index] + data2
     return total_data
 
-category = "CFD"
-symbol = "US30USD"
+category = "Major"
+symbol = "USDJPY"
 time_frame1 = "M1_2017"
 time_frame2 = "M1_2019"
 time_frame_output = "M1"
@@ -21,3 +21,5 @@ data2 = read_data(category, symbol, time_frame2)
 total_data = join_data(data1, data2)
 
 save_data(total_data, category, symbol, time_frame_output)
+
+print("Completed")

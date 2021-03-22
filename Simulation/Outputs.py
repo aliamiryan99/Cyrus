@@ -184,7 +184,9 @@ def init_outputs(profits, positions, simulation, balance_history, equity_history
     if average_aum == 0:
         annualized_turnover = 0
     else:
-        annualized_turnover = round((total_profit / balance_history[0][2]) ** (1/float(backtest_years)), 3)
+        annualized_turnover = round(abs((total_profit / balance_history[0][2])) ** (1/float(backtest_years)), 3)
+        if total_profit < 0:
+            annualized_turnover *= -1
     if (won_short_trade + won_long_trade) == 0:
         average_profit_trade = 0
         average_profit_trade_pip = 0

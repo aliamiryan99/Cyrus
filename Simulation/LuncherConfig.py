@@ -7,13 +7,13 @@ from AccountManagment import AccountManagment
 class LauncherConfig:
     # Hyper Parameters
     categories = ["Major", "Metal", "CFD"]
-    symbols = ["GBPUSD", "XAUUSD", "US30USD"]
+    symbols = ["AUDUSD"]
     symbols_ratio = [4, 3, 3]
     history_size = 50
     algorithm_time_frame = "D"
     trailing_time_frame = "H12"
     algorithm_name = "SI&ReEntrance"
-    tag = "LossLimit2"
+    tag = "AUDUSD"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
         # Simple Idea
