@@ -7,13 +7,13 @@ from AccountManagment import AccountManagment
 class LauncherConfig:
     # Hyper Parameters
     categories = ["Major", "Metal", "CFD"]
-    symbols = ["AUDUSD"]
+    symbols = ["GBPUSD", "XAUUSD", "US30USD"]
     symbols_ratio = [4, 3, 3]
     history_size = 50
     algorithm_time_frame = "D"
     trailing_time_frame = "H12"
     algorithm_name = "SI&ReEntrance"
-    tag = "AUDUSD"
+    tag = "OnlyReEntrance&LossLimit2"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
         # Simple Idea
@@ -59,7 +59,7 @@ class LauncherConfig:
         # Options
         self.multi_position = False     # if false only one position with same direction can be placed
         self.force_close_on_algorithm_price = True  # if true positions only close in algorithm price ( for gaps )
-
+        self.algorithm_virtual_signal = True    # if true algorithm positions don't executed (only re_entrance)
 
         # Algorithm Section
         self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i],

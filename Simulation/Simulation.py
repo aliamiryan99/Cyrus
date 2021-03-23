@@ -115,12 +115,15 @@ total, len_data, test_years, difference = 0, 0, 0, 0
 simulation, start_date, end_date, date_format, risk, time_frame_input, time_frame_show = 0, 0, 0, 0, 1, 0, 0
 output_dir = ""
 
-spreads = Config.spreads
+
 symbols_dict = Config.symbols_dict
 symbols_list = Config.symbols_list
 symbols_pip = Config.symbols_pip
 symbols_show = Config.symbols_show
 symbols_pip_value = Config.symbols_pip_value
+spreads = Config.spreads
+for key in spreads.keys():
+    spreads[key] *= 10**-symbols_pip[key]
 
 volume_digit = Config.volume_digit
 
@@ -276,7 +279,7 @@ class Simulation:
 
         if self.order_possible(start_price, volume, symbol):
             self.open_buy_positions.append({'start_gmt': start_gmt,
-                                            'start_price': start_price + (spreads[symbol] / 10 ** symbols_pip[symbol]),
+                                            'start_price': start_price + (spreads[symbol]),
                                             'symbol': symbol, 'take_profit': take_profit, 'stop_loss': stop_loss,
                                             'volume': volume, 'closed_volume': 0, 'ticket': ticket})
             # self.close_all_symbol('sell', symbol, row['GMT'], row['Open'])
@@ -371,7 +374,7 @@ class Simulation:
                 self.open_buy_positions.remove(position)
 
         elif t == 'sell':
-            price = price + (spreads[position['symbol']] / 10 ** symbols_pip[position['symbol']])
+            price = price + (spreads[position['symbol']])
             if position['closed_volume'] == 0:
                 self.closed_sell_positions.append(
                     {'start_gmt': position['start_gmt'], 'start_price': position['start_price'], 'end_gmt': gmt,
@@ -420,7 +423,7 @@ class Simulation:
                                 break
         elif t == 'sell':
             for position in self.open_sell_positions:
-                price = price + (spreads[position['symbol']] / 10 ** symbols_pip[position['symbol']])
+                price = price + (spreads[position['symbol']])
                 if position['symbol'] == symbol:
                     self.open_sell_positions.remove(position)
                     if position['volume'] == 0:
@@ -464,7 +467,7 @@ class Simulation:
         for position in self.open_sell_positions:
             i = self.last_index[position['symbol']]
             price = data[symbols_dict[position['symbol']]][i]['Close'] \
-                    + (spreads[position['symbol']] / 10 ** symbols_pip[position['symbol']])
+                    + (spreads[position['symbol']])
             if position['closed_volume'] == 0:
                 self.closed_sell_positions.append(
                     {'start_gmt': position['start_gmt'], 'start_price': position['start_price'],
@@ -488,10 +491,9 @@ class Simulation:
         """
             check possibility of your order
         """
-        LOT = 10 ** symbols_pip[symbol]
         margin = self.margin + self.cal_margin('buy', symbol, price, volume)
         equity = self.equity + self.cal_profit('buy', symbol, price,
-                                               price - (spreads[symbol] / LOT), volume)
+                                               price - (spreads[symbol]), volume)
         return ((equity / margin) * 100) > 120
 
     def get_margin(self):
@@ -517,7 +519,7 @@ class Simulation:
             if time != data[symbols_dict[position['symbol']]][i]['GMT']:
                 self.equity += self.cal_profit('sell', position['symbol'], position['start_price'],
                                                data[symbols_dict[position['symbol']]][i]['Open']
-                                               + (spreads[position['symbol']] / 10 ** symbols_pip[position['symbol']]),
+                                               + (spreads[position['symbol']]),
                                                position['volume'])  # add profit
         return self.equity
 
@@ -559,7 +561,7 @@ class Simulation:
             row = data[symbols_dict[position['symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             if time < row['GMT'] and position['stop_loss'] != 0:
-                if row['Low'] < position['stop_loss']:
+                if row['Low'] <= position['stop_loss']:
                     self.close(row['GMT'], position['stop_loss'], position['volume'],
                                position['ticket'], 'Stop Loss')
 
@@ -569,7 +571,7 @@ class Simulation:
             row = data[symbols_dict[position['symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             if time < row['GMT'] and position['stop_loss'] != 0:
-                if row['High'] > position['stop_loss']:
+                if row['High'] + spreads[position['symbol']] >= position['stop_loss']:
                     self.close(row['GMT'], position['stop_loss'], position['volume'],
                                position['ticket'], 'Stop Loss')
 
@@ -593,7 +595,7 @@ class Simulation:
             row = data[symbols_dict[position['symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
             if time <= row['GMT'] and position['take_profit'] != 0:
-                if row['Low'] < position['take_profit']:
+                if row['Low'] + spreads[position['symbol']] <= position['take_profit']:
                     self.close(row['GMT'], position['take_profit'], position['volume'],
                                position['ticket'], 'Take Profit')
 
@@ -607,7 +609,7 @@ class Simulation:
                 self.open_buy_limits.remove(buy)
         for sell in self.open_sell_limits:
             i = self.last_index[sell['symbol']]
-            if data[symbols_dict[sell['symbol']]][i]['High'] >= sell['price']:
+            if data[symbols_dict[sell['symbol']]][i]['High'] + spreads[sell['symbol']] >= sell['price']:
                 self.sell(data[symbols_dict[sell['symbol']]][i]['GMT'], sell['price'], sell['symbol'],
                           sell['take_profit'], sell['stop_loss'],
                           sell['volume'], sell['ticket'])
