@@ -13,7 +13,7 @@ class LauncherConfig:
     algorithm_time_frame = "D"
     trailing_time_frame = "H12"
     algorithm_name = "SI&ReEntrance"
-    tag = "OnlyReEntrance&LossLimit2"
+    tag = "Normal"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
         # Simple Idea
@@ -52,14 +52,14 @@ class LauncherConfig:
         self.max_trade_per_candle = 1  # if 1 only 1 trade can be placed for each candle
         self.re_entrance_distance_limit = 3
         self.force_re_entrance_price = False
-        self.re_entrance_loss_enable = True
+        self.re_entrance_loss_enable = False
         self.re_entrance_loss_limit = 2
         self.re_entrance_loss_threshold = 0     # loss pip threshold
 
         # Options
         self.multi_position = False     # if false only one position with same direction can be placed
         self.force_close_on_algorithm_price = True  # if true positions only close in algorithm price ( for gaps )
-        self.algorithm_virtual_signal = True    # if true algorithm positions don't executed (only re_entrance)
+        self.algorithm_virtual_signal = False    # if true algorithm positions don't executed (only re_entrance)
 
         # Algorithm Section
         self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i],

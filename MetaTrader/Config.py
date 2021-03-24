@@ -16,5 +16,5 @@ class Config:
                     'USDCHF', 'USDJPY', 'AUDUSD', 'GOLD', 'SILVER', 'US30.MAY1']
     symbols_pip = {'EURUSD.I': 5, 'GBPUSD.I': 5, 'NZDUSD.I': 5, 'USDCAD.I': 5, 'USDCHF.I': 5,
                      'USDJPY.I': 3, 'AUDUSD.I': 5, 'XAUUSD.I': 2, 'XAGUSD.I': 3, 'US30.JUN1': 0,
-                   'EURUSD': 5, 'GBPUSD': 5, 'NZDUSD': 5, 'USDCAD': 5, 'USDCHF': 5,
-                   'USDJPY': 3, 'AUDUSD': 5, 'GOLD': 2, 'SILVER': 3, 'US30.MAY1': 1}
+                   'EURUSD': 4, 'GBPUSD': 4, 'NZDUSD': 4, 'USDCAD': 4, 'USDCHF': 4,
+                   'USDJPY': 2, 'AUDUSD': 4, 'GOLD': 1, 'SILVER': 2, 'US30.MAY1': 1}

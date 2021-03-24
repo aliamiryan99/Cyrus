@@ -66,19 +66,19 @@ def initialize():
 def get_identifier(time, time_frame):
     identifier = time.day
     if time_frame == "H12":
-        identifier = time.hour // 12
+        identifier += time.hour // 12
     if time_frame == "H4":
-        identifier = time.hour // 4
+        identifier += time.hour // 4
     if time_frame == "H1":
-        identifier = time.hour
+        identifier += time.hour
     if time_frame == "M30":
-        identifier = time.minute // 30
+        identifier += time.hour + time.minute // 30
     if time_frame == "M15":
-        identifier = time.minute // 15
+        identifier += time.hour + time.minute // 15
     if time_frame == "M5":
-        identifier = time.minute // 5
+        identifier += time.hour + time.minute // 5
     if time_frame == "M1":
-        identifier = time.minute
+        identifier += time.hour + time.minute
     return identifier
 
 
@@ -182,8 +182,8 @@ def launch():
             history_time = get_identifier(history[-1]['GMT'], config.algorithm_time_frame)
             algorithm_time = get_identifier(algorithm_histories[symbol][-1]['GMT'], config.algorithm_time_frame)
 
-            # if symbol == 'GBPUSD' and data_time == datetime(year=2020, month=3, day=10, hour=14, minute=20):
-            #     print(data_time)
+            if symbol == 'US30USD' and data_time == datetime(year=2020, month=2, day=16, hour=23, minute=0):
+                print(data_time)
 
             if history[-1]['Volume'] == 0:
                 continue
@@ -249,7 +249,7 @@ def launch():
             # Account Management Section
             volume = account_managements[symbol].calculate(market.balance, abs(first_stop_loss - price), symbol)
 
-            # Simulation Section
+            # Algorithm Execution Section
             if signal == 1:  # buy signal
                 if config.multi_position or (not config.multi_position and market.get_open_buy_positions_count(symbol) == 0):
                     if not config.enable_max_trade_per_candle or \
