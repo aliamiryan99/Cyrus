@@ -58,7 +58,7 @@ class LauncherConfig:
 
         # Options
         self.multi_position = False     # if false only one position with same direction can be placed
-        self.force_close_on_algorithm_price = True  # if true positions only close in algorithm price ( for gaps )
+        self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
         self.algorithm_virtual_signal = False    # if true algorithm positions don't executed (only re_entrance)
 
         # Algorithm Section

@@ -987,7 +987,7 @@ def show_candlestick(name, df, positions_df, df_balance, df_equity, start, trend
                                  trends, extends)
 
 
-def get_output(simulation, trends = None, extends=None):
+def get_output(simulation, trends=None, extends=None):
     global output_dir
     output_dir = "Outputs/" + LauncherConfig.algorithm_name + "/" + LauncherConfig.algorithm_time_frame +\
                  "_" + LauncherConfig.trailing_time_frame + "_" + Config.time_frame + "/" + LauncherConfig.tag + "/"

@@ -1,7 +1,7 @@
 
 class Config:
     DEBUG = False
-    time_frame = "H1"
+    time_frame = "M1"
     time_frame_show = "H12"
     balance = 10000
     leverage = 100
