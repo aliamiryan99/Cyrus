@@ -242,8 +242,7 @@ def algorithm_execute(market, history, signal, price, config, data_time, symbol,
         if config.multi_position or (
                 not config.multi_position and market.get_open_buy_positions_count(symbol) == 0):
             if not config.enable_max_trade_per_candle or \
-                    (config.enable_max_trade_per_candle and trade_buy_in_candle_counts[
-                        symbol] < config.max_trade_per_candle):
+                    (config.enable_max_trade_per_candle and trade_buy_in_candle_counts[symbol] < config.max_trade_per_candle):
                 if config.algorithm_force_price and history[-1]['Low'] <= price <= history[-1]['High'] or\
                         not config.algorithm_force_price:
                     if not config.algorithm_force_price and not history[-1]['Low'] <= price <= history[-1]['High']:

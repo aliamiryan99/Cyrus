@@ -1,4 +1,5 @@
 from Algorithms.SimpleIdeaAlgorithm import SIAlgorithm
+from Algorithms.RefinementSiAlgorithm import RSIAlgorithm
 from RepairmentAlgorithms.ReEntranceAlgorithm import ReEntrance
 from AlgorithmsExit.AdvancedTrailing import AdvTraling
 from AlgorithmsExit.StatisticSL import StatisticSL
@@ -52,16 +53,18 @@ class LauncherConfig:
         self.force_re_entrance_price = False
         self.re_entrance_loss_enable = False
         self.re_entrance_loss_limit = 2
-        self.re_entrance_loss_threshold = 6  # loss pip threshold
+        self.re_entrance_loss_threshold = 0  # loss pip threshold
 
         # Options
         self.multi_position = False  # if false only one position with same direction can be placed
+        self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = True  # if true positions only close in algorithm price ( for gaps )
         self.force_region = 50
-
+        self.algorithm_virtual_signal = False  # if true algorithm positions don't executed (only re_entrance)
 
         # Algorithm Section
         self.algorithm = SIAlgorithm(symbol, data, self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
+        #self.algorithm = RSIAlgorithm(symbol, data, self.rsi_win_inc, self.rsi_win_dec, self.rsi_pivot)
         # self.algorithm = MinMaxAlgorithm(LauncherConfig.symbol, data, self.min_max_window_exteremum, self.min_max_window_trend, self.min_max_mode_trend)
         # self.algorithm = RegressionAlgorithm(LauncherConfig.symbol, data, self.reg_alpha, self.reg_beta, self.reg_window_exteremum)
 
