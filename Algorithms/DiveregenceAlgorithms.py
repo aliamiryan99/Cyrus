@@ -42,7 +42,7 @@ class SIAlgorithm:
         self.upper_line_tr = upper_line_tr
         self.alpha = alpha
 
-    def on_tick(self, candle):
+    def on_tick(self):
         return 0, 0
 
     def on_data(self, candle):

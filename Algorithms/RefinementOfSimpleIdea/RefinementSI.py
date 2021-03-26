@@ -1,4 +1,5 @@
-def RefinementSI(window, winInc, winDec):
+
+def refinement_si(window, win_inc, win_dec, pivot):
     # %% -------- find Top and ciel value of each candle
     winSize = len(window)
     topCandle = [0] * winSize
@@ -6,12 +7,12 @@ def RefinementSI(window, winInc, winDec):
 
     for i in range(0, winSize):
         # store the top/bottom value of all candles
-        if window[i]['open'] > window[i]['close']:
-            topCandle[i] = window[i]['open']
-            bottomCandle[i] = window[i]['close']
+        if window[i]['Open'] > window[i]['Close']:
+            topCandle[i] = window[i]['Open']
+            bottomCandle[i] = window[i]['Close']
         else:
-            topCandle[i] = window[i]['close']
-            bottomCandle[i] = window[i]['open']
+            topCandle[i] = window[i]['Close']
+            bottomCandle[i] = window[i]['Open']
 
     # %% ---------  find up/down trend and wait for its reversion
     # winInc = 5
@@ -19,19 +20,19 @@ def RefinementSI(window, winInc, winDec):
 
     # -- check the decreasing trend reversion
     cnt = 0
-    for j in range(0, winDec):
-        if (topCandle[winSize - j - 2] <= topCandle[winSize - j - 3]) and (window[winSize - j - 2]['open'] > window[winSize - j - 2]['close']):
+    for j in range(0, win_dec):
+        if topCandle[-j - 2] <= topCandle[-j - 3] and window[-j - 2]['Close'] < window[-j - 2]['Open']:
             cnt += 1
-    if (cnt == winDec) and window[winSize - 1]['high'] > window[winSize-3]['high']:
-        return 1, window[winSize-3]['high']
+    if cnt == win_dec and window[-1]['High'] > window[-pivot-1]['High']:
+        return 1, window[-pivot-1]['High']
 
     # -- check the increasing trend reversion
     cnt = 0
-    for j in range(0, winInc):
-        if (bottomCandle[winSize - j - 2] >= bottomCandle[winSize - j - 3]) and (window[winSize - j - 2]['open'] < window[winSize - j - 2]['close']):
+    for j in range(0, win_inc):
+        if bottomCandle[-j - 2] >= bottomCandle[-j - 3] and window[-j - 2]['Close'] > window[-j - 2]['Open']:
             cnt += 1
-    if (cnt == winInc) and window[winSize - 1]['low'] < window[winSize-3]['low']:
-        return -1, window[winSize-3]['low']
+    if cnt == win_inc and window[-1]['Low'] < window[-pivot-1]['Low']:
+        return -1, window[-pivot-1]['Low']
 
     return 0, 0
 

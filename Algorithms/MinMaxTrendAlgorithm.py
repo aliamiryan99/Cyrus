@@ -12,7 +12,7 @@ class MinMaxAlgorithm:
         self.mode_trend = mode_trend
         self.data_window = data_history
 
-    def on_tick(self, candle):
+    def on_tick(self):
         return 0, 0
 
     def on_data(self, candle):

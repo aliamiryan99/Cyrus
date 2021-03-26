@@ -1,4 +1,5 @@
 from Algorithms.SimpleIdeaAlgorithm import SIAlgorithm
+from Algorithms.RefinementSiAlgorithm import RSIAlgorithm
 from RepairmentAlgorithms.ReEntranceAlgorithm import ReEntrance
 from AlgorithmsExit.AdvancedTrailing import AdvTraling
 from AlgorithmsExit.StatisticSL import StatisticSL
@@ -12,7 +13,7 @@ class LauncherConfig:
     history_size = 50
     algorithm_time_frame = "D"
     trailing_time_frame = "H12"
-    algorithm_name = "SI&ReEntrance"
+    algorithm_name = "RefinementSI"
     tag = "Normal"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
@@ -21,6 +22,10 @@ class LauncherConfig:
         self.si_win_dec = 2
         self.si_shadow_threshold = 10
         self.si_body_threshold = 0
+        # Refinement Simple Idea
+        self.rsi_win_inc = 2
+        self.rsi_win_dec = 2
+        self.rsi_pivot = 2
         # Min Max Trend
         self.min_max_window_exteremum = 1
         self.min_max_window_trend = 1
@@ -47,7 +52,7 @@ class LauncherConfig:
         self.wave_alpha = 0.2
         self.wave_beta = 0.6
         # Re Entrance
-        self.re_entrance_enable = True  # if true the re entrance algorithm will execute
+        self.re_entrance_enable = False  # if true the re entrance algorithm will execute
         self.enable_max_trade_per_candle = True  # if true only max_taade_per_candle can be placed on one candle
         self.max_trade_per_candle = 1  # if 1 only 1 trade can be placed for each candle
         self.re_entrance_distance_limit = 3
@@ -58,12 +63,15 @@ class LauncherConfig:
 
         # Options
         self.multi_position = False     # if false only one position with same direction can be placed
+        self.algorithm_force_price = False   # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
         self.algorithm_virtual_signal = False    # if true algorithm positions don't executed (only re_entrance)
 
         # Algorithm Section
-        self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i],
-                                     self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
+        #self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i],
+        #                             self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
+        self.algorithm = RSIAlgorithm(symbol, data[start_i - self.history_size:start_i], self.rsi_win_inc,
+                                      self.rsi_win_dec, self.rsi_pivot)
         #self.algorithm = MinMaxAlgorithm(LauncherConfig.symbol, Data[start_i - self.history_size:start_i], self.min_max_window_exteremum, self.min_max_window_trend, self.min_max_mode_trend)
         #self.algorithm = RegressionAlgorithm(LauncherConfig.symbol, Data[start_i - self.history_size:start_i], self.reg_alpha, self.reg_beta, self.reg_window_exteremum)
 

@@ -41,7 +41,7 @@ class MAAlgorithm:
         self.ma_old1 = self.ma_indicator(data_history[price_type], window_size1).to_list()[-1]
         self.ma_old2 = self.ma_indicator(data_history[price_type], window_size2).to_list()[-1]
 
-    def on_tick(self, candle):
+    def on_tick(self):
         return 0, 0
 
     def on_data(self, candle):

@@ -176,21 +176,19 @@ def update_history(history, algorithm_histories, trailing_histories, algorithm, 
     if history_time != algorithm_time:
         # New Candle Open Section
         last_candle = {"GMT": history[-1]['GMT'], "Open": history[-1]['Open'], "High": history[-1]['High'],
-                       "Low": history[-1]['Low'], "Close": history[-1]['Close'],
-                       "Volume": history[-1]['Volume']}
+                       "Low": history[-1]['Low'], "Close": history[-1]['Close'],"Volume": history[-1]['Volume']}
         algorithm_histories[symbol].append(last_candle)
         algorithm_histories[symbol].pop(0)
         signal, price = algorithm.on_data(algorithm_histories[symbol][-1])
         re_entrance_algorithm.on_data()
     else:
         # Update Last Candle Section
-        algorithm_histories[symbol][-1]['High'] = max(algorithm_histories[symbol][-1]['High'],
-                                                      history[-1]['High'])
+        algorithm_histories[symbol][-1]['High'] = max(algorithm_histories[symbol][-1]['High'],history[-1]['High'])
         algorithm_histories[symbol][-1]['Low'] = min(algorithm_histories[symbol][-1]['Low'], history[-1]['Low'])
         algorithm_histories[symbol][-1]['Close'] = history[-1]['Close']
         algorithm_histories[symbol][-1]['Volume'] += history[-1]['Volume']
         # Signal Section
-        signal, price = algorithm.on_tick(algorithm_histories[symbol][-1])
+        signal, price = algorithm.on_tick()
 
     # Trailing Time ID
     trailing_time = get_time_id(trailing_histories[symbol][-1]['GMT'], config.trailing_time_frame)
@@ -237,7 +235,7 @@ def tp_sl(close_modes, tp_sl_tool, algorithm_histories, signal, price, symbol):
     return take_profit, stop_loss, first_stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell
 
 
-def algorithm_execute(market, signal, price, config, data_time, symbol, take_profit_buy, stop_loss_buy, take_profit_sell,
+def algorithm_execute(market, history, signal, price, config, data_time, symbol, take_profit_buy, stop_loss_buy, take_profit_sell,
                       stop_loss_sell, volume, last_ticket, last_algorithm_signal_ticket, virtual_buys, virtual_sells,
                       trade_buy_in_candle_counts, trade_sell_in_candle_counts):
     if signal == 1:  # buy signal
@@ -246,19 +244,23 @@ def algorithm_execute(market, signal, price, config, data_time, symbol, take_pro
             if not config.enable_max_trade_per_candle or \
                     (config.enable_max_trade_per_candle and trade_buy_in_candle_counts[
                         symbol] < config.max_trade_per_candle):
-                if not config.algorithm_virtual_signal:
-                    market.buy(data_time, price, symbol, take_profit_buy, stop_loss_buy, volume, last_ticket)
-                    last_algorithm_signal_ticket[symbol] = last_ticket
-                    last_ticket += 1
-                    trade_buy_in_candle_counts[symbol] += 1
-                else:
-                    virtual_buys[symbol].append({'start_gmt': data_time,
-                                                 'start_price': price,
-                                                 'symbol': symbol, 'take_profit': take_profit_buy,
-                                                 'stop_loss': stop_loss_buy,
-                                                 'volume': volume, 'closed_volume': 0, 'ticket': -1})
-                    last_algorithm_signal_ticket[symbol] = -1
-                    trade_buy_in_candle_counts[symbol] += 1
+                if config.algorithm_force_price and history[-1]['Low'] <= price <= history[-1]['High'] or\
+                        not config.algorithm_force_price:
+                    if not config.algorithm_force_price and not history[-1]['Low'] <= price <= history[-1]['High']:
+                        price = history[-1]['Open']
+                    if not config.algorithm_virtual_signal:
+                        market.buy(data_time, price, symbol, take_profit_buy, stop_loss_buy, volume, last_ticket)
+                        last_algorithm_signal_ticket[symbol] = last_ticket
+                        last_ticket += 1
+                        trade_buy_in_candle_counts[symbol] += 1
+                    else:
+                        virtual_buys[symbol].append({'start_gmt': data_time,
+                                                     'start_price': price,
+                                                     'symbol': symbol, 'take_profit': take_profit_buy,
+                                                     'stop_loss': stop_loss_buy,
+                                                     'volume': volume, 'closed_volume': 0, 'ticket': -1})
+                        last_algorithm_signal_ticket[symbol] = -1
+                        trade_buy_in_candle_counts[symbol] += 1
 
     elif signal == -1:  # sell signal
         if config.multi_position or (
@@ -266,19 +268,23 @@ def algorithm_execute(market, signal, price, config, data_time, symbol, take_pro
             if not config.enable_max_trade_per_candle or \
                     (config.enable_max_trade_per_candle and trade_sell_in_candle_counts[
                         symbol] < config.max_trade_per_candle):
-                if not config.algorithm_virtual_signal:
-                    market.sell(data_time, price, symbol, take_profit_sell, stop_loss_sell, volume, last_ticket)
-                    last_algorithm_signal_ticket[symbol] = last_ticket
-                    last_ticket += 1
-                    trade_sell_in_candle_counts[symbol] += 1
-                else:
-                    virtual_sells[symbol].append({'start_gmt': data_time,
-                                                  'start_price': price,
-                                                  'symbol': symbol, 'take_profit': take_profit_sell,
-                                                  'stop_loss': stop_loss_sell,
-                                                  'volume': volume, 'closed_volume': 0, 'ticket': -1})
-                    last_algorithm_signal_ticket[symbol] = -1
-                    trade_sell_in_candle_counts[symbol] += 1
+                if config.algorithm_force_price and history[-1]['Low'] <= price <= history[-1]['High'] or\
+                        not config.algorithm_force_price:
+                    if not config.algorithm_force_price and not history[-1]['Low'] <= price <= history[-1]['High']:
+                        price = history[-1]['Open']
+                    if not config.algorithm_virtual_signal:
+                        market.sell(data_time, price, symbol, take_profit_sell, stop_loss_sell, volume, last_ticket)
+                        last_algorithm_signal_ticket[symbol] = last_ticket
+                        last_ticket += 1
+                        trade_sell_in_candle_counts[symbol] += 1
+                    else:
+                        virtual_sells[symbol].append({'start_gmt': data_time,
+                                                      'start_price': price,
+                                                      'symbol': symbol, 'take_profit': take_profit_sell,
+                                                      'stop_loss': stop_loss_sell,
+                                                      'volume': volume, 'closed_volume': 0, 'ticket': -1})
+                        last_algorithm_signal_ticket[symbol] = -1
+                        trade_sell_in_candle_counts[symbol] += 1
     return last_ticket
 
 
@@ -490,7 +496,7 @@ def launch():
             re_entrance_algorithm = re_entrance_algorithms[symbol]
 
             # Debug Section
-            if symbol == 'US30USD' and data_time == datetime(year=2017, month=2, day=7, hour=0, minute=0):
+            if symbol == 'XAUUSD' and data_time == datetime(year=2017, month=4, day=23, hour=22, minute=0):
                 print(data_time)
 
             # Ignore Holidays
@@ -510,8 +516,8 @@ def launch():
             volume = account_managements[symbol].calculate(market.balance, abs(first_stop_loss - price), symbol)
 
             # Algorithm Execution
-            last_ticket = algorithm_execute(market, signal, price, config, data_time, symbol, take_profit_buy, stop_loss_buy,
-                                            take_profit_sell, stop_loss_sell, volume, last_ticket,
+            last_ticket = algorithm_execute(market, history, signal, price, config, data_time, symbol, take_profit_buy,
+                                            stop_loss_buy, take_profit_sell, stop_loss_sell, volume, last_ticket,
                                             last_algorithm_signal_ticket, virtual_buys, virtual_sells,
                                             trade_buy_in_candle_counts, trade_sell_in_candle_counts)
 

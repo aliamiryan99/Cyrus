@@ -146,24 +146,6 @@ class Launcher(DWX_ZMQ_Strategy):
         # lock for acquire/release of ZeroMQ connector
         self._lock = Lock()
 
-    def get_identifier(self, time, time_frame):
-        identifier = time.day
-        if time_frame == "H12":
-            identifier = time.hour // 12
-        if time_frame == "H4":
-            identifier = time.hour // 4
-        if time_frame == "H1":
-            identifier = time.hour
-        if time_frame == "M30":
-            identifier = time.minute // 30
-        if time_frame == "M15":
-            identifier = time.minute // 15
-        if time_frame == "M5":
-            identifier = time.minute // 5
-        if time_frame == "M1":
-            identifier = time.minute
-        return identifier
-
     def aggregate_data(self, histories, time_frame):
         old_id = self.get_identifier(histories[0]['Time'], time_frame)
         new_history = []
@@ -178,6 +160,200 @@ class Launcher(DWX_ZMQ_Strategy):
                 new_history[-1]['Low'] = max(new_history[-1]['Low'], histories[i]['Low'])
                 new_history[-1]['Close'] = histories[i]['Close']
         return new_history
+
+    @staticmethod
+    def get_identifier(time, time_frame):
+        identifier = time.day
+        if time_frame == "H12":
+            identifier = time.day * 2 + time.hour // 12
+        if time_frame == "H4":
+            identifier = time.day * 6 + time.hour // 4
+        if time_frame == "H1":
+            identifier = time.day * 24 + time.hour
+        if time_frame == "M30":
+            identifier = time.hour * 2 + time.minute // 30
+        if time_frame == "M15":
+            identifier = time.hour * 4 + time.minute // 15
+        if time_frame == "M5":
+            identifier = time.hour * 12 + time.minute // 5
+        if time_frame == "M1":
+            identifier = time.hour * 60 + time.minute
+        return identifier
+
+    def update_history(self, time, symbol, bid):
+        time_identifier = Launcher.get_identifier(time, self.algorithm_time_frame)
+        trailing_time_identifier = Launcher.get_identifier(time, self.trailing_time_frame)
+
+        if self._time_identifiers[symbol] != time_identifier:
+            # New Candle Open Section
+            self._time_identifiers[symbol] = time_identifier
+            last_candle = {"Time": time, "Open": bid, "High": bid,
+                           "Low": bid, "Close": bid, "Volume": 1}
+            self._histories[symbol].append(last_candle)
+            self._histories[symbol].pop(0)
+            signal, price = self._algorithms[symbol].on_data(self._histories[symbol][-1])
+            self._re_entrance_algorithms[symbol].on_data()
+            print(symbol)
+            print(pd.DataFrame(self._histories[symbol][-2:]))
+            print("________________________________________________________________________________")
+        else:
+            # Update Last Candle Section
+            self._histories[symbol][-1]['High'] = max(self._histories[symbol][-1]['High'], bid)
+            self._histories[symbol][-1]['Low'] = min(self._histories[symbol][-1]['Low'], bid)
+            self._histories[symbol][-1]['Close'] = bid
+            self._histories[symbol][-1]['Volume'] += 1
+            # Signal Section
+            signal, price = self._algorithms[symbol].on_tick()
+
+        if self._trailing_time_identifiers[symbol] != trailing_time_identifier:
+            # New Candle Open Section
+            self._trailing_time_identifiers[symbol] = trailing_time_identifier
+            last_candle = {"Time": time, "Open": bid, "High": bid,
+                           "Low": bid, "Close": bid, "Volume": 1}
+            self._trailing_histories[symbol].append(last_candle)
+            self._trailing_histories[symbol].pop(0)
+            self.trade_buy_in_candle_cnt[symbol] = 0
+            self.trade_sell_in_candle_cnt[symbol] = 0
+            self._trailing_tools[symbol].on_data(self._trailing_histories[symbol][:-1])
+            self._reporting._get_balance()
+            print(f"{symbol} Trailing")
+            print(pd.DataFrame(self._histories[symbol][-2:]))
+            print("________________________________________________________________________________")
+        else:
+            # Update Last Candle Section
+            self._trailing_histories[symbol][-1]['High'] = max(self._trailing_histories[symbol][-1]['High'], bid)
+            self._trailing_histories[symbol][-1]['Low'] = min(self._trailing_histories[symbol][-1]['Low'], bid)
+            self._trailing_histories[symbol][-1]['Close'] = bid
+            self._trailing_histories[symbol][-1]['Volume'] += 1
+
+        return signal, price
+
+    def tp_sl(self, symbol):
+        take_profit_buy, stop_loss_buy = 0, 0
+        take_profit_sell, stop_loss_sell = 0, 0
+        if self._close_modes[symbol] == 'tp_sl' or self._close_modes[symbol] == 'both':
+            take_profit_buy, stop_loss_buy = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'buy')
+            take_profit_sell, stop_loss_sell = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'sell')
+            take_profit_buy *= 10 ** Config.symbols_pip[symbol]
+            stop_loss_buy *= -10 ** Config.symbols_pip[symbol]
+            take_profit_sell *= -10 ** Config.symbols_pip[symbol]
+            stop_loss_sell *= 10 ** Config.symbols_pip[symbol]
+        return take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell
+
+    def algorithm_execute(self, signal, symbol, volume, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell):
+        if signal == 1:  # buy signal
+            if self.launcher_config.multi_position or\
+                    (not self.launcher_config.multi_position and len(self.open_buy_trades[symbol]) == 0):
+                print(f"Buy Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
+                print("________________________________________________________________________________")
+                self.is_algorithm_signal[symbol] = True
+                self.buy(symbol, volume, take_profit_buy, stop_loss_buy)
+
+        elif signal == -1:  # sell signal
+            if self.launcher_config.multi_position or\
+                    (not self.launcher_config.multi_position and len(self.open_sell_trades[symbol]) == 0):
+                print(f"Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
+                print("________________________________________________________________________________")
+                self.is_algorithm_signal[symbol] = True
+                self.sell(symbol, volume, take_profit_sell, stop_loss_sell)
+
+    def trailing(self, symbol, bid, min_bid_tick_price, max_bid_tick_price):
+        if self._close_modes[symbol] == 'trailing' or self._close_modes[symbol] == 'both':
+            open_buy_positions = copy.copy(self.open_buy_trades[symbol])
+            for position in open_buy_positions:
+                if position['_symbol'] == symbol:
+                    entry_point = 0
+                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'buy')
+                    if is_close and min_bid_tick_price <= close_price <= max_bid_tick_price:
+                        region_price = self.launcher_config.force_region * 10 ** -Config.symbols_pip[symbol]
+                        if (self.launcher_config.force_close_on_algorithm_price and
+                            close_price - region_price <= bid <= close_price + region_price) or not self.launcher_config.force_close_on_algorithm_price:
+                            print(f"Close Order Sent [Buy], [{symbol}], [{position['_ticket']}]")
+                            print(
+                                "________________________________________________________________________________")
+                            self.close_sent_cnt[symbol] += 1
+                            self.close(position['_ticket'])
+                            if self.close_sent_cnt[symbol] > 15:
+                                self.open_buy_trades[symbol].remove(position)
+                                self.close_sent_cnt[symbol] = 0
+            open_sell_positions = copy.copy(self.open_sell_trades[symbol])
+            for position in open_sell_positions:
+                if position['_symbol'] == symbol:
+                    entry_point = 0
+                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'sell')
+                    if is_close and min_bid_tick_price <= close_price <= max_bid_tick_price:
+                        region_price = self.launcher_config.force_region * 10**-Config.symbols_pip[symbol]
+                        if (self.launcher_config.force_close_on_algorithm_price and
+                                close_price - region_price <= bid <= close_price + region_price) or not self.launcher_config.force_close_on_algorithm_price:
+                            print(f"Close Order Sent [Sell], [{symbol}], [{position['_ticket']}]")
+                            print(
+                                "________________________________________________________________________________")
+                            self.close_sent_cnt[symbol] += 1
+                            self.close(position['_ticket'])
+                            if self.close_sent_cnt[symbol] > 15:
+                                self.open_sell_trades[symbol].remove(position)
+                                self.close_sent_cnt[symbol] = 0
+
+    def re_entrance(self, symbol, min_bid_tick_price, max_bid_tick_price, take_profit_buy, stop_loss_buy,
+                    take_profit_sell, stop_loss_sell):
+        if self.launcher_config.re_entrance_enable:
+            start_index_position_buy, start_index_position_sell = 0, 0
+            is_algorithm_signal = False
+            profit_in_pip = 0
+            if self.is_buy_closed[symbol]:
+                start_index_position_buy = index_date_v2(self._histories[symbol],
+                                                                 self.last_buy_closed[symbol]['_open_time'])
+                if start_index_position_buy == -1:
+                    start_index_position_buy = len(self._histories[symbol]) - 1
+                if self.last_buy_closed[symbol]['_ticket'] == self.last_algorithm_signal_ticket[symbol]:
+                    is_algorithm_signal = True
+                position = self.last_buy_closed[symbol]
+                profit_in_pip = (position['_close_price'] - position['_open_price']) * 10 ** Config.symbols_pip[symbol] / 10
+            if self.is_sell_closed[symbol]:
+                start_index_position_sell = index_date_v2(self._histories[symbol],
+                                                                  self.last_sell_closed[symbol]['_open_time'])
+                if start_index_position_sell == -1:
+                    start_index_position_sell = len(self._histories[symbol]) - 1
+                if self.last_sell_closed[symbol]['_ticket'] == self.last_algorithm_signal_ticket[symbol]:
+                    is_algorithm_signal = True
+                position = self.last_sell_closed[symbol]
+                profit_in_pip = (position['_open_price'] - position['_close_price']) * 10 ** Config.symbols_pip[symbol] / 10
+
+            signal_re_entrance, price_re_entrance = self._re_entrance_algorithms[symbol].on_tick(self._histories[symbol],
+                                                                                  self.is_buy_closed[symbol], self.is_sell_closed[symbol], profit_in_pip,
+                                                                                  start_index_position_buy, start_index_position_sell,
+                                                                                  len(self._histories[symbol]) - 1)
+            if self.is_buy_closed[symbol]:
+                self.is_buy_closed[symbol] = False
+            if self.is_sell_closed[symbol]:
+                self.is_sell_closed[symbol] = False
+
+            volume = 0
+            if signal_re_entrance == 1 or signal_re_entrance == -1:
+                volume = max(round(self._account_managements[symbol].calculate(self.balance, 0, symbol), 2), 0.01)
+
+            if signal_re_entrance == 1:  # re entrance buy signal
+                if self.launcher_config.multi_position or\
+                        (not self.launcher_config.multi_position and len(self.open_buy_trades[symbol]) == 0 and
+                        not self.is_algorithm_signal[symbol]):
+                    if not self.launcher_config.enable_max_trade_per_candle or \
+                            (self.launcher_config.enable_max_trade_per_candle and self.trade_buy_in_candle_cnt[symbol] < self.launcher_config.max_trade_per_candle):
+                        if not self.launcher_config.force_re_entrance_price or min_bid_tick_price <= price_re_entrance <= max_bid_tick_price:
+                            print(f"Re Entrance Buy Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
+                            print("________________________________________________________________________________")
+                            self.buy(symbol, volume, take_profit_buy, stop_loss_buy)
+
+            elif signal_re_entrance == -1:  # re entrance sell signal
+                if self.launcher_config.multi_position or\
+                        (not self.launcher_config.multi_position and len(self.open_sell_trades[symbol]) == 0 and
+                        not self.is_algorithm_signal[symbol]):
+                    if not self.launcher_config.enable_max_trade_per_candle or \
+                            (self.launcher_config.enable_max_trade_per_candle and self.trade_sell_in_candle_cnt[
+                                symbol] < self.launcher_config.max_trade_per_candle):
+                        if not self.launcher_config.force_re_entrance_price or min_bid_tick_price <= price_re_entrance <= max_bid_tick_price:
+                            print(f"Re Entrance Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
+                            print("________________________________________________________________________________")
+                            self.sell(symbol, volume, take_profit_sell, stop_loss_sell)
 
     ##########################################################################
     def isFinished(self):
@@ -242,67 +418,12 @@ class Launcher(DWX_ZMQ_Strategy):
         min_bid_tick_price = min(bid, self.pre_bid_tick_price[symbol])
         self.pre_bid_tick_price[symbol] = bid
         time = datetime.strptime(time, Config.tick_date_format)
-        time_identifier = self.get_identifier(time, self.algorithm_time_frame)
-        trailing_time_identifier = self.get_identifier(time, self.trailing_time_frame)
 
-        if self._time_identifiers[symbol] != time_identifier:
-            # New Candle Open Section
-            self._time_identifiers[symbol] = time_identifier
-            last_candle = {"Time": time, "Open": bid, "High": bid,
-                          "Low": bid, "Close": bid, "Volume": 1}
-            self._histories[symbol].append(last_candle)
-            self._histories[symbol].pop(0)
-            signal, price = self._algorithms[symbol].on_data(self._histories[symbol][-1])
-            self._re_entrance_algorithms[symbol].on_data()
-            print(symbol)
-            print(pd.DataFrame(self._histories[symbol][-2:]))
-            print("________________________________________________________________________________")
-        else:
-            # Update Last Candle Section
-            self._histories[symbol][-1]['High'] = max(self._histories[symbol][-1]['High'], bid)
-            self._histories[symbol][-1]['Low'] = min(self._histories[symbol][-1]['Low'], bid)
-            self._histories[symbol][-1]['Close'] = bid
-            self._histories[symbol][-1]['Volume'] += 1
-            # Signal Section
-            signal, price = self._algorithms[symbol].on_tick(self._histories[symbol][-1])
-
-        if self._trailing_time_identifiers[symbol] != trailing_time_identifier:
-            # New Candle Open Section
-            self._trailing_time_identifiers[symbol] = trailing_time_identifier
-            last_candle = {"Time": time, "Open": bid, "High": bid,
-                           "Low": bid, "Close": bid, "Volume": 1}
-            self._trailing_histories[symbol].append(last_candle)
-            self._trailing_histories[symbol].pop(0)
-            self.trade_buy_in_candle_cnt[symbol] = 0
-            self.trade_sell_in_candle_cnt[symbol] = 0
-            self._trailing_tools[symbol].on_data(self._trailing_histories[symbol][:-1])
-            self._reporting._get_balance()
-            print(f"{symbol} Trailing")
-            print(pd.DataFrame(self._histories[symbol][-2:]))
-            print("________________________________________________________________________________")
-        else:
-            # Update Last Candle Section
-            self._trailing_histories[symbol][-1]['High'] = max(self._trailing_histories[symbol][-1]['High'], bid)
-            self._trailing_histories[symbol][-1]['Low'] = min(self._trailing_histories[symbol][-1]['Low'], bid)
-            self._trailing_histories[symbol][-1]['Close'] = bid
-            self._trailing_histories[symbol][-1]['Volume'] += 1
+        # Update History
+        signal, price = self.update_history(time, symbol, bid)
 
         # TP_SL Section
-        take_profit, stop_loss, first_stop_loss = 0, 0, 0
-        take_profit_buy, stop_loss_buy = 0, 0
-        take_profit_sell, stop_loss_sell = 0, 0
-        if self._close_modes[symbol] == 'tp_sl' or self._close_modes[symbol] == 'both':
-            take_profit_buy, stop_loss_buy = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'buy')
-            take_profit_sell, stop_loss_sell = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'sell')
-            take_profit_buy *= 10 ** Config.symbols_pip[symbol]
-            stop_loss_buy *= -10 ** Config.symbols_pip[symbol]
-            take_profit_sell *= -10 ** Config.symbols_pip[symbol]
-            stop_loss_sell *= 10 ** Config.symbols_pip[symbol]
-            take_profit, stop_loss = take_profit_buy, stop_loss_buy
-            if signal == -1:
-                take_profit, stop_loss = take_profit_sell, stop_loss_sell
-            first_stop_loss = stop_loss
-
+        take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell = self.tp_sl(symbol)
 
         # Account Management Section
         volume = 0
@@ -310,118 +431,14 @@ class Launcher(DWX_ZMQ_Strategy):
             volume = max(round(self._account_managements[symbol].calculate(self.balance, 0, symbol), 2), 0.01)
 
         # Algorithm Section
-        if signal == 1:  # buy signal
-            if self.launcher_config.multi_position or\
-                    (not self.launcher_config.multi_position and len(self.open_buy_trades[symbol]) == 0):
-                print(f"Buy Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
-                print("________________________________________________________________________________")
-                self.is_algorithm_signal[symbol] = True
-                self.buy(symbol, volume, take_profit_buy, stop_loss_buy)
-
-        elif signal == -1:  # sell signal
-            if self.launcher_config.multi_position or\
-                    (not self.launcher_config.multi_position and len(self.open_sell_trades[symbol]) == 0):
-                print(f"Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
-                print("________________________________________________________________________________")
-                self.is_algorithm_signal[symbol] = True
-                self.sell(symbol, volume, take_profit_sell, stop_loss_sell)
+        self.algorithm_execute(signal, symbol, volume, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell)
 
         # Trailing Stop Section
-        if self._close_modes[symbol] == 'trailing' or self._close_modes[symbol] == 'both':
-            open_buy_positions = copy.copy(self.open_buy_trades[symbol])
-            for position in open_buy_positions:
-                if position['_symbol'] == symbol:
-                    entry_point = 0
-                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'buy')
-                    if is_close and min_bid_tick_price <= close_price <= max_bid_tick_price:
-                        region_price = self.launcher_config.force_region * 10 ** -Config.symbols_pip[symbol]
-                        if (self.launcher_config.force_close_on_algorithm_price and
-                            close_price - region_price <= bid <= close_price + region_price) or not self.launcher_config.force_close_on_algorithm_price:
-                            print(f"Close Order Sent [Buy], [{symbol}], [{position['_ticket']}]")
-                            print(
-                                "________________________________________________________________________________")
-                            self.close_sent_cnt[symbol] += 1
-                            self.close(position['_ticket'])
-                            if self.close_sent_cnt[symbol] > 15:
-                                self.open_buy_trades[symbol].remove(position)
-                                self.close_sent_cnt[symbol] = 0
-            open_sell_positions = copy.copy(self.open_sell_trades[symbol])
-            for position in open_sell_positions:
-                if position['_symbol'] == symbol:
-                    entry_point = 0
-                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'sell')
-                    if is_close and min_bid_tick_price <= close_price <= max_bid_tick_price:
-                        region_price = self.launcher_config.force_region * 10**-Config.symbols_pip[symbol]
-                        if (self.launcher_config.force_close_on_algorithm_price and
-                                close_price - region_price <= bid <= close_price + region_price) or not self.launcher_config.force_close_on_algorithm_price:
-                            print(f"Close Order Sent [Sell], [{symbol}], [{position['_ticket']}]")
-                            print(
-                                "________________________________________________________________________________")
-                            self.close_sent_cnt[symbol] += 1
-                            self.close(position['_ticket'])
-                            if self.close_sent_cnt[symbol] > 15:
-                                self.open_sell_trades[symbol].remove(position)
-                                self.close_sent_cnt[symbol] = 0
+        self.trailing(symbol, bid, min_bid_tick_price, max_bid_tick_price)
 
         # Re Entrance Algorithm Section
-        if self.launcher_config.re_entrance_enable:
-            start_index_position_buy, start_index_position_sell = 0, 0
-            is_algorithm_signal = False
-            profit_in_pip = 0
-            if self.is_buy_closed[symbol]:
-                start_index_position_buy = index_date_v2(self._histories[symbol],
-                                                                 self.last_buy_closed[symbol]['_open_time'])
-                if start_index_position_buy == -1:
-                    start_index_position_buy = len(self._histories[symbol]) - 1
-                if self.last_buy_closed[symbol]['_ticket'] == self.last_algorithm_signal_ticket[symbol]:
-                    is_algorithm_signal = True
-                position = self.last_buy_closed[symbol]
-                profit_in_pip = (position['_close_price'] - position['_open_price']) * 10 ** Config.symbols_pip[symbol] / 10
-            if self.is_sell_closed[symbol]:
-                start_index_position_sell = index_date_v2(self._histories[symbol],
-                                                                  self.last_sell_closed[symbol]['_open_time'])
-                if start_index_position_sell == -1:
-                    start_index_position_sell = len(self._histories[symbol]) - 1
-                if self.last_sell_closed[symbol]['_ticket'] == self.last_algorithm_signal_ticket[symbol]:
-                    is_algorithm_signal = True
-                position = self.last_sell_closed[symbol]
-                profit_in_pip = (position['_open_price'] - position['_close_price']) * 10 ** Config.symbols_pip[symbol] / 10
-
-            signal_re_entrance, price_re_entrance = self._re_entrance_algorithms[symbol].on_tick(self._histories[symbol],
-                                                                                  self.is_buy_closed[symbol], self.is_sell_closed[symbol], profit_in_pip,
-                                                                                  start_index_position_buy, start_index_position_sell,
-                                                                                  len(self._histories[symbol]) - 1)
-            if self.is_buy_closed[symbol]:
-                self.is_buy_closed[symbol] = False
-            if self.is_sell_closed[symbol]:
-                self.is_sell_closed[symbol] = False
-
-            volume = 0
-            if signal_re_entrance == 1 or signal_re_entrance == -1:
-                volume = max(round(self._account_managements[symbol].calculate(self.balance, 0, symbol), 2), 0.01)
-
-            if signal_re_entrance == 1:  # re entrance buy signal
-                if self.launcher_config.multi_position or\
-                        (not self.launcher_config.multi_position and len(self.open_buy_trades[symbol]) == 0 and
-                        not self.is_algorithm_signal[symbol]):
-                    if not self.launcher_config.enable_max_trade_per_candle or \
-                            (self.launcher_config.enable_max_trade_per_candle and self.trade_buy_in_candle_cnt[symbol] < self.launcher_config.max_trade_per_candle):
-                        if not self.launcher_config.force_re_entrance_price or min_bid_tick_price <= price_re_entrance <= max_bid_tick_price:
-                            print(f"Re Entrance Buy Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
-                            print("________________________________________________________________________________")
-                            self.buy(symbol, volume, take_profit_buy, stop_loss_buy)
-
-            elif signal_re_entrance == -1:  # re entrance sell signal
-                if self.launcher_config.multi_position or\
-                        (not self.launcher_config.multi_position and len(self.open_sell_trades[symbol]) == 0 and
-                        not self.is_algorithm_signal[symbol]):
-                    if not self.launcher_config.enable_max_trade_per_candle or \
-                            (self.launcher_config.enable_max_trade_per_candle and self.trade_sell_in_candle_cnt[
-                                symbol] < self.launcher_config.max_trade_per_candle):
-                        if not self.launcher_config.force_re_entrance_price or min_bid_tick_price <= price_re_entrance <= max_bid_tick_price:
-                            print(f"Re Entrance Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
-                            print("________________________________________________________________________________")
-                            self.sell(symbol, volume, take_profit_sell, stop_loss_sell)
+        self.re_entrance(symbol, min_bid_tick_price, max_bid_tick_price, take_profit_buy, stop_loss_buy,
+                         take_profit_sell, stop_loss_sell)
 
     ##########################################################################
     def run(self):

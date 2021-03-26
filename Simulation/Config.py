@@ -2,7 +2,7 @@
 class Config:
     DEBUG = False
     time_frame = "M1"
-    time_frame_show = "H12"
+    time_frame_show = "D"
     balance = 10000
     leverage = 100
     spreads = {'EURUSD': 20, 'GBPUSD': 30, 'NZDUSD': 40, 'USDCAD': 40, 'USDCHF': 30, 'USDJPY': 30,

@@ -17,7 +17,7 @@ class SIAlgorithm:
             raise Exception("window len should be greater than window size")
         self.data_window = data_history[-self.window_size-5:]
 
-    def on_tick(self, candle):
+    def on_tick(self):
         return 0, 0
 
     def on_data(self, candle):
