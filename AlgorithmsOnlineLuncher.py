@@ -89,6 +89,7 @@ class Launcher(DWX_ZMQ_Strategy):
         self.close_sent_cnt = {}
         self.virtual_buys = {}
         self.virtual_sells = {}
+        self.re_entrance_sent = {}
         for i in range(len(_symbols)):
             symbol =_symbols[i]
             self._zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
@@ -122,6 +123,7 @@ class Launcher(DWX_ZMQ_Strategy):
             self.close_sent_cnt[symbol] = 0
             self.virtual_buys[symbol] = []
             self.virtual_sells[symbol] = []
+            self.re_entrance_sent[symbol] = False
 
         for i in range(len(_symbols)):
             symbol = _symbols[i]
@@ -219,10 +221,11 @@ class Launcher(DWX_ZMQ_Strategy):
             self._trailing_histories[symbol].pop(0)
             self.trade_buy_in_candle_counts[symbol] = 0
             self.trade_sell_in_candle_counts[symbol] = 0
+            self.re_entrance_sent[symbol] = False
             self._trailing_tools[symbol].on_data(self._trailing_histories[symbol][:-1])
             self._reporting._get_balance()
             print(f"{symbol} Trailing")
-            print(pd.DataFrame(self._histories[symbol][-2:]))
+            print(pd.DataFrame(self._trailing_histories[symbol][-2:]))
             print("________________________________________________________________________________")
         else:
             # Update Last Candle Section
@@ -416,9 +419,12 @@ class Launcher(DWX_ZMQ_Strategy):
                     if not self.launcher_config.enable_max_trade_per_candle or \
                             (self.launcher_config.enable_max_trade_per_candle and self.trade_buy_in_candle_counts[symbol] < self.launcher_config.max_trade_per_candle):
                         if not self.launcher_config.force_re_entrance_price or min_bid_tick_price <= price_re_entrance <= max_bid_tick_price:
-                            print(f"Re Entrance Buy Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
-                            print("________________________________________________________________________________")
-                            self.buy(symbol, volume, take_profit_buy, stop_loss_buy)
+                            if not self.re_entrance_sent[symbol]:
+                                print(f"Re Entrance Buy Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
+                                print("________________________________________________________________________________")
+                                self.buy(symbol, volume, take_profit_buy, stop_loss_buy)
+                                self.re_entrance_sent[symbol] = True
+
 
             elif signal_re_entrance == -1:  # re entrance sell signal
                 if self.launcher_config.multi_position or\
@@ -428,9 +434,11 @@ class Launcher(DWX_ZMQ_Strategy):
                             (self.launcher_config.enable_max_trade_per_candle and self.trade_sell_in_candle_counts[
                                 symbol] < self.launcher_config.max_trade_per_candle):
                         if not self.launcher_config.force_re_entrance_price or min_bid_tick_price <= price_re_entrance <= max_bid_tick_price:
-                            print(f"Re Entrance Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
-                            print("________________________________________________________________________________")
-                            self.sell(symbol, volume, take_profit_sell, stop_loss_sell)
+                            if not self.re_entrance_sent[symbol]:
+                                print(f"Re Entrance Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
+                                print("________________________________________________________________________________")
+                                self.sell(symbol, volume, take_profit_sell, stop_loss_sell)
+                                self.re_entrance_sent[symbol] = True
 
     ##########################################################################
     def isFinished(self):
@@ -446,6 +454,7 @@ class Launcher(DWX_ZMQ_Strategy):
             self.balance = list(data['_balance'])[0]
         if data['_action'] == 'EXECUTION':
             data['_open_time'] = datetime.strptime(data['_open_time'], Config.date_order_format)
+            self.re_entrance_sent[data['_symbol']] = False
             if data['_type'] == 0:  # buy
                 self.open_buy_trades[data['_symbol']].append(data)
                 self.trade_buy_in_candle_counts[data['_symbol']] += 1

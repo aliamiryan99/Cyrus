@@ -11,8 +11,8 @@ class LauncherConfig:
     symbols = ['GBPUSD.I', 'XAUUSD.I', 'US30.JUN1']
     managment_ratio = [2, 1, 1]
     history_size = 50
-    algorithm_time_frame = "D1"
-    trailing_time_frame = "H12"
+    algorithm_time_frame = "M5"
+    trailing_time_frame = "M1"
 
     def __init__(self, symbol, data, balance_ratio):
         # Simple Idea
@@ -40,7 +40,7 @@ class LauncherConfig:
         self.fix_sl = 0  # it can be disable if value equal to 0 (int point)
         # Statistic SL
         self.statistic_sl_window = 10  # it can be disable if value equal to 0 (in point)
-        self.statistic_sl_alpha = 0.9  # it can be disable if value equal to 0 (int point)
+        self.statistic_sl_alpha = 3  # it can be disable if value equal to 0 (int point)
         # Wave TP SL
         self.wave_win_tp_sl = 3
         self.wave_alpha = 0.2

@@ -3,7 +3,7 @@ class Config:
     date_format = '%Y.%m.%d %H:%M'
     date_order_format = '%Y.%m.%d %H:%M:%S'
     tick_date_format = '%Y.%m.%d %H:%M:%S'
-    timeframes_dic = {'M1': 1, 'M5': 5, 'M30': 30, 'H1': 60, 'H4': 240, 'D1': 1440,
+    timeframes_dic = {'M1': 1, 'M5': 5, 'M15': 15, 'M30': 30, 'H1': 60, 'H4': 240, 'D1': 1440,
                       'W1': 10080, 'MN1': 43200}
     secondary_timefarmes = {"H12": "H4"}
     secondary_timefarmes_ratio = {"H12": 3}
