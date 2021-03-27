@@ -28,13 +28,19 @@ def divergence_predict(a, b, low, high, indicator, local_min_price_left, local_m
     [idx4, val4] = divergence_calculation(a, high, indicator, local_max_price_left, local_max_price_right, local_max_indicator_left,
                               local_max_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
                               pip_difference, upper_line_tr)
-
-    if idx1[-1] == len(a) - 1 or idx2[-1] == len(a) - 1:
-        return 1
-    elif idx3[-1] == len(a) - 1 or idx4[-1] == len(a) - 1:
-        return -1
-    else:
-        return 0
+    if len(idx1) != 0:
+        if idx1[-1][0][1] >= len(a) - 2 or idx1[-1][1][1] >= len(a) - 2:
+            return 1
+    if len(idx2) != 0:
+        if idx2[-1][0][1] >= len(a) - 2 or idx2[-1][1][1] >= len(a) - 2:
+            return 1
+    if len(idx3) != 0:
+        if idx3[-1][0][1] >= len(a) - 2 or idx3[-1][1][1] >= len(a) - 2:
+            return -1
+    if len(idx4) != 0:
+        if idx4[-1][0][1] >= len(a) - 2 or idx4[-1][1][1] >= len(a) - 2:
+            return -1
+    return 0
 
 
 def divergence_calculation(ab, price, indicator, local_extremum_price_left, local_extremum_price_right,
@@ -46,18 +52,20 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
     localExtremumRng = range(0)
     for i in range(len(local_extremum_price_left)):
         # check existance of window number of local extremum of left local extrumum candles
-        tmp = np.nonzero(local_extremum_price_right > local_extremum_price_left(i))[0]
+        tmp = np.nonzero(local_extremum_price_right > local_extremum_price_left[i])[0]
         if len(tmp) != 0:
             tmp = tmp[0]
             if tmp + hidden_divergence_check_window <= len(local_extremum_price_right):
-                localExtremumRng = range(tmp,tmp + hidden_divergence_check_window + 1)
+                localExtremumRng = range(tmp, tmp + hidden_divergence_check_window)
             else:
-                localExtremumRng = range(tmp, len(local_extremum_price_right + 1))
+                localExtremumRng = range(tmp, len(local_extremum_price_right))
             isCondToSerach = True
         else:
             isCondToSerach = False
 
         for j in localExtremumRng:
+            if local_extremum_price_right[j] < len(price) - 3:
+                continue
             # check the local min price of left is lower than right
             if trend_direction:
                 # the Bullish Divergence
@@ -88,9 +96,9 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
             # draw the line between two local min to see all of candles are above the line
             if isPriceHasDiff:
                 x = np.array([local_extremum_price_left[i], local_extremum_price_right[j]])
-                y = price(x)
+                y = price[x]
                 p = np.polyfit(x, y, 1)
-                l = np.polyval(p, np.arange(x[0],x[1]))
+                l = np.polyval(p, np.arange(x[0], x[1]))
 
                 # the Bullish Divergence
                 if trend_direction:
@@ -151,8 +159,8 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
                 isFindRightEqvalentInd = False
 
             if isFindLeftEqvalentInd and isFindRightEqvalentInd:
-                p = np.polyfit(Xindc,indicator(Xindc),1)
-                l = np.polyval(p, np.arange(Xindc[0],Xindc[1]))
+                p = np.polyfit(Xindc, indicator[Xindc], 1)
+                l = np.polyval(p, np.arange(Xindc[0], Xindc[1]))
                 # the Bullish Divergence
                 if trend_direction:
                     if down_direction:
@@ -174,7 +182,7 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
                         else:
                             isIndicatorHasALLCond = False
                     else:
-                        if sum(indicator[Xindc[0]: Xindc[1]] < l) > upper_line_tr * l.size and indicator(Xindc[0]) > indicator(Xindc[1]):
+                        if sum(indicator[Xindc[0]: Xindc[1]] < l) > upper_line_tr * l.size and indicator[Xindc[0]] > indicator[Xindc[1]]:
                             isIndicatorHasALLCond = True
                         else:
                             isIndicatorHasALLCond = False
@@ -184,5 +192,6 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
             if isPriceHasALLCond and isIndicatorHasALLCond:
                 idx.append(np.array([x, Xindc]))
                 val.append(np.array([price[x], indicator[Xindc]]))
+
     return idx, val
 

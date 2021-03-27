@@ -49,6 +49,8 @@ def initialize_data():
         data_trailing_paths += ["Data/" + categories[i] + "/" + symbol + "/" + trailing_time_frame + ".csv"]
     algorithm_data = ut.csv_to_df(data_algorithm_paths, date_format=Config.date_format)
     trailing_data = ut.csv_to_df(data_trailing_paths, date_format=Config.date_format)
+
+
     algorithm_start_indexes = {}
     trailing_start_indexes = {}
     algorithm_end_indexes = {}
@@ -56,6 +58,8 @@ def initialize_data():
     configs = {}
     for i in range(len(symbols)):
         symbol = symbols[i]
+        algorithm_data[i] = algorithm_data[i][algorithm_data[i].Volume != 0]
+        trailing_data[i] = trailing_data[i][trailing_data[i].Volume != 0]
         algorithm_start_indexes[symbol] = Outputs.index_date(algorithm_data[i], start_time)
         trailing_start_indexes[symbol] = Outputs.index_date(algorithm_data[i], start_time)
         algorithm_end_indexes[symbol] = Outputs.index_date(algorithm_data[i], end_time)
@@ -126,11 +130,9 @@ def initialize_algorithms(symbols, start_indexes, configs, algorithm_data_total,
     virtual_sells = {}
     for symbol in symbols:
         row = data[symbol][start_indexes[symbol]]
-        last_candle = {"GMT": row['GMT'], "Open": row['Open'], "High": row['High'],
-                       "Low": row['Low'], "Close": row['Close'], "Volume": row['Volume']}
+
         algorithm_histories[symbol] = algorithm_data[symbol][
                                       algorithm_start_indexes[symbol] - history_size:algorithm_start_indexes[symbol]]
-        algorithm_histories[symbol].append(last_candle)
         trailing_histories[symbol] = trailing_data[symbol][
                                      trailing_start_indexes[symbol] - history_size:trailing_start_indexes[symbol]]
 
@@ -368,7 +370,7 @@ def virtual_close(virtual_position, end_gmt, end_price):
             'volume': virtual_position['volume'], 'ticket': virtual_position['ticket']}
 
 
-def re_entrance(market, config, re_entrance_algorithm, history, algorithm_histories, data_time, buy_open_positions_lens, sell_open_positions_lens,
+def re_entrance(market, config, tp_sl_tool, close_modes, re_entrance_algorithm, history, algorithm_histories, data_time, buy_open_positions_lens, sell_open_positions_lens,
                 last_buy_closed, last_sell_closed, last_algorithm_signal_ticket, price, take_profit_buy,
                 stop_loss_buy, take_profit_sell, stop_loss_sell, trade_buy_in_candle_counts, trade_sell_in_candle_counts,
                 virtual_buys, virtual_sells, volume, last_ticket, symbol):
@@ -408,6 +410,10 @@ def re_entrance(market, config, re_entrance_algorithm, history, algorithm_histor
                                                                               start_index_position_buy,
                                                                               start_index_position_sell,
                                                                               len(algorithm_histories[symbol]) - 1)
+
+        if signal_re_entrance == 1 or signal_re_entrance == -1:
+            take_profit, stop_loss, first_stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, \
+            stop_loss_sell = tp_sl(close_modes, tp_sl_tool, algorithm_histories, signal_re_entrance, price, symbol)
 
         if take_profit_buy != 0:
             take_profit_buy += price_re_entrance - price
@@ -495,8 +501,8 @@ def launch():
             re_entrance_algorithm = re_entrance_algorithms[symbol]
 
             # Debug Section
-            if symbol == 'XAUUSD' and data_time == datetime(year=2017, month=4, day=23, hour=22, minute=0):
-                print(data_time)
+            # if symbol == 'GBPUSD' and data_time == datetime(year=2019, month=4, day=26, hour=0, minute=0):
+            #     print(data_time)
 
             # Ignore Holidays
             if history[-1]['Volume'] == 0:
@@ -509,7 +515,10 @@ def launch():
 
             # Take Profit And Stop Loss
             take_profit, stop_loss, first_stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell,\
-            stop_loss_sell = tp_sl(close_modes, tp_sl_tool, algorithm_histories, signal, price, symbol)
+            stop_loss_sell = 0, 0, 0, 0, 0, 0, 0
+            if signal == 1 or signal == -1:
+                take_profit, stop_loss, first_stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell,\
+                stop_loss_sell = tp_sl(close_modes, tp_sl_tool, algorithm_histories, signal, price, symbol)
 
             # Account Management
             volume = account_managements[symbol].calculate(market.balance, abs(first_stop_loss - price), symbol)
@@ -534,7 +543,8 @@ def launch():
                            symbol, Config.spreads[symbol])
 
             # Re Entrance Algorithm Section
-            last_ticket = re_entrance(market, config, re_entrance_algorithm, history, algorithm_histories, data_time,
+            last_ticket = re_entrance(market, config, tp_sl_tool, close_modes, re_entrance_algorithm, history,
+                                      algorithm_histories, data_time,
                                       buy_open_positions_lens, sell_open_positions_lens, last_buy_closed,
                                       last_sell_closed, last_algorithm_signal_ticket, price, take_profit_buy,
                                       stop_loss_buy, take_profit_sell, stop_loss_sell, trade_buy_in_candle_counts,

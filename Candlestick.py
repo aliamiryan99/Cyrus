@@ -11,7 +11,10 @@ register_matplotlib_converters()
 
 
 
-def candlestick_plot(df, name, lines = None, extend_lines = None, localMax = None, localMin = None, marker = None, buyMarker = None, sellMarker = None):
+def candlestick_plot(df, name, indicator_enable = False, df_indicator = None, divergence_line = None,
+                     indicator_divergene_line = None, indicatorLocalMax = None, indicatorLocalMin = None, indicatorLocalMax2 = None,
+                     indicatorLocalMin2= None, lines=None, extend_lines = None, localMax = None, localMin = None, localMax2 = None,
+                     localMin2 = None, marker=None, buyMarker=None, sellMarker = None):
     # Select the datetime format for the x axis depending on the timeframe
     df = df.reset_index()
 
@@ -112,9 +115,18 @@ def candlestick_plot(df, name, lines = None, extend_lines = None, localMax = Non
                 fig.line(x=index[i], y=price[i], line_color=color[j], line_width=2, line_dash="dotted")
 
     if localMax is not None:
-        fig.circle(localMax, df.High[localMax], size=5, color="red")
-    if localMax is not None:
-        fig.circle(localMin, df.Low[localMin], size=5, color="blue")
+        fig.circle(localMax, df.High[localMax], size=8, color="red")
+    if localMin is not None:
+        fig.circle(localMin, df.Low[localMin], size=8, color="blue")
+
+    if localMax2 is not None:
+        fig.circle(localMax2, df.High[localMax2], size=4, color="red")
+    if localMin2 is not None:
+        fig.circle(localMin2, df.Low[localMin2], size=4, color="blue")
+
+    if divergence_line != None:
+        for line in divergence_line:
+            fig.line(x=line['x'], y=line['y'], line_color='blue', line_width=1)
 
     if marker is not None:
         marker_source = ColumnDataSource(data=dict(
@@ -185,37 +197,116 @@ def candlestick_plot(df, name, lines = None, extend_lines = None, localMax = Non
         i: date.strftime(xaxis_dt_format) for i, date in enumerate(pd.to_datetime(df["GMT"], utc=True))
     }
 
+    if indicator_enable:
+        top_fig = figure(sizing_mode="stretch_width",
+                         plot_height=200,
+                         tools="xpan,xwheel_zoom,reset,save",
+                         active_drag='xpan',
+                         active_scroll='xwheel_zoom',
+                         x_axis_type='linear',
+                         x_range=fig.x_range,
+                         title="Indicator"
+                         )
 
+        indicator_color = '#72a1dc'
 
-    # JavaScript callback function to automatically zoom the Y axis to
-    # view the Data properly
-    source = ColumnDataSource({'Index': df.index, 'High': df.High, 'Low': df.Low})
-    callback = CustomJS(args={'y_range_candle': fig.y_range, 'source': source}, code='''
-           clearTimeout(window._autoscale_timeout);
-           var Index_candle = source.Data.Index,
-               Low = source.Data.Low,
-               High = source.Data.High,
-               start = cb_obj.start,
-               end = cb_obj.end,
-               min_candle = Infinity,
-               max_candle = -Infinity;
-           for (var i=0; i < Index_candle.length; ++i) {
-               if (start <= Index_candle[i] && Index_candle[i] <= end) {
-                   max_candle = Math.max(High[i], max_candle);
-                   min_candle = Math.min(Low[i], min_candle);
+        indicator = ColumnDataSource(data=dict(
+            index1=df_indicator.index,
+            value1=df_indicator.value
+        ))
+
+        indicator_line = top_fig.line(x='index1', y='value1', source=indicator, line_width=2, line_color=indicator_color)
+
+        if indicatorLocalMax is not None:
+            top_fig.circle(indicatorLocalMax, df_indicator.value[indicatorLocalMax], size=8, color="red")
+        if indicatorLocalMin is not None:
+            top_fig.circle(indicatorLocalMin, df_indicator.value[indicatorLocalMin], size=8, color="blue")
+
+        if indicatorLocalMax2 is not None:
+            top_fig.circle(indicatorLocalMax2, df_indicator.value[indicatorLocalMax2], size=4, color="red")
+        if indicatorLocalMin2 is not None:
+            top_fig.circle(indicatorLocalMin2, df_indicator.value[indicatorLocalMin2], size=4, color="blue")
+
+        if indicator_divergene_line != None:
+            for line in indicator_divergene_line:
+                top_fig.line(x=line['x'], y=line['y'], line_color='blue', line_width=1)
+
+        # JavaScript callback function to automatically zoom the Y axis to
+        # view the Data properly
+        source = ColumnDataSource({'Index': df.index, 'High': df.High, 'Low': df.Low,
+                                   'Index_Indicator': df_indicator.index, 'Value_Indicator': df_indicator.value})
+        callback = CustomJS(args={'y_range_candle': fig.y_range, 'y_range_indicator': top_fig.y_range,
+                                  'source': source}, code='''
+                   clearTimeout(window._autoscale_timeout);
+                   var Index_candle = source.data.Index,
+                       Low = source.data.Low,
+                       High = source.data.High,
+                       start = cb_obj.start,
+                       end = cb_obj.end,
+                       min_candle = Infinity,
+                       max_candle = -Infinity;
+                   for (var i=0; i < Index_candle.length; ++i) {
+                       if (start <= Index_candle[i] && Index_candle[i] <= end) {
+                           max_candle = Math.max(High[i], max_candle);
+                           min_candle = Math.min(Low[i], min_candle);
+                       }
+                   }
+                   var Index_ind = source.data.Index_Indicator,
+                        Value = source.data.Value_Indicator,
+                        min_ind = Infinity,
+                        max_ind = -Infinity;
+                    for (var i=0; i < Index_ind.length; ++i) {
+                        if (start <= Index_ind[i] && Index_ind[i] <= end) {
+                            max_ind = Math.max(Value[i], max_ind);
+                            min_ind = Math.min(Value[i], min_ind);
+                        }
+                    }
+                   var pad_candle = (max_candle - min_candle) * .1;
+                   var pad_ind = (max_ind - min_ind) * .2;
+                   window._autoscale_timeout = setTimeout(function() {
+                       y_range_candle.start = min_candle - pad_candle;
+                       y_range_candle.end = max_candle + pad_candle;
+                       y_range_be.start = min_ind - pad_ind;
+                       y_range_be.end = max_ind + pad_ind;
+                   });
+               ''')
+
+        # Finalise the figure
+        fig.x_range.js_on_change('start', callback)
+
+        show(column(top_fig, fig, sizing_mode='stretch_both'))
+
+    else:
+
+        # JavaScript callback function to automatically zoom the Y axis to
+        # view the Data properly
+        source = ColumnDataSource({'Index': df.index, 'High': df.High, 'Low': df.Low})
+        callback = CustomJS(args={'y_range_candle': fig.y_range, 'source': source}, code='''
+               clearTimeout(window._autoscale_timeout);
+               var Index_candle = source.data.Index,
+                   Low = source.data.Low,
+                   High = source.data.High,
+                   start = cb_obj.start,
+                   end = cb_obj.end,
+                   min_candle = Infinity,
+                   max_candle = -Infinity;
+               for (var i=0; i < Index_candle.length; ++i) {
+                   if (start <= Index_candle[i] && Index_candle[i] <= end) {
+                       max_candle = Math.max(High[i], max_candle);
+                       min_candle = Math.min(Low[i], min_candle);
+                   }
                }
-           }
-           var pad_candle = (max_candle - min_candle) * .1;
-           window._autoscale_timeout = setTimeout(function() {
-               y_range_candle.start = min_candle - pad_candle;
-               y_range_candle.end = max_candle + pad_candle;
-           });
-       ''')
+               var pad_candle = (max_candle - min_candle) * .1;
+               window._autoscale_timeout = setTimeout(function() {
+                   y_range_candle.start = min_candle - pad_candle;
+                   y_range_candle.end = max_candle + pad_candle;
+               });
+           ''')
 
-    # Finalise the figure
-    fig.x_range.js_on_change('start', callback)
+        # Finalise the figure
+        fig.x_range.js_on_change('start', callback)
 
-    show(fig)
+        show(fig)
 
 
 def add_ema(figure, index, price, window_size, color, width):
