@@ -1,6 +1,6 @@
 from Algorithms.SimpleIdeaAlgorithm import SIAlgorithm
 from Algorithms.RefinementSiAlgorithm import RSIAlgorithm
-from RepairmentAlgorithms.ReEntranceAlgorithm import ReEntrance
+from AlgorithmsRepairment.ReEntranceAlgorithm import ReEntrance
 from AlgorithmsExit.AdvancedTrailing import AdvTraling
 from AlgorithmsExit.StatisticSL import StatisticSL
 from AlgorithmsExit.FixTPSL import FixTPSL

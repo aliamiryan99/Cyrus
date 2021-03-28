@@ -3,31 +3,32 @@ import numpy as np
 def divergence_predict(a, b, low, high, indicator, local_min_price_left, local_min_price_right, local_max_price_left, local_max_price_right,
                        local_min_indicator_left, local_min_indicator_right, local_max_indicator_left, local_max_indicator_right, hidden_divergence_check_window,
                         pip_difference, upper_line_tr):
+    real_time = True
     # --- bullish divergence
     trend_direction = 1
     down_direction = 0
     [idx1, val1] = divergence_calculation(b, low, indicator, local_min_price_left, local_min_price_right, local_min_indicator_left,
                               local_min_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
-                              pip_difference, upper_line_tr)
+                              pip_difference, upper_line_tr, real_time)
 
     trend_direction = 1
     down_direction = 1
     [idx2, val2] = divergence_calculation(b, low, indicator, local_min_price_left, local_min_price_right, local_min_indicator_left,
                               local_min_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
-                              pip_difference, upper_line_tr)
+                              pip_difference, upper_line_tr, real_time)
 
     # --- bearish divergence
     trend_direction = 0
     down_direction = 0
     [idx3, val3] = divergence_calculation(a, high, indicator, local_max_price_left, local_max_price_right, local_max_indicator_left,
                               local_max_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
-                              pip_difference, upper_line_tr)
+                              pip_difference, upper_line_tr, real_time)
 
     trend_direction = 0
     down_direction = 1
     [idx4, val4] = divergence_calculation(a, high, indicator, local_max_price_left, local_max_price_right, local_max_indicator_left,
                               local_max_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
-                              pip_difference, upper_line_tr)
+                              pip_difference, upper_line_tr, real_time)
     if len(idx1) != 0:
         if idx1[-1][0][1] >= len(a) - 2 or idx1[-1][1][1] >= len(a) - 2:
             return 1
@@ -45,7 +46,7 @@ def divergence_predict(a, b, low, high, indicator, local_min_price_left, local_m
 
 def divergence_calculation(ab, price, indicator, local_extremum_price_left, local_extremum_price_right,
                        local_extremum_indicator_left, local_extremum_indicator_right, hidden_divergence_check_window,
-                       down_direction, trend_direction, pip_difference, upper_line_tr):
+                       down_direction, trend_direction, pip_difference, upper_line_tr, real_time):
 
     idx = []
     val = []
@@ -64,7 +65,7 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
             isCondToSerach = False
 
         for j in localExtremumRng:
-            if local_extremum_price_right[j] < len(price) - 3:
+            if real_time and local_extremum_price_right[j] < len(price) - 3:
                 continue
             # check the local min price of left is lower than right
             if trend_direction:

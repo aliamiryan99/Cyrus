@@ -11,10 +11,11 @@ register_matplotlib_converters()
 
 
 
-def candlestick_plot(df, name, indicator_enable = False, df_indicator = None, divergence_line = None,
-                     indicator_divergene_line = None, indicatorLocalMax = None, indicatorLocalMin = None, indicatorLocalMax2 = None,
-                     indicatorLocalMin2= None, lines=None, extend_lines = None, localMax = None, localMin = None, localMax2 = None,
-                     localMin2 = None, marker=None, buyMarker=None, sellMarker = None):
+def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, divergence_line=None,
+                     indicator_divergene_line=None, divergence_line_2=None,
+                     indicator_divergene_line_2=None, indicatorLocalMax=None, indicatorLocalMin=None, indicatorLocalMax2=None,
+                     indicatorLocalMin2=None, lines=None, extend_lines=None, localMax=None, localMin=None, localMax2=None,
+                     localMin2=None, marker=None, buyMarker=None, sellMarker=None):
     # Select the datetime format for the x axis depending on the timeframe
     df = df.reset_index()
 
@@ -128,6 +129,10 @@ def candlestick_plot(df, name, indicator_enable = False, df_indicator = None, di
         for line in divergence_line:
             fig.line(x=line['x'], y=line['y'], line_color='blue', line_width=1)
 
+    if divergence_line_2 != None:
+        for line in divergence_line_2:
+            fig.line(x=line['x'], y=line['y'], line_color='red', line_width=1)
+
     if marker is not None:
         marker_source = ColumnDataSource(data=dict(
             x=marker['x'],
@@ -218,18 +223,22 @@ def candlestick_plot(df, name, indicator_enable = False, df_indicator = None, di
         indicator_line = top_fig.line(x='index1', y='value1', source=indicator, line_width=2, line_color=indicator_color)
 
         if indicatorLocalMax is not None:
-            top_fig.circle(indicatorLocalMax, df_indicator.value[indicatorLocalMax], size=8, color="red")
+            top_fig.circle(indicatorLocalMax, df_indicator.value[indicatorLocalMax], size=6, color="red")
         if indicatorLocalMin is not None:
-            top_fig.circle(indicatorLocalMin, df_indicator.value[indicatorLocalMin], size=8, color="blue")
+            top_fig.circle(indicatorLocalMin, df_indicator.value[indicatorLocalMin], size=6, color="blue")
 
         if indicatorLocalMax2 is not None:
-            top_fig.circle(indicatorLocalMax2, df_indicator.value[indicatorLocalMax2], size=4, color="red")
+            top_fig.circle(indicatorLocalMax2, df_indicator.value[indicatorLocalMax2], size=3, color="red")
         if indicatorLocalMin2 is not None:
-            top_fig.circle(indicatorLocalMin2, df_indicator.value[indicatorLocalMin2], size=4, color="blue")
+            top_fig.circle(indicatorLocalMin2, df_indicator.value[indicatorLocalMin2], size=3, color="blue")
 
         if indicator_divergene_line != None:
             for line in indicator_divergene_line:
                 top_fig.line(x=line['x'], y=line['y'], line_color='blue', line_width=1)
+
+        if indicator_divergene_line_2 != None:
+            for line in indicator_divergene_line_2:
+                top_fig.line(x=line['x'], y=line['y'], line_color='red', line_width=1)
 
         # JavaScript callback function to automatically zoom the Y axis to
         # view the Data properly

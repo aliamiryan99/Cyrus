@@ -108,7 +108,8 @@ class Launcher(DWX_ZMQ_Strategy):
             self._trailing_tools[symbol] = launcher_config.trailing_tool
             self._re_entrance_algorithms[symbol] = launcher_config.repairment_algorithm
             self._account_managements[symbol] = launcher_config.account_management
-            self._time_identifiers[symbol] = self.get_identifier(self._histories[symbol][-1]['Time'], self.algorithm_time_frame)
+            self._time_identifiers[symbol] = self.get_time_id(self._histories[symbol][-1]['Time'],
+                                                              self.algorithm_time_frame)
             self.open_buy_trades[symbol] = []
             self.open_sell_trades[symbol] = []
             self.last_buy_closed[symbol] = {}
@@ -136,7 +137,8 @@ class Launcher(DWX_ZMQ_Strategy):
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
             if trailing_time_frame != self.trailing_time_frame:
                 self._trailing_histories[symbol] = self.aggregate_data(self._trailing_histories[symbol], self.trailing_time_frame)
-            self._trailing_time_identifiers[symbol] = self.get_identifier(self._trailing_histories[symbol][-1]['Time'], self.trailing_time_frame)
+            self._trailing_time_identifiers[symbol] = self.get_time_id(self._trailing_histories[symbol][-1]['Time'],
+                                                                       self.trailing_time_frame)
 
         self.launcher_config = launcher_config
         self._zmq._DWX_MTX_CLOSE_ALL_TRADES_()
@@ -153,11 +155,11 @@ class Launcher(DWX_ZMQ_Strategy):
         self._lock = Lock()
 
     def aggregate_data(self, histories, time_frame):
-        old_id = self.get_identifier(histories[0]['Time'], time_frame)
+        old_id = self.get_time_id(histories[0]['Time'], time_frame)
         new_history = []
         new_history.append(copy.deepcopy(histories[0]))
         for i in range(1, len(histories)):
-            new_id = self.get_identifier(histories[i]['Time'], time_frame)
+            new_id = self.get_time_id(histories[i]['Time'], time_frame)
             if new_id != old_id:
                 new_history.append(copy.deepcopy(histories[i]))
                 old_id = new_id
@@ -168,7 +170,7 @@ class Launcher(DWX_ZMQ_Strategy):
         return new_history
 
     @staticmethod
-    def get_identifier(time, time_frame):
+    def get_time_id(time, time_frame):
         identifier = time.day
         if time_frame == "H12":
             identifier = time.day * 2 + time.hour // 12
@@ -188,8 +190,8 @@ class Launcher(DWX_ZMQ_Strategy):
 
     ##########################################################################
     def update_history(self, time, symbol, bid):
-        time_identifier = Launcher.get_identifier(time, self.algorithm_time_frame)
-        trailing_time_identifier = Launcher.get_identifier(time, self.trailing_time_frame)
+        time_identifier = Launcher.get_time_id(time, self.algorithm_time_frame)
+        trailing_time_identifier = Launcher.get_time_id(time, self.trailing_time_frame)
 
         if self._time_identifiers[symbol] != time_identifier:
             # New Candle Open Section

@@ -81,7 +81,7 @@ class DivergenceAlgorithm:
 
     def update_indicator(self):
         self.update_heikin_data()
-        last_indicator = list(rsi(Series([item['Close'] for item in self.heikin_data[-50:]]), 14).dropna())
+        last_indicator = list(rsi(Series([item['Close'] for item in self.heikin_data]), 14).dropna())
         self.indicator = self.indicator[1:]
         self.indicator = np.append(self.indicator, last_indicator[-1])
 

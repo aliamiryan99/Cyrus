@@ -1,7 +1,7 @@
 from Algorithms.SimpleIdeaAlgorithm import SIAlgorithm
 from Algorithms.RefinementSiAlgorithm import RSIAlgorithm
 from Algorithms.DiveregenceAlgorithms import DivergenceAlgorithm
-from RepairmentAlgorithms.ReEntranceAlgorithm import ReEntrance
+from AlgorithmsRepairment.ReEntranceAlgorithm import ReEntrance
 from AlgorithmsExit.AdvancedTrailing import AdvTraling
 from AlgorithmsExit.WaveTPSL import WaveTPSL
 from AlgorithmsExit.StatisticSL import StatisticSL
@@ -9,14 +9,14 @@ from AccountManagment import AccountManagment
 
 class LauncherConfig:
     # Hyper Parameters
-    categories = ["Major", "Metal", "CFD"]
-    symbols = ["EURUSD"]
+    categories = ["CFD", "Metal", "CFD"]
+    symbols = ["US30USD"]
     symbols_ratio = [3, 3, 3]
     history_size = 200
     algorithm_time_frame = "D"
-    trailing_time_frame = "D"
-    algorithm_name = "Divergence&ReEntrance"
-    tag = "EURUSD"
+    trailing_time_frame = "H12"
+    algorithm_name = "SI&ReEntrance"
+    tag = "US30USD"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
         # # Algorithms
@@ -38,8 +38,8 @@ class LauncherConfig:
         self.reg_beta = 1
         self.reg_window_exteremum = 3
         # Divergence
-        self.big_window = 8
-        self.small_window = 5
+        self.big_window = 5
+        self.small_window = 3
         self.hidden_divergence_check_window = 25
         self.upper_line_tr = 0.90
         self.divergence_alpha = 4
@@ -56,7 +56,7 @@ class LauncherConfig:
         self.statistic_sl_alpha = 0.8  # it can be disable if value equal to 0 (int point)
         # Wave TP SL
         self.wave_win_tp_sl = 3
-        self.wave_alpha = 0.6
+        self.wave_alpha = 0.3
         self.wave_beta = 0.6
         # # Re Entrance
         self.re_entrance_enable = True  # if true the re entrance algorithm will execute
@@ -78,15 +78,15 @@ class LauncherConfig:
         self.algorithm_virtual_signal = False    # if true algorithm positions don't executed (only re_entrance)
 
         # Algorithm Section
-        #self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i],
-        #                             self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
+        self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i],
+                                    self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
         # self.algorithm = RSIAlgorithm(symbol, data[start_i - self.history_size:start_i], self.rsi_win_inc,
         #                               self.rsi_win_dec, self.rsi_pivot)
         #self.algorithm = MinMaxAlgorithm(symbol, data[start_i - self.history_size:start_i], self.min_max_window_exteremum, self.min_max_window_trend, self.min_max_mode_trend)
         #self.algorithm = RegressionAlgorithm(symbol, data[start_i - self.history_size:start_i], self.reg_alpha, self.reg_beta, self.reg_window_exteremum)
-        self.algorithm = DivergenceAlgorithm(symbol, data[start_i - self.history_size:start_i], self.big_window,
-                                             self.small_window, self.hidden_divergence_check_window, self.upper_line_tr,
-                                             self.divergence_alpha)
+        # self.algorithm = DivergenceAlgorithm(symbol, data[start_i - self.history_size:start_i], self.big_window,
+        #                                      self.small_window, self.hidden_divergence_check_window, self.upper_line_tr,
+        #                                      self.divergence_alpha)
 
         # ReEntrance Section
         self.repairment_algorithm = ReEntrance(self.re_entrance_distance_limit, self.re_entrance_loss_enable,
