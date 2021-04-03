@@ -72,7 +72,7 @@ class Launcher(DWX_ZMQ_Strategy):
         self._tp_sl_tools = {}
         self._trailing_tools = {}
         self._re_entrance_algorithms = {}
-        self._account_managements ={}
+        self._account_managements = {}
         self._time_identifiers = {}
         self._trailing_time_identifiers = {}
         self.open_buy_trades = {}
@@ -302,7 +302,7 @@ class Launcher(DWX_ZMQ_Strategy):
             for position in open_buy_positions:
                 if position['_symbol'] == symbol:
                     entry_point = 0
-                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'buy')
+                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'buy', time)
                     if is_close and min_bid_tick_price <= close_price <= max_bid_tick_price:
                         region_price = self.launcher_config.force_region * 10 ** -Config.symbols_pip[symbol]
                         if (self.launcher_config.force_close_on_algorithm_price and
@@ -324,7 +324,7 @@ class Launcher(DWX_ZMQ_Strategy):
             for position in open_sell_positions:
                 if position['_symbol'] == symbol:
                     entry_point = 0
-                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'sell')
+                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'sell', time)
                     if is_close and min_bid_tick_price <= close_price <= max_bid_tick_price:
                         region_price = self.launcher_config.force_region * 10**-Config.symbols_pip[symbol]
                         if (self.launcher_config.force_close_on_algorithm_price and
@@ -383,8 +383,7 @@ class Launcher(DWX_ZMQ_Strategy):
             is_algorithm_signal = False
             profit_in_pip = 0
             if self.is_buy_closed[symbol]:
-                start_index_position_buy = index_date_v2(self._histories[symbol],
-                                                                 self.last_buy_closed[symbol]['_open_time'])
+                start_index_position_buy = index_date_v2(self._histories[symbol], self.last_buy_closed[symbol]['_open_time'])
                 if start_index_position_buy == -1:
                     start_index_position_buy = len(self._histories[symbol]) - 1
                 if self.last_buy_closed[symbol]['_ticket'] == self.last_algorithm_signal_ticket[symbol]:
@@ -392,8 +391,7 @@ class Launcher(DWX_ZMQ_Strategy):
                 position = self.last_buy_closed[symbol]
                 profit_in_pip = (position['_close_price'] - position['_open_price']) * 10 ** Config.symbols_pip[symbol] / 10
             if self.is_sell_closed[symbol]:
-                start_index_position_sell = index_date_v2(self._histories[symbol],
-                                                                  self.last_sell_closed[symbol]['_open_time'])
+                start_index_position_sell = index_date_v2(self._histories[symbol], self.last_sell_closed[symbol]['_open_time'])
                 if start_index_position_sell == -1:
                     start_index_position_sell = len(self._histories[symbol]) - 1
                 if self.last_sell_closed[symbol]['_ticket'] == self.last_algorithm_signal_ticket[symbol]:

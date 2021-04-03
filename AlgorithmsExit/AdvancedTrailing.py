@@ -1,7 +1,6 @@
-from Simulation.Config import Config as SConfig
-from MetaTrader.Config import Config as MTConfig
 from AlgorithmTools.BodyStop import get_body_mean
 from AlgorithmTools import LocalExtermums
+
 
 class AdvTraling:
     def __init__(self, symbol, window, alpha, mode):    # mode is (1,2,3);
@@ -24,7 +23,7 @@ class AdvTraling:
             i += 1
         self.threshold = (sum / self.window) * self.alpha
 
-    def on_tick(self, history, entry_point, position_type):
+    def on_tick(self, history, entry_point, position_type, time):
         old_candle = history[-2]
         if old_candle['Volume'] == 0:
             j = 3

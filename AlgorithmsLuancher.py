@@ -173,16 +173,15 @@ def get_time_id(time, time_frame):
 def update_history(history, algorithm_histories, trailing_histories, algorithm, re_entrance_algorithm, trailing_tool,
                    trade_buy_in_candle_counts, trade_sell_in_candle_counts, config, symbol):
     # Algorithm Time ID
-    history_time = get_time_id(history[-1]['GMT'], config.algorithm_time_frame)
-    algorithm_time = get_time_id(algorithm_histories[symbol][-1]['GMT'], config.algorithm_time_frame)
+    history_time = get_time_id(history[-1]['Time'], config.algorithm_time_frame)
+    algorithm_time = get_time_id(algorithm_histories[symbol][-1]['Time'], config.algorithm_time_frame)
     if history_time != algorithm_time:
         # New Candle Open Section
-        last_candle = {"GMT": history[-1]['GMT'], "Open": history[-1]['Open'], "High": history[-1]['High'],
+        last_candle = {"Time": history[-1]['Time'], "Open": history[-1]['Open'], "High": history[-1]['High'],
                        "Low": history[-1]['Low'], "Close": history[-1]['Close'],"Volume": history[-1]['Volume']}
         algorithm_histories[symbol].append(last_candle)
         algorithm_histories[symbol].pop(0)
         signal, price = algorithm.on_data(algorithm_histories[symbol][-1])
-        re_entrance_algorithm.on_data()
     else:
         # Update Last Candle Section
         algorithm_histories[symbol][-1]['High'] = max(algorithm_histories[symbol][-1]['High'],history[-1]['High'])
@@ -193,11 +192,11 @@ def update_history(history, algorithm_histories, trailing_histories, algorithm, 
         signal, price = algorithm.on_tick()
 
     # Trailing Time ID
-    trailing_time = get_time_id(trailing_histories[symbol][-1]['GMT'], config.trailing_time_frame)
-    history_time = get_time_id(history[-1]['GMT'], config.trailing_time_frame)
+    trailing_time = get_time_id(trailing_histories[symbol][-1]['Time'], config.trailing_time_frame)
+    history_time = get_time_id(history[-1]['Time'], config.trailing_time_frame)
 
     if history_time != trailing_time:
-        last_candle = {"GMT": history[-1]['GMT'], "Open": history[-1]['Open'], "High": history[-1]['High'],
+        last_candle = {"Time": history[-1]['Time'], "Open": history[-1]['Open'], "High": history[-1]['High'],
                        "Low": history[-1]['Low'], "Close": history[-1]['Close'],
                        "Volume": history[-1]['Volume']}
         trailing_histories[symbol].append(last_candle)
@@ -205,6 +204,7 @@ def update_history(history, algorithm_histories, trailing_histories, algorithm, 
         trade_buy_in_candle_counts[symbol] = 0
         trade_sell_in_candle_counts[symbol] = 0
         trailing_tool.on_data(trailing_histories[symbol][:-1])
+        re_entrance_algorithm.on_data()
     else:
         trailing_histories[symbol][-1]['High'] = max(trailing_histories[symbol][-1]['High'],
                                                      history[-1]['High'])
@@ -300,17 +300,17 @@ def trailing(market, history, trailing_histories, data_time, trailing_tool, conf
                 entry_point = Outputs.index_date_v2(trailing_histories[symbol],
                                                     position['start_gmt'])
                 is_close, close_price = trailing_tool.on_tick(trailing_histories[symbol],
-                                                              entry_point, 'buy')
+                                                              entry_point, 'buy', data_time)
                 if is_close:
                     if history[-1]['Low'] <= close_price <= history[-1]['High']:
                         if position['ticket'] == -1:
-                            last_buy_closed[symbol] = virtual_close(position, history[-1]['GMT'], close_price)
+                            last_buy_closed[symbol] = virtual_close(position, history[-1]['Time'], close_price)
                             virtual_buys[symbol].remove(position)
                         else:
                             market.close(data_time, close_price, position['volume'], position['ticket'])
                     elif not config.force_close_on_algorithm_price and history[-1]['Open'] < close_price:
                         if position['ticket'] == -1:
-                            last_buy_closed[symbol] = virtual_close(position, history[-1]['GMT'],
+                            last_buy_closed[symbol] = virtual_close(position, history[-1]['Time'],
                                                                     history[-1]['Open'])
                             virtual_buys[symbol].remove(position)
                         else:
@@ -322,17 +322,17 @@ def trailing(market, history, trailing_histories, data_time, trailing_tool, conf
                 entry_point = Outputs.index_date_v2(trailing_histories[symbol],
                                                     position['start_gmt'])
                 is_close, close_price = trailing_tool.on_tick(trailing_histories[symbol],
-                                                              entry_point, 'sell')
+                                                              entry_point, 'sell', data_time)
                 if is_close:
                     if history[-1]['Low'] <= close_price <= history[-1]['High']:
                         if position['ticket'] == -1:
-                            last_sell_closed[symbol] = virtual_close(position, history[-1]['GMT'], close_price)
+                            last_sell_closed[symbol] = virtual_close(position, history[-1]['Time'], close_price)
                             virtual_sells[symbol].remove(position)
                         else:
                             market.close(data_time, close_price, position['volume'], position['ticket'])
                     elif not config.force_close_on_algorithm_price and close_price < history[-1]['Open']:
                         if position['ticket'] == -1:
-                            last_sell_closed[symbol] = virtual_close(position, history[-1]['GMT'],
+                            last_sell_closed[symbol] = virtual_close(position, history[-1]['Time'],
                                                                      history[-1]['Open'])
                             virtual_sells[symbol].remove(position)
                         else:
@@ -343,20 +343,20 @@ def virtuals_check(virtual_buys, virtual_sells, history, last_buy_closed, last_s
     virtual_buys_copy = copy.copy(virtual_buys)
     for virtual_buy in virtual_buys_copy:
         if virtual_buy['stop_loss'] != 0 and history[-1]['Low'] <= virtual_buy['stop_loss']:
-            last_buy_closed[symbol] = virtual_close(virtual_buy, history[-1]['GMT'], virtual_buy['stop_loss'])
+            last_buy_closed[symbol] = virtual_close(virtual_buy, history[-1]['Time'], virtual_buy['stop_loss'])
             virtual_buys.remove(virtual_buy)
         elif virtual_buy['take_profit'] != 0 and history[-1]['High'] >= virtual_buy['take_profit']:
-            last_buy_closed[symbol] = virtual_close(virtual_buy, history[-1]['GMT'], virtual_buy['take_profit'])
+            last_buy_closed[symbol] = virtual_close(virtual_buy, history[-1]['Time'], virtual_buy['take_profit'])
             virtual_buys.remove(virtual_buy)
 
     virtual_sells_copy = copy.copy(virtual_sells)
     for virtual_sell in virtual_sells_copy:
         if virtual_sell['stop_loss'] != 0 and history[-1]['High'] + spread >= virtual_sell['stop_loss']:
-            last_sell_closed[symbol] = virtual_close(virtual_sell, history[-1]['GMT'],
+            last_sell_closed[symbol] = virtual_close(virtual_sell, history[-1]['Time'],
                                                      virtual_sell['stop_loss'] + spread)
             virtual_sells.remove(virtual_sell)
         elif virtual_sell['take_profit'] != 0 and history[-1]['low'] + spread <= virtual_sell['take_profit']:
-            last_sell_closed[symbol] = virtual_close(virtual_sell, history[-1]['GMT'], virtual_sell['take_profit'])
+            last_sell_closed[symbol] = virtual_close(virtual_sell, history[-1]['Time'], virtual_sell['take_profit'])
             virtual_sells.remove(virtual_sell)
 
 
@@ -484,13 +484,13 @@ def launch():
     back_test_length = end_indexes[symbols[0]] - start_indexes[symbols[0]]
     for ii in tqdm(range(back_test_length)):
         i = start_indexes[symbols[0]] + ii
-        data_time = data[symbols[0]][i]['GMT']
+        data_time = data[symbols[0]][i]['Time']
         # Market Update Section
         market.update(data_time)
 
         for symbol in symbols:
             i = start_indexes[symbol] + ii
-            data_time = data[symbol][i]['GMT']
+            data_time = data[symbol][i]['Time']
 
             # Select Symbol Configuration
             history = data[symbol][i - history_size:i + 1]

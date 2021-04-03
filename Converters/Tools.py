@@ -12,7 +12,7 @@ def read_data(category, symbol, time_frame):
 
 
 def save_data(data, category, symbol, time_frame):
-    data_df = pd.DataFrame(data, columns=['GMT', 'Open', 'High', 'Low', 'Close', 'Volume'])
+    data_df = pd.DataFrame(data, columns=['Time', 'Open', 'High', 'Low', 'Close', 'Volume'])
     data_df.to_csv("../Data/" + category + "/" + symbol + "/" + time_frame + ".csv", index=False)
 
 

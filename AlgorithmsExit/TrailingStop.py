@@ -5,8 +5,8 @@ class TrailingStop:
         self.win_local_extremum = win_local_extremum
         self.is_update_window_local_extremum = is_update_window_local_extremum
 
-    def on_data(self, history, entry_point, position_type):
-        from Algorithms.SimpleIdea.LocalExtremum import local_extremum
+    def on_data(self, history, entry_point, position_type, time):
+        from AlgorithmTools.LocalExtermums import get_local_extermums
         import operator  # used for finding nearest index
         import math
 
@@ -17,7 +17,7 @@ class TrailingStop:
         stopCondition = False
 
         # ---- find local extremum in price
-        [localMin, localMax] = local_extremum(history, self.win_local_extremum)
+        [localMin, localMax] = get_local_extermums(history, self.win_local_extremum)
 
         # ---- Buy Position
         if position_type == 'Buy':

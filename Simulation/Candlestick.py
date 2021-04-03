@@ -26,7 +26,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
         number_format1 = '%0.5f'
     number_format2 = '%0.' + str(Config.volume_digit) + 'f'
     number_format3 = '%0.1f'
-    # if df['GMT'][start].hour > 0:
+    # if df['Time'][start].hour > 0:
     #     xaxis_dt_format = '%d %b %Y, %H:%M:%S'
 
 
@@ -68,7 +68,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
         bottom1=df.Close[inc],
         high1=df.High[inc],
         low1=df.Low[inc],
-        date1=df.GMT[inc]
+        date1=df.Time[inc]
     ))
 
     dec_source = ColumnDataSource(data=dict(
@@ -77,7 +77,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
         bottom2=df.Close[dec],
         high2=df.High[dec],
         low2=df.Low[dec],
-        date2=df.GMT[dec]
+        date2=df.Time[dec]
     ))
 
 
@@ -202,7 +202,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
 
     # Add date labels to x axis
     fig.xaxis.major_label_overrides = {
-        i: date.strftime(xaxis_dt_format) for i, date in enumerate(pd.to_datetime(df["GMT"],utc=True))
+        i: date.strftime(xaxis_dt_format) for i, date in enumerate(pd.to_datetime(df["Time"], utc=True))
     }
 
     # Set up the hover tooltip to display some useful Data

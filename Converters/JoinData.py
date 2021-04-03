@@ -10,7 +10,7 @@ def join_data(data1, data2):
     return total_data
 
 category = "Metal"
-symbol = "XAUUSD"
+symbol = "XAGUSD"
 time_frame1 = "M1_2017"
 time_frame2 = "M1_2019"
 time_frame_output = "M1"

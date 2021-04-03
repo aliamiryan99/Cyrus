@@ -1,4 +1,4 @@
-from Simulation.Config import Config
+
 
 class StatisticSL:
     def __init__(self, symbol, window, alpha):
@@ -18,4 +18,3 @@ class StatisticSL:
         if position_type == 'buy':
             sl *= -1
         return 0, sl
-

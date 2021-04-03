@@ -45,17 +45,17 @@ def csv_to_df(csv_files: list, date_format='%d.%m.%Y %H:%M:%S.%f'):
             df = pd.read_excel(f)
 
         if 'Local time' in df.columns:
-            df.rename(columns={'Local time': 'GMT'}, inplace=True)
+            df.rename(columns={'Local time': 'Time'}, inplace=True)
         if 'Gmt time' in df.columns:
-            df.rename(columns={'Gmt time': 'GMT'}, inplace=True)
-        if 'Time' in df.columns:
-            df.rename(columns={'Time': 'GMT'}, inplace=True)
+            df.rename(columns={'Gmt time': 'Time'}, inplace=True)
         if 'GMT' in df.columns:
+            df.rename(columns={'GMT': 'Time'}, inplace=True)
+        if 'Time' in df.columns:
             try:
-                df['GMT'] = pd.to_datetime(df['GMT'], format=date_format)
+                df['Time'] = pd.to_datetime(df['Time'], format=date_format)
             except:
-                df['GMT'] = pd.to_datetime(df['GMT'])
-        df = df.sort_values(['GMT'])
+                df['Time'] = pd.to_datetime(df['Time'])
+        df = df.sort_values(['Time'])
         df = df.reset_index()
         data_frames.append(df)
         if Config.DEBUG:

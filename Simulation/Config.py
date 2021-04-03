@@ -24,3 +24,4 @@ class Config:
                      'AUDUSD': 10**5, 'XAUUSD': 10**2, 'XAGUSD': 500, 'US30USD': 5, 'USATECHUSD': 20, 'US500USD': 20}
     symbols_show = {'EURUSD': 0, 'GBPUSD': 0, 'NZDUSD': 0, 'USDCAD': 0, 'USDCHF': 0, 'USDJPY': 0,
                     'AUDUSD': 0, 'XAUUSD': 0, 'XAGUSD': 0, 'US30USD': 0, 'USATECHUSD': 0, 'US500USD': 0}
+

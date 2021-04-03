@@ -1,22 +1,27 @@
 from Algorithms.SimpleIdeaAlgorithm import SIAlgorithm
 from Algorithms.RefinementSiAlgorithm import RSIAlgorithm
 from Algorithms.DiveregenceAlgorithms import DivergenceAlgorithm
+from Algorithms.SequenceAlgorithm import SequenceAlgorithm
+from Algorithms.DojiAlgorithm import DojiAlgorithm
+from Algorithms.SimpleIdeaAndDoji import SIAndDojiAlgorithm
 from AlgorithmsRepairment.ReEntranceAlgorithm import ReEntrance
 from AlgorithmsExit.AdvancedTrailing import AdvTraling
+from AlgorithmsExit.CandleTrailing import CandleTrailing
 from AlgorithmsExit.WaveTPSL import WaveTPSL
 from AlgorithmsExit.StatisticSL import StatisticSL
+from AlgorithmsExit.BodyTP import BodyTP
 from AccountManagment import AccountManagment
 
 class LauncherConfig:
     # Hyper Parameters
-    categories = ["CFD", "Metal", "CFD"]
-    symbols = ["US30USD"]
-    symbols_ratio = [3, 3, 3]
+    categories = ["Major", "Major", "Metal", "CFD"]
+    symbols = ["EURUSD", "GBPUSD", "XAUUSD", "US30USD"]
+    symbols_ratio = [3, 3, 2, 2]
     history_size = 200
     algorithm_time_frame = "D"
-    trailing_time_frame = "H12"
-    algorithm_name = "SI&ReEntrance"
-    tag = "US30USD"
+    trailing_time_frame = "D"
+    algorithm_name = "SimpleIdeaAndDoji"
+    tag = "withReEntrance"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
         # # Algorithms
@@ -43,6 +48,10 @@ class LauncherConfig:
         self.hidden_divergence_check_window = 25
         self.upper_line_tr = 0.90
         self.divergence_alpha = 4
+        # Doji
+        self.doji_win = 3
+        self.doji_detect_mode = 1       # 1: HighLow, 2: TopBottom, 3: LastCandle
+        self.doji_candle_mode = 1       # 1: Body, 2: Total
         # # Exit Algorithms
         # Advance Trailing Stop
         self.adv_mode = 3
@@ -54,6 +63,10 @@ class LauncherConfig:
         # Statistic SL
         self.statistic_sl_window = 10  # it can be disable if value equal to 0 (in point)
         self.statistic_sl_alpha = 0.8  # it can be disable if value equal to 0 (int point)
+        # Body TP
+        self.body_tp_window = 10
+        self.body_tp_alpha = 1
+        self.body_tp_mode = 1   # 1: body, 2: total
         # Wave TP SL
         self.wave_win_tp_sl = 3
         self.wave_alpha = 0.3
@@ -78,8 +91,7 @@ class LauncherConfig:
         self.algorithm_virtual_signal = False    # if true algorithm positions don't executed (only re_entrance)
 
         # Algorithm Section
-        self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i],
-                                    self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
+        # self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i], self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
         # self.algorithm = RSIAlgorithm(symbol, data[start_i - self.history_size:start_i], self.rsi_win_inc,
         #                               self.rsi_win_dec, self.rsi_pivot)
         #self.algorithm = MinMaxAlgorithm(symbol, data[start_i - self.history_size:start_i], self.min_max_window_exteremum, self.min_max_window_trend, self.min_max_mode_trend)
@@ -87,17 +99,23 @@ class LauncherConfig:
         # self.algorithm = DivergenceAlgorithm(symbol, data[start_i - self.history_size:start_i], self.big_window,
         #                                      self.small_window, self.hidden_divergence_check_window, self.upper_line_tr,
         #                                      self.divergence_alpha)
+        #self.algorithm = SequenceAlgorithm(symbol, data[start_i - self.history_size:start_i],
+                                           # self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
+        #self.algorithm = DojiAlgorithm(data[start_i - self.history_size:start_i], self.doji_win, self.doji_detect_mode, self.doji_candle_mode)
+        self.algorithm = SIAndDojiAlgorithm(symbol, data[start_i - self.history_size:start_i], self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold, self.doji_win, self.doji_detect_mode, self.doji_candle_mode)
 
         # ReEntrance Section
         self.repairment_algorithm = ReEntrance(self.re_entrance_distance_limit, self.re_entrance_loss_enable,
                                                self.re_entrance_loss_limit, self.re_entrance_loss_threshold)
 
         # Algorithm Tools Section
-        self.close_mode = "both"  # 'tp_sl', 'trailing', 'both'
-        self.tp_sl_tool = StatisticSL(symbol, self.statistic_sl_window, self.statistic_sl_alpha)
+        self.close_mode = "trailing"  # 'tp_sl', 'trailing', 'both'
+        self.tp_sl_tool = BodyTP(self.body_tp_window, self.body_tp_alpha, self.body_tp_mode)
+        #self.tp_sl_tool = StatisticSL(symbol, self.statistic_sl_window, self.statistic_sl_alpha)
         #self.tp_sl_tool = FixTPSL(symbol, self.fix_tp, self.fix_sl)
         #self.tp_sl_tool = WaveTPSL(self.wave_win_tp_sl, self.wave_alpha, self.wave_beta)
         self.trailing_tool = AdvTraling(symbol, self.adv_window, self.adv_alpha, self.adv_mode)
+        #self.trailing_tool = CandleTrailing()
 
         # Account Management Section
         self.account_management = AccountManagment.BalanceManagement(self.balance_ratio)
