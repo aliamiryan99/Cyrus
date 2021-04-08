@@ -10,8 +10,8 @@ class LauncherConfig:
     # Hyper Parameters
     symbols = ['GBPUSD.I', 'XAUUSD.I', 'US30.JUN1']
     managment_ratio = [2, 1, 1]
-    history_size = 50
-    algorithm_time_frame = "M5"
+    history_size = 200
+    algorithm_time_frame = "M1"
     trailing_time_frame = "M1"
 
     def __init__(self, symbol, data, balance_ratio):

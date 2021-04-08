@@ -41,7 +41,7 @@ def predict(data, window_exteremum, window_trend, mode_trend):
     Mode = mode_trend
     xBestUptrend = [0] * len(upTrend)
     for i in range(len(upTrend)):
-        if upTrend[i]!=0 and pastLocalMin[i]!=0:
+        if upTrend[i]!=0 and pastLocalMin[i] != 0:
             A = np.arange(pastLocalMin[i], upTrend[i]+1)
             # find all permutations
             cnt = -1

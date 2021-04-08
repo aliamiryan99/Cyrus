@@ -20,14 +20,14 @@ def simpleIdea(symbol, window, winInc, winDec, shadow_threshold, body_threshold)
     # winInc = 5
     # winDec = 5
     Config = S_Config
-    if symbol in MT_Config.symbols_pip.keys():
+    if symbol not in S_Config.symbols_pip.keys():
         Config = MT_Config
     shadow_threshold *= (10 ** -Config.symbols_pip[symbol])
     body_threshold *= (10 ** -Config.symbols_pip[symbol])
     # -- check the decreasing trend reversion
     cnt = 0
     for j in range(0, winDec):
-        if (topCandle[winSize - j - 2] + shadow_threshold <= topCandle[winSize - j - 3]) or (window[winSize - j - 2]['Open'] > window[winSize - j - 2]['Close'] + body_threshold):
+        if (topCandle[winSize - j - 2] <= topCandle[winSize - j - 3]) or (window[winSize - j - 2]['Open'] > window[winSize - j - 2]['Close'] + body_threshold):
             cnt += 1
     if (cnt == winDec) and (window[-1]['Open'] + body_threshold < window[-1]['Close']) and topCandle[-2] <= topCandle[-1]:        #   it can be replaced by  bottomCandle[-2] < bottomCandle[-1]:
         return 1
@@ -35,7 +35,7 @@ def simpleIdea(symbol, window, winInc, winDec, shadow_threshold, body_threshold)
     # -- check the increasing trend reversion
     cnt = 0
     for j in range(0, winInc):
-        if (bottomCandle[winSize - j - 2] >= bottomCandle[winSize - j - 3] + shadow_threshold) or (window[winSize - j - 2]['Open'] + body_threshold  < window[winSize - j - 2]['Close']):
+        if (bottomCandle[winSize - j - 2] >= bottomCandle[winSize - j - 3]) or (window[winSize - j - 2]['Open'] + body_threshold  < window[winSize - j - 2]['Close']):
             cnt += 1
     if (cnt == winInc) and (window[-1]['Open'] > window[-1]['Close'] + body_threshold) and bottomCandle[-2] >= bottomCandle[-1]:          #   it can be replaced by  topCnadle[-2] > topCnadle[-1]:
         return -1

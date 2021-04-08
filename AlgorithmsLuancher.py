@@ -21,6 +21,7 @@ def initialize_data():
     symbols_ratio = LauncherConfig.symbols_ratio
     algorithm_time_frame = LauncherConfig.algorithm_time_frame
     trailing_time_frame = LauncherConfig.trailing_time_frame
+    Config.time_frame_show = algorithm_time_frame
     Config.symbols_list.clear()
     Config.symbols_dict.clear()
     for i in range(len(symbols)):
@@ -203,7 +204,7 @@ def update_history(history, algorithm_histories, trailing_histories, algorithm, 
         trailing_histories[symbol].pop(0)
         trade_buy_in_candle_counts[symbol] = 0
         trade_sell_in_candle_counts[symbol] = 0
-        trailing_tool.on_data(trailing_histories[symbol][:-1])
+        trailing_tool.on_data(trailing_histories[symbol])
         re_entrance_algorithm.on_data()
     else:
         trailing_histories[symbol][-1]['High'] = max(trailing_histories[symbol][-1]['High'],
@@ -501,8 +502,8 @@ def launch():
             re_entrance_algorithm = re_entrance_algorithms[symbol]
 
             # Debug Section
-            # if symbol == 'GBPUSD' and data_time == datetime(year=2019, month=4, day=26, hour=0, minute=0):
-            #     print(data_time)
+            if symbol == 'US30USD' and data_time == datetime(year=2018, month=4, day=25, hour=0, minute=0):
+                print(data_time)
 
             # Ignore Holidays
             if history[-1]['Volume'] == 0:
