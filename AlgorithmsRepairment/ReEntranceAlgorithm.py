@@ -14,9 +14,10 @@ class ReEntrance:
         self.sell_position_trigger = 0
         self.limit_price_buy = 0
         self.limit_price_sell = 0
-        pass
+        self.algorithm_history = []
 
     def on_tick(self, algorithm_history, is_buy_close, is_sell_close, profit_in_pip, start_index_buy, start_index_sell, end_index):
+        self.algorithm_history = algorithm_history
         if is_buy_close:
             self.buy_position_trigger = 1
             self.candles_from_last_position_buy_cnt = 0
@@ -68,10 +69,13 @@ class ReEntrance:
 
     def on_data(self):
         if self.buy_position_trigger == 1:
+            if self.algorithm_history[-2]['High'] > self.limit_price_buy:
+                self.limit_price_buy = self.algorithm_history[-1]['High']        # correct : -2 , instead: -1
             self.candles_from_last_position_buy_cnt += 1
         if self.sell_position_trigger == 1:
+            if self.algorithm_history[-2]['Low'] < self.limit_price_sell:
+                self.limit_price_sell = self.algorithm_history[-1]['Low']       # correct : -2 , instead: -1
             self.candles_from_last_position_sell_cnt += 1
-
 
     def reset_triggers(self, position_type):
         if position_type == 'buy':

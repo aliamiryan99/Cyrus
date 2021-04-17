@@ -3,7 +3,7 @@ class Config:
     DEBUG = False
     time_frame = "M1"
     time_frame_show = "D"
-    balance = 10000
+    balance = 80000
     leverage = 100
     spreads = {'EURUSD': 20, 'GBPUSD': 30, 'NZDUSD': 40, 'USDCAD': 40, 'USDCHF': 30, 'USDJPY': 30,
                      'AUDUSD': 30, 'XAUUSD': 50, 'XAGUSD': 50, 'US30USD': 60, 'USATECHUSD': 100, 'US500USD': 100}     # in point

@@ -49,7 +49,7 @@ def launch():
             re_entrance_algorithm = re_entrance_algorithms[symbol]
 
             # Debug Section
-            if symbol == 'EURUSD' and data_time == datetime(year=2017, month=5, day=30, hour=0, minute=0):
+            if symbol == 'US30USD' and data_time == datetime(year=2020, month=3, day=4, hour=0, minute=0):
                 print(data_time)
 
             # Ignore Holidays

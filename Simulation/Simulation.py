@@ -1030,7 +1030,7 @@ def get_output(simulation, trends=None, extends=None):
             start = Outputs.index_date_v2(data_shows[symbols_dict[symbol]], start_date)
             end = Outputs.index_date_v2(data_shows[symbols_dict[symbol]], end_date)
             data_shows[symbols_dict[symbol]] = pd.DataFrame(data_shows[symbols_dict[symbol]])
-            show_candlestick(symbol, data_shows[symbols_dict[symbol]].iloc[start:end + 5],
+            show_candlestick(symbol + " " + time_frame_show, data_shows[symbols_dict[symbol]].iloc[start:end + 5],
                              positions_df.loc[positions_df['Symbol'] == symbol],
                              df_balance_history, df_equity_history, start, trends, extends)
 

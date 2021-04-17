@@ -1,5 +1,7 @@
 import pandas as pd
 from bokeh.io import output_file
+import os
+
 from Simulation.Config import Config
 from Simulation import Utility
 from Simulation import Outputs
@@ -8,9 +10,14 @@ from Simulation import Candlestick
 
 class Visualization:
 
-    def __init__(self, backtest, balance, new_time_frame):
-        self.backtest = backtest
-        self.positions = pd.read_excel(f"Outputs/{backtest[3]}/{backtest[0]}_{backtest[1]}_{backtest[2]}/{backtest[4]}/history.xlsx", engine="openpyxl")
+    def __init__(self, backtests, balance, new_time_frame):
+        self.backtests = backtests
+        self.new_time_frame = new_time_frame
+        self.histories = []
+        for backtest in backtests:
+            self.histories.append(pd.read_excel(f"Outputs/{backtest[3]}/{backtest[0]}_{backtest[1]}_{backtest[2]}/{backtest[4]}/history.xlsx", engine="openpyxl"))
+        self.positions = pd.concat(self.histories, ignore_index=True)
+        self.positions = self.positions.sort_values(['TimeOpen'])
         self.symbols = self.positions['Symbol'].unique()
         self.positions = self.positions.to_dict("Records")
         data_shows_paths = []
@@ -40,8 +47,9 @@ class Visualization:
         df_equity_history = pd.DataFrame(self.equities, columns=['index', 'x', 'equity'])
 
         for position in self.positions:
-            position['Index'] = Outputs.index_date_v2(self.data_shows, position['TimeOpen'])
-            position['IndexEnd'] = Outputs.index_date_v2(self.data_shows, position['TimeClose'])
+            symbol = position['Symbol']
+            position['Index'] = Outputs.index_date_v2(self.data_shows[symbol], position['TimeOpen'])
+            position['IndexEnd'] = Outputs.index_date_v2(self.data_shows[symbol], position['TimeClose'])
 
         positions_df = pd.DataFrame(self.positions)
 
@@ -49,38 +57,66 @@ class Visualization:
             start = Outputs.index_date_v2(self.data_shows[symbol], self.positions[0]['TimeOpen'])
             end = Outputs.index_date_v2(self.data_shows[symbol], self.positions[-1]['TimeClose'])
             data_shows = pd.DataFrame(self.data_shows[symbol])
-            self.show_candlestick(symbol, data_shows.iloc[start:end + 5],
+            self.show_candlestick(symbol + " " + self.new_time_frame, data_shows.iloc[start:end + 5],
                              positions_df.loc[positions_df['Symbol'] == symbol],
                              df_balance_history, df_equity_history, start, None, None)
 
     def create_balance_equity(self):
         j = 0
-        k = 0
         for ii in self.index_range:
-            time = self.data_shows[self.symbols[0]][self.indexes[self.symbols[0]] + ii]
-            for symbol in self.symbols:
+            time = self.data_shows[self.symbols[0]][self.indexes[self.symbols[0]] + ii]['Time']
+            if j >= len(self.positions):
+                break
+            symbol = self.symbols[0]
+            i = self.indexes[symbol] + ii
+            row = self.data_shows[symbol][i]
+            if j >= len(self.positions):
+                break
+            position_time = self.adjust_time(self.positions[j]['TimeOpen'], self.new_time_frame)
+            while row['Time'] >= position_time:
+                self.open(self.positions[j])
+                j += 1
+                if j >= len(self.positions):
+                    break
+                position_time = self.adjust_time(self.positions[j]['TimeOpen'], self.new_time_frame)
+
+            for position in self.open_positions:
+                if row['Time'] >= self.adjust_time(position['CloseTime'], self.new_time_frame):
+                    self.close(position)
+
+            self.equity = self.balance
+            for position in self.open_positions:
+                symbol = position['Symbol']
                 i = self.indexes[symbol] + ii
                 row = self.data_shows[symbol][i]
-                self.equity = self.balance
-                for position in self.open_positions:
-                    self.equity += self.cal_profit(position['Type'], position['Symbol'], position['PriceOpen'],
-                                                   row['Open'], position['volume'])  # add profit
-                while row['Time'] >= self.positions[j]['TimeOpen']:
-                    self.open(self.positions[j])
-                for position in self.open_positions:
-                    if row['Time'] >= position['TimeClose']:
-                        self.close(position)
+                self.equity += self.cal_profit(position['Type'], position['Symbol'], position['OpenPrice'],
+                                               row['Close'], position['Volume'])  # add profit
+
             self.balances.append([ii, time, self.balance])
             self.equities.append([ii, time, self.equity])
 
     def open(self, position):
         self.open_positions.append({'Type': position['Type'], 'Symbol': position['Symbol'],
-                                    'OpenPrice': position['PriceOpen'], 'ClosePrice': position['PriceClose'],
+                                    'OpenPrice': position['PriceOpen'], 'OpenTime': position['TimeOpen'],
+                                    'ClosePrice': position['PriceClose'], 'CloseTime': position['TimeClose'],
                                     'Volume': position['Volume']})
 
     def close(self, position):
-        self.balance += Visualization.cal_profit(position['Type'], position['symbol'], position['PriceOpen'],
+        self.balance += Visualization.cal_profit(position['Type'], position['Symbol'], position['OpenPrice'],
                                                  position['ClosePrice'], position['Volume'])
+        self.open_positions.remove(position)
+
+    def show_candlestick(self, name, df, positions_df, df_balance, df_equity, start, trends, extends):
+        algorithm_name = self.backtests[0][3]
+        for i in range(1, len(self.backtests)):
+            algorithm_name += "_" + self.backtests[i][3]
+        output_dir = "Outputs/" + algorithm_name + "/Custom/"
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+        output_file(output_dir + name + ".html")
+        Candlestick.candlestick_plot(df, positions_df, name, df_balance, df_equity, start,
+                                     trends, extends)
+
     @staticmethod
     def cal_profit(type, symbol, price_open, price_close, volume):
         LOT = Config.symbols_pip_value[symbol]
@@ -98,17 +134,29 @@ class Visualization:
                 return round(((price_open - price_close) * volume * LOT) / price_close,
                              volume_digit)  # profit or loss
 
-    def show_candlestick(self, name, df, positions_df, df_balance, df_equity, start, trends, extends):
-        backtest = self.backtest
-        output_dir = "Outputs/" + backtest[3] + "/" + backtest[0] + \
-                     "_" + backtest[1] + "_" + backtest[2] + "/" + backtest[4] + "/"
-        output_file(output_dir + name + ".html")
-        Candlestick.candlestick_plot(df, positions_df, name, df_balance, df_equity, start,
-                                     trends, extends)
+    @staticmethod
+    def adjust_time(time, time_fram):
+        if time_fram == "M5":
+            time = time.replace(minute=(time.minute // 5) * 5)
+        elif time_fram == "M15":
+            time = time.replace(minute=(time.minute // 15) * 15)
+        elif time_fram == "M30":
+            time = time.replace(minute=(time.minute // 30) * 30)
+        elif time_fram == "H1":
+            time = time.replace(minute=0)
+        elif time_fram == "H4":
+            time = time.replace(minute=0, hour=(time.hour // 4) * 4)
+        elif time_fram == "H12":
+            time = time.replace(minute=0, hour=(time.hour // 12) * 12)
+        elif time_fram == "D":
+            time = time.replace(minute=0, hour=0)
+        return time
 
 
-backtest = ["D", "D", "M1", "SI&ReEntrance", "Normal"]
+backtest = [["D", "H12", "M1", "SI&ReEntrance", "US30USD"],
+            ["D", "D", "M1", "SemiHammer", "US30USD"]]
+
 balance = 10000
-new_time_frame = "H12"
+new_time_frame = "H1"
 visualization = Visualization(backtest, balance, new_time_frame)
 visualization.get_output()

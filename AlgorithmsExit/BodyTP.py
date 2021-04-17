@@ -21,9 +21,9 @@ class BodyTP:
         max_high = max(data[-2]['High'], data[-3]['High'])
         min_low = min(data[-2]['Low'], data[-3]['Low'])
         sl = 0
-        if position_type == 'buy':
-            sl = -abs(data[-1]['Close'] - min_low)
-        elif position_type == 'sell':
-            sl = abs(max_high - data[-1]['Close'])
+        # if position_type == 'buy':
+        #     sl = -abs(data[-1]['Close'] - min_low)
+        # elif position_type == 'sell':
+        #     sl = abs(max_high - data[-1]['Close'])
         return tp, sl
 

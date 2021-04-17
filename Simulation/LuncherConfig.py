@@ -13,6 +13,7 @@ from Algorithms.SSSRAlgorithm import SSSRAlgorithm
 from Algorithms.MonotoneExtremumAlgorithm import MEAlgorithm
 from Algorithms.ExtremumTrendsBreakAlgorithm import ETBAlgorithm
 from Algorithms.RLAlgorithm import RLAlgorithm
+from Algorithms.ShadowConfirmationAlgorithm import ShadowConfirmationAlgorithm
 from AlgorithmsRepairment.ReEntranceAlgorithm import ReEntrance
 from AlgorithmsExit.AdvancedTrailing import AdvTraling
 from AlgorithmsExit.TrailingWithHugeCandle import TrailingWithHugeCandle
@@ -25,14 +26,14 @@ from AccountManagment import AccountManagment
 
 class LauncherConfig:
     # Hyper Parameters
-    categories = ["Major"]
-    symbols = ["EURUSD"]
-    symbols_ratio = [3]
+    categories = ["CFD"]
+    symbols = ["US30USD"]
+    symbols_ratio = [2]
     history_size = 200
-    algorithm_time_frame = "M30"
-    trailing_time_frame = "M30"
-    algorithm_name = "Divergence"
-    tag = "EURUSD"
+    algorithm_time_frame = "D"
+    trailing_time_frame = "D"
+    algorithm_name = "SemiHammer"
+    tag = "US30USD"
 
     def __init__(self, symbol, data, start_i, balance_ratio):
         # # Algorithms
@@ -76,7 +77,7 @@ class LauncherConfig:
         # Semi Hammer
         self.semi_hammer_window = 20
         self.semi_hammer_detect_mode = 1
-        self.semi_hammer_alpha = 2
+        self.semi_hammer_alpha = 3
         self.semi_hammer_trigger_threshold = 2
 
         # Simple Trend Line Break
@@ -94,20 +95,25 @@ class LauncherConfig:
         # Super Strong Support Resistance
         self.sssr_window_size = 150
         self.sssr_extremum_window = 2
-        self.sssr_extremum_mode = 2   # 1 : High Low , 2 : Top Bottom
+        self.sssr_extremum_mode = 1   # 1 : High Low , 2 : Top Bottom
 
         # Extremum Trends Break
         self.etb_window_size = 150
-        self.etb_extremum_window = 1
-        self.etb_extremum_mode = 2      # 1 : High Low , 2 : Top Bottom
-        self.is_last_candle_check = False
+        self.etb_extremum_window = 8
+        self.etb_extremum_mode = 1      # 1 : High Low , 2 : Top Bottom
+        self.is_last_candle_check = True
 
         # Monotone Extremum
         self.me_window_size = 150
         self.me_extremum_window = 2
-        self.me_extremum_mode = 2  # 1 : High Low , 2 : Top Bottom
-        self.me_extremum_level = 3
+        self.me_extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
+        self.me_extremum_level = 2
         self.me_extremum_pivot = 1
+        self.me_mode = 2     # monotone_mode ; 1 : limit price is taken from last extremum price , 2 : limit price is taken from last candle
+
+        # Shadow Confirmation
+        self.sc_window_size = 3
+        self.sc_mode = 1        # shadow_confirmation_mode ; 1 : fast_limit , 2 : normal_limit , 3 : late_limit
 
         # Renforcement Learning
         self.rl_window_size = 100
@@ -146,7 +152,7 @@ class LauncherConfig:
 
 
         # # Re Entrance
-        self.re_entrance_enable = False  # if true the re entrance algorithm will execute
+        self.re_entrance_enable = True  # if true the re entrance algorithm will execute
         self.enable_max_trade_per_candle = True  # if true only max_trade_per_candle can be placed on one candle
         self.max_trade_per_candle = 2  # if 1 only 1 trade can be placed for each candle
         self.re_entrance_distance_limit = 3
@@ -167,32 +173,33 @@ class LauncherConfig:
 
         # Algorithm Section
         #self.algorithm = SIAlgorithm(symbol, data[start_i - self.history_size:start_i], self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
-        #self.algorithm = SemiHammerAlgorithm(symbol, data[start_i - self.history_size:start_i], self.semi_hammer_window, self.semi_hammer_alpha, self.semi_hammer_detect_mode, self.semi_hammer_trigger_threshold)
+        self.algorithm = SemiHammerAlgorithm(symbol, data[start_i - self.history_size:start_i], self.semi_hammer_window, self.semi_hammer_alpha, self.semi_hammer_detect_mode, self.semi_hammer_trigger_threshold)
         #self.algorithm = SimpleTrendLineBreakAlgorithm(data[start_i - self.history_size:start_i], self.stlb_window)
         #self.algorithm = RSIAlgorithm(symbol, data[start_i - self.history_size:start_i], self.rsi_win_inc, self.rsi_win_dec, self.rsi_pivot)
         #self.algorithm = SIMAlgorithm(symbol, data[start_i - self.history_size:start_i], self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
         #self.algorithm = HighLowBreakAlgorithm(symbol, data[start_i - self.history_size:start_i], self.high_low_break_window)
         #self.algorithm = MinMaxAlgorithm(symbol, data[start_i - self.history_size:start_i], self.min_max_window_exteremum, self.min_max_window_trend, self.min_max_mode_trend)
         #self.algorithm = RegressionAlgorithm(symbol, data[start_i - self.history_size:start_i], self.reg_alpha, self.reg_beta, self.reg_window_exteremum)
-        self.algorithm = DivergenceAlgorithm(symbol, data[start_i - self.history_size:start_i], self.big_window, self.small_window, self.hidden_divergence_check_window, self.upper_line_tr, self.divergence_alpha, self.divergence_extremum_mode)
+        #self.algorithm = DivergenceAlgorithm(symbol, data[start_i - self.history_size:start_i], self.big_window, self.small_window, self.hidden_divergence_check_window, self.upper_line_tr, self.divergence_alpha, self.divergence_extremum_mode)
         #self.algorithm = SequenceAlgorithm(symbol, data[start_i - self.history_size:start_i], self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold)
         #self.algorithm = DojiAlgorithm(data[start_i - self.history_size:start_i], self.doji_win, self.doji_detect_mode, self.doji_candle_mode)
         #self.algorithm = SIAndDojiAlgorithm(symbol, data[start_i - self.history_size:start_i], self.si_win_inc, self.si_win_dec, self.si_shadow_threshold, self.si_body_threshold, self.doji_win, self.doji_detect_mode, self.doji_candle_mode)
         #self.algorithm = MAAlgorithm(symbol, data[start_i - self.history_size:start_i], self.ma_total_data_size, self.ma_window_size, self.ma_price_type, self.ma_type ,self.ma_extremum_window, self.ma_extremum_mode, self.ma_extremum_pivot)
         #self.algorithm = SSSRAlgorithm(symbol, data[start_i - self.history_size:start_i], self.sssr_window_size, self.sssr_extremum_window, self.sssr_extremum_mode)
         #self.algorithm = ETBAlgorithm(symbol, data[start_i - self.history_size:start_i], self.etb_window_size, self.etb_extremum_window, self.etb_extremum_mode, self.is_last_candle_check)
-        #self.algorithm = MEAlgorithm(symbol, data[start_i - self.history_size:start_i], self.me_window_size, self.me_extremum_window, self.me_extremum_mode, self.me_extremum_level, self.me_extremum_pivot)
-        self.algorithm = RLAlgorithm(symbol, data[start_i - self.history_size:start_i], self.rl_window_size)
+        #self.algorithm = MEAlgorithm(symbol, data[start_i - self.history_size:start_i], self.me_window_size, self.me_extremum_window, self.me_extremum_mode, self.me_extremum_level, self.me_extremum_pivot, self.me_mode)
+        #self.algorithm = RLAlgorithm(symbol, data[start_i - self.history_size:start_i], self.rl_window_size)
+        #self.algorithm = ShadowConfirmationAlgorithm(data[start_i - self.history_size:start_i], self.sc_window_size, self.sc_mode)
 
         # ReEntrance Section
         self.repairment_algorithm = ReEntrance(self.re_entrance_distance_limit, self.re_entrance_loss_enable, self.re_entrance_loss_limit, self.re_entrance_loss_threshold)
 
         # Algorithm Tools Section
         self.close_mode = "trailing"  # 'tp_sl', 'trailing', 'both'
-        #self.tp_sl_tool = BodyTP(self.body_tp_window, self.body_tp_alpha, self.body_tp_mode)
+        self.tp_sl_tool = BodyTP(self.body_tp_window, self.body_tp_alpha, self.body_tp_mode)
         #self.tp_sl_tool = StatisticSL(symbol, self.statistic_sl_window, self.statistic_sl_alpha)
         #self.tp_sl_tool = FixTPSL(symbol, self.fix_tp, self.fix_sl)
-        self.tp_sl_tool = WaveTPSL(self.wave_win_tp_sl, self.wave_alpha, self.wave_beta)
+        #self.tp_sl_tool = WaveTPSL(self.wave_win_tp_sl, self.wave_alpha, self.wave_beta)
         #self.trailing_tool = AdvTraling(symbol, self.adv_window, self.adv_alpha, self.adv_mode)
         self.trailing_tool = TrailingWithHugeCandle(data[start_i - self.history_size:start_i], self.trailing_huge_alpha, self.trailing_huge_beta, self.trailing_huge_mode, self.trailing_huge_extremum_window, self.trailing_huge_extremum_mode, self.trailing_huge_extremum_pivot)
         #self.trailing_tool = CandleTrailing()

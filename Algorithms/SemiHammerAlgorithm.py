@@ -16,17 +16,27 @@ class SemiHammerAlgorithm:
         self.data_window = data_history[-self.window_size-5:]
         self.trigger_signal = 0
         self.trigger_cnt = 0
+        self.candle_buy_submitted = False
+        self.candle_sell_submitted = False
 
     def on_tick(self):
         if self.trigger_signal == 1:
             if self.data_window[-1]['Close'] > self.data_window[-self.trigger_cnt-1]['High']:
+                self.candle_buy_submitted = True
+                self.trigger_signal = 0
+                self.trigger_cnt = 0
                 return 1, self.data_window[-self.trigger_cnt-1]['High']
         elif self.trigger_signal == -1:
             if self.data_window[-1]['Close'] < self.data_window[-self.trigger_cnt-1]['Low']:
+                self.candle_sell_submitted = True
+                self.trigger_signal = 0
+                self.trigger_cnt = 0
                 return -1, self.data_window[-self.trigger_cnt-1]['Low']
         return 0, 0
 
     def on_data(self, candle, cash):
+        self.candle_buy_submitted = False
+        self.candle_sell_submitted = False
         trigger = SemiHammer.semi_hammer_detect(self.data_window, self.detect_mode, self.alpha)
         if trigger != 0:
             self.trigger_signal = trigger
