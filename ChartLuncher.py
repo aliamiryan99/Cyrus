@@ -9,13 +9,16 @@ import numpy as np
 from pandas import Series
 from datetime import datetime
 from Simulation import Outputs
+from Indicators.KDJ import kdj
+import pandas as pd
 
-category = "CFD"
-symbol = "US30USD"
+category = "Major"
+symbol = "EURUSD"
+time_frame = "D"
 date_format = "%d.%m.%Y %H:%M:%S.%f"
 start_date = "01.01.2016 00:00:00.000"
 end_date = "01.01.2021 00:00:00.000"
-data_show_paths = ["Data/" + category + "/" + symbol + "/D.csv"]
+data_show_paths = ["Data/" + category + "/" + symbol + "/" + time_frame + ".csv"]
 
 start_time = datetime.strptime(start_date, date_format)
 end_time = datetime.strptime(end_date, date_format)
@@ -38,49 +41,56 @@ Close = np.array([d['Close'] for d in data])
 a = np.c_[Open, Close].max(1)
 b = np.c_[Open, Close].min(1)
 
-local_min_price_left, local_max_price_left = LocalExtermums.get_local_extermums(data, 8)
-local_min_price_right, local_max_price_right = LocalExtermums.get_local_extermums_asymetric(data, 5, 4)
+local_min_price_left, local_max_price_left = LocalExtermums.get_local_extermums(data, 5, 1)
+local_min_price_right, local_max_price_right = LocalExtermums.get_local_extermums_asymetric(data, 3, 15, 1)
 
 heikin_converter1 = HeikinConverter(data[0])
 heikin_data = heikin_converter1.convert_many(data[1:])
-heikin_converter2 = HeikinConverter(heikin_data[0])
-heikin_data = heikin_converter2.convert_many(heikin_data[1:])
+# heikin_converter2 = HeikinConverter(heikin_data[0])
+# heikin_data = heikin_converter2.convert_many(heikin_data[1:])
 
-indicator = rsi(Series([item['Close'] for item in heikin_data]), 14).reset_index().rename(columns={'rsi': 'value'})
-indicator_np = np.array(list(indicator['value']))
+# indicator = rsi(Series([item['Close'] for item in heikin_data]), 14).reset_index().rename(columns={'rsi': 'value'})
+# indicator_np = np.array(list(indicator['value']))
 
-local_min_indicator_left, local_max_indicator_left = LocalExtermums.get_indicator_local_extermums(list(indicator['value']), 5)
-local_min_indicator_right, local_max_indicator_right = LocalExtermums.get_indicator_local_extermums_asymetric(list(indicator['value']), 3, 4)
+k_value, d_value, j_value = kdj(High, Low, Close, 13, 3)
+
+values = np.array([k_value, d_value, j_value])
+
+max_indicator = np.max(values, axis=0)
+min_indicator = np.min(values, axis=0)
+
+local_min_indicator_left, local_max_indicator_left = LocalExtermums.get_indicator_local_extermums(max_indicator, min_indicator, 5)
+local_min_indicator_right, local_max_indicator_right = LocalExtermums.get_indicator_local_extermums_asymetric(max_indicator, min_indicator, 3, 15)
 
 
 real_time = False
-hidden_divergence_check_window = 25
+hidden_divergence_check_window = 15
 upper_line_tr = 0.90
 body_avg = np.mean(a - b)
 pip_difference = body_avg * .2
 # --- bullish divergence
 trend_direction = 1
 down_direction = 0
-[idx1, val1] = divergence_calculation(b, Low, indicator_np, local_min_price_left, local_min_price_right, local_min_indicator_left,
+[idx1, val1] = divergence_calculation(b, Low, min_indicator, local_min_price_left, local_min_price_right, local_min_indicator_left,
                           local_min_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
                           pip_difference, upper_line_tr, real_time)
 
 trend_direction = 1
 down_direction = 1
-[idx2, val2] = divergence_calculation(b, Low, indicator_np, local_min_price_left, local_min_price_right, local_min_indicator_left,
+[idx2, val2] = divergence_calculation(b, Low, min_indicator, local_min_price_left, local_min_price_right, local_min_indicator_left,
                           local_min_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
                           pip_difference, upper_line_tr, real_time)
 
 # --- bearish divergence
 trend_direction = 0
 down_direction = 0
-[idx3, val3] = divergence_calculation(a, High, indicator_np, local_max_price_left, local_max_price_right, local_max_indicator_left,
+[idx3, val3] = divergence_calculation(a, High, max_indicator, local_max_price_left, local_max_price_right, local_max_indicator_left,
                           local_max_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
                           pip_difference, upper_line_tr, real_time)
 
 trend_direction = 0
 down_direction = 1
-[idx4, val4] = divergence_calculation(a, High, indicator_np, local_max_price_left, local_max_price_right, local_max_indicator_left,
+[idx4, val4] = divergence_calculation(a, High, max_indicator, local_max_price_left, local_max_price_right, local_max_indicator_left,
                           local_max_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
                           pip_difference, upper_line_tr, real_time)
 
@@ -91,25 +101,25 @@ indicator_line_2 = []
 for i in range(len(idx1)):
     row = idx1[i]
     line1.append({'x': [row[0][0], row[0][1]], 'y': [Low[row[0][0]], Low[row[0][1]]]})
-    indicator_line_1.append({'x': [row[1][0], row[1][1]], 'y': [indicator_np[row[1][0]], indicator_np[row[1][1]]]})
+    indicator_line_1.append({'x': [row[1][0], row[1][1]], 'y': [min_indicator[row[1][0]], min_indicator[row[1][1]]]})
 
 for i in range(len(idx2)):
     row = idx2[i]
     line1.append({'x': [row[0][0], row[0][1]], 'y': [Low[row[0][0]], Low[row[0][1]]]})
-    indicator_line_1.append({'x': [row[1][0], row[1][1]], 'y': [indicator_np[row[1][0]], indicator_np[row[1][1]]]})
+    indicator_line_1.append({'x': [row[1][0], row[1][1]], 'y': [min_indicator[row[1][0]], min_indicator[row[1][1]]]})
 
 for i in range(len(idx3)):
     row = idx3[i]
     line2.append({'x': [row[0][0], row[0][1]], 'y': [High[row[0][0]], High[row[0][1]]]})
-    indicator_line_2.append({'x': [row[1][0], row[1][1]], 'y': [indicator_np[row[1][0]], indicator_np[row[1][1]]]})
+    indicator_line_2.append({'x': [row[1][0], row[1][1]], 'y': [max_indicator[row[1][0]], max_indicator[row[1][1]]]})
 
 for i in range(len(idx4)):
     row = idx4[i]
     line2.append({'x': [row[0][0], row[0][1]], 'y': [High[row[0][0]], High[row[0][1]]]})
-    indicator_line_2.append({'x': [row[1][0], row[1][1]], 'y': [indicator_np[row[1][0]], indicator_np[row[1][1]]]})
+    indicator_line_2.append({'x': [row[1][0], row[1][1]], 'y': [max_indicator[row[1][0]], max_indicator[row[1][1]]]})
 
 
-Candlestick.candlestick_plot(data_shows, symbol, True, indicator, divergence_line=line1,
+Candlestick.candlestick_plot(data_shows, symbol, True, pd.DataFrame(max_indicator).rename(columns={0: 'value'}), pd.DataFrame(min_indicator).rename(columns={0: 'value'}), divergence_line=line1,
                              indicator_divergene_line=indicator_line_1, divergence_line_2=line2,
                              indicator_divergene_line_2=indicator_line_2, indicatorLocalMax=local_max_indicator_left,
                              indicatorLocalMin=local_min_indicator_left, indicatorLocalMax2=local_max_indicator_right,

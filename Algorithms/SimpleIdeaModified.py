@@ -27,7 +27,7 @@ class SIMAlgorithm:
                 return -1, self.data_window[-1]['Close']
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         self.trigger_signal = SimpleIdea.simpleIdea(self.symbol, self.data_window, self.win_inc, self.win_dec,
                                        self.shadow_threshold, self.body_threshold)
         self.data_window.pop(0)

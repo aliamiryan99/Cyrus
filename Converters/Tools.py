@@ -18,6 +18,8 @@ def save_data(data, category, symbol, time_frame):
 
 def get_time_id(time, time_frame):
     identifier = time.day
+    if time_frame == "W1":
+        identifier = time.isocalendar()[1]
     if time_frame == "H12":
         identifier = time.day * 2 + time.hour // 12
     if time_frame == "H4":

@@ -33,7 +33,7 @@ class SIAndDojiAlgorithm:
                 return -1, self.data_window[-2]['Low']
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         self.doji_trigger = Doji.doji_detect(self.data_window, self.win, self.detect_mode, self.candle_mode)
         signal = SimpleIdea.simpleIdea(self.symbol, self.data_window, self.win_inc, self.win_dec,
                                        self.shadow_threshold, self.body_threshold)

@@ -18,10 +18,10 @@ def aggregate_data(histories, time_frame):
             new_history[-1]['Volume'] += histories[i]['Volume']
     return new_history
 
-category = "Metal"
-symbol = "XAUUSD"
-time_frame_source = "H1"
-time_frame_target = "H4"
+category = "Major"
+symbol = "EURUSD"
+time_frame_source = "M1"
+time_frame_target = "M30"
 
 data = read_data(category, symbol, time_frame_source)
 

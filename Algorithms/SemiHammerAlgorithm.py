@@ -26,7 +26,7 @@ class SemiHammerAlgorithm:
                 return -1, self.data_window[-self.trigger_cnt-1]['Low']
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         trigger = SemiHammer.semi_hammer_detect(self.data_window, self.detect_mode, self.alpha)
         if trigger != 0:
             self.trigger_signal = trigger

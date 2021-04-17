@@ -129,6 +129,7 @@ volume_digit = Config.volume_digit
 
 initial_balance = 0
 
+
 class Simulation:
 
     def __init__(self, leverage=100, balance=1000, start_time=None, end_time=None):
@@ -703,6 +704,7 @@ class Simulation:
                 return self.closed_sell_positions[i]
         return None
 
+
 def initialize():
     """
         this method get all config properties from inputs file
@@ -839,6 +841,7 @@ def simulate(simulation, predicts, data, start_date, end_date, risk):
             profit_history.append([i, date, n_profit - profit])
             profit = n_profit
     simulation.close_all(end, "exit Simulation")
+
 
 def adjust_time(time_frame_input):
     global predicts
@@ -1000,7 +1003,7 @@ def get_output(simulation, trends=None, extends=None):
 
     positions_df = pd.DataFrame(positions,
                                 columns=['TimeOpen', 'Type', 'ticket', 'Volume', 'Symbol', 'PriceOpen', 'S/L', 'T/P'
-                                    ,'TimeClose', 'PriceClose', 'Result', 'Profit', 'Profit in pip', 'Index',
+                                        ,'TimeClose', 'PriceClose', 'Result', 'Profit', 'Profit in pip', 'Index',
                                          'IndexEnd'])
     positions_df = positions_df.sort_values(['TimeOpen'])
     positions_df.to_excel(output_dir + "history.xlsx", index=False)

@@ -25,7 +25,7 @@ class RSIAlgorithm:
                 self.signal_triggered = True
         return signal, price
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         self.data_window.pop(0)
         self.data_window.append(candle)
         self.signal_triggered = False

@@ -15,7 +15,7 @@ class RegressionAlgorithm:
     def on_tick(self):
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         signal = 0
         if candle['Volume'] != 0:
             signal = RegressionPredict.predict(self.data_window, self.alpha, self.beta, self.window_extermum)

@@ -27,7 +27,7 @@ class SimpleTrendLineBreakAlgorithm:
                 return -1, self.data_window[-1]['Open']
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         self.trend_detection = SimpleTrendLineBreak.simple_trend_detect(self.data_window)
         if self.trend_detection == 1:
             self.line_value = SimpleTrendLineBreak.get_ascending_line_value(self.data_window)

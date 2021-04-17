@@ -15,7 +15,7 @@ class MinMaxAlgorithm:
     def on_tick(self):
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         signal = 0
         if candle['Volume'] != 0:
             signal = MinMaxPredict.predict(self.data_window, self.window_extermum, self.window_trend, self.mode_trend)

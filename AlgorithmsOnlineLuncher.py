@@ -143,6 +143,7 @@ class Launcher(DWX_ZMQ_Strategy):
         self.launcher_config = launcher_config
         self._zmq._DWX_MTX_CLOSE_ALL_TRADES_()
         self.balance = self._reporting._get_balance()
+        self.equity = self._reporting._get_equity()
         for symbol in self._symbols:
             print(symbol)
             print(pd.DataFrame(self._histories[symbol][-10:]))
@@ -167,11 +168,14 @@ class Launcher(DWX_ZMQ_Strategy):
                 new_history[-1]['High'] = max(new_history[-1]['High'], histories[i]['High'])
                 new_history[-1]['Low'] = max(new_history[-1]['Low'], histories[i]['Low'])
                 new_history[-1]['Close'] = histories[i]['Close']
+                new_history[-1]['Volume'] += histories[i]['Volume']
         return new_history
 
     @staticmethod
     def get_time_id(time, time_frame):
         identifier = time.day
+        if time_frame == "W1":
+            identifier = time.isocalendar()[1]
         if time_frame == "H12":
             identifier = time.day * 2 + time.hour // 12
         if time_frame == "H4":
@@ -226,6 +230,7 @@ class Launcher(DWX_ZMQ_Strategy):
             self.re_entrance_sent[symbol] = False
             self._trailing_tools[symbol].on_data(self._trailing_histories[symbol][:-1])
             self._reporting._get_balance()
+            self._reporting._get_equity()
             print(f"{symbol} Trailing")
             print(pd.DataFrame(self._trailing_histories[symbol][-2:]))
             print("________________________________________________________________________________")
@@ -452,6 +457,8 @@ class Launcher(DWX_ZMQ_Strategy):
         """
         if data['_action'] == 'GET_BALANCE':
             self.balance = list(data['_balance'])[0]
+        if data['_action'] == 'GET_EQUITY':
+            self.equity = list(data['_equity'])[0]
         if data['_action'] == 'EXECUTION':
             data['_open_time'] = datetime.strptime(data['_open_time'], Config.date_order_format)
             self.re_entrance_sent[data['_symbol']] = False

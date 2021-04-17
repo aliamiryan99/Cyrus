@@ -26,7 +26,7 @@ class DojiAlgorithm:
                 return -1, self.data_window[-2]['Low']
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         self.doji_trigger = Doji.doji_detect(self.data_window, self.win, self.detect_mode, self.candle_mode)
         self.data_window.pop(0)
         self.data_window.append(candle)

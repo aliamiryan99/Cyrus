@@ -20,7 +20,7 @@ class SequenceAlgorithm:
     def on_tick(self):
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         signal = Sequence.sequence_find(self.symbol, self.data_window, self.win_inc, self.win_dec,
                                         self.shadow_threshold, self.body_threshold)
         self.data_window.pop(0)

@@ -1,13 +1,15 @@
 import numpy as np
-from AlgorithmTools import LocalExtermums
+from AlgorithmTools.LocalExtermums import *
+
 
 class TrailingWithHugeCandle:
-    def __init__(self, data_window, alpha, beta, mode, extremum_window, extremum_pivot):
+    def __init__(self, data_window, alpha, beta, mode, extremum_window, extremum_mode, extremum_pivot):
         self.data_window = data_window
         self.mode = mode
         self.alpha = alpha
         self.beta = beta
         self.extremum_window = extremum_window
+        self.extremum_mode = extremum_mode
         self.extremum_pivot = extremum_pivot
 
         self.Open = np.array([d['Open'] for d in self.data_window[:-1]])
@@ -15,13 +17,13 @@ class TrailingWithHugeCandle:
         self.Low = np.array([d['Low'] for d in self.data_window[:-1]])
         self.Close = np.array([d['Close'] for d in self.data_window[:-1]])
 
-        self.local_min_price, self.local_max_price = LocalExtermums.get_local_extermums(self.data_window[:-1], self.extremum_window)
+        self.local_min_price, self.local_max_price = get_local_extermums(self.data_window[:-1], self.extremum_window, self.extremum_mode)
 
         self.is_huge_buy = False
         self.is_huge_sell = False
 
     def on_data(self, history):
-        self.update_local_extremums()
+        self.update_local_extremum()
         self.data_window.pop(0)
         self.data_window.append(history[-1])
         self.is_huge_buy = self.detect_huge_candle(self.local_max_price[-self.extremum_pivot])
@@ -57,14 +59,14 @@ class TrailingWithHugeCandle:
         old_low = min(old_candle['Low'], min_price)
 
         if position_type == "buy":
-            if self.is_huge_buy:
+            if self.is_huge_buy and (entry_point != -1):
                 old_low = self.alpha * old_candle['Low'] + (1 - self.alpha) * old_candle['High']
             if new_candle['High'] > old_high and new_candle['Close'] < max_price:
                 return True, max_price
             elif new_candle['Low'] < old_low:
                 return True, old_low
         elif position_type == "sell":
-            if self.is_huge_sell:
+            if self.is_huge_sell and (entry_point != -1):
                 old_high = self.alpha * old_candle['High'] + (1 - self.alpha) * old_candle['Low']
             if new_candle['Low'] < old_low and new_candle['Close'] > min_price:
                 return True, min_price
@@ -72,27 +74,13 @@ class TrailingWithHugeCandle:
                 return True, old_high
         return False, 0
 
-    def update_local_extremums(self):
-        self.local_min_price = self.update_local_extremum(self.local_min_price)
-        self.local_max_price = self.update_local_extremum(self.local_max_price)
+    def update_local_extremum(self):
+        self.local_min_price = update_local_extremum(self.local_min_price)
+        self.local_max_price = update_local_extremum(self.local_max_price)
 
         window_size =self.extremum_window*4
-        new_local_min_price_left, new_local_max_price_left = LocalExtermums.get_local_extermums(self.data_window[-window_size:], self.extremum_window)
+        new_local_min_price_left, new_local_max_price_left = get_local_extermums(self.data_window[-window_size:], self.extremum_window, self.extremum_mode)
 
-        self.local_min_price = self.update_new_lcoal_extremum(self.local_min_price, new_local_min_price_left, len(self.data_window), window_size)
-        self.local_max_price = self.update_new_lcoal_extremum(self.local_max_price, new_local_max_price_left, len(self.data_window), window_size)
+        self.local_min_price = update_new_local_extremum(self.local_min_price, new_local_min_price_left, len(self.data_window), window_size)
+        self.local_max_price = update_new_local_extremum(self.local_max_price, new_local_max_price_left, len(self.data_window), window_size)
 
-
-    def update_local_extremum(self, local_extremum):
-        while local_extremum[0] <= 0:
-            local_extremum = local_extremum[1:]
-        for i in range(len(local_extremum)):
-            local_extremum[i] -= 1
-        return local_extremum
-
-    def update_new_lcoal_extremum(self, pre_local_extremum, new_local_extremum, total_window, local_window):
-        for i in range(len(new_local_extremum)):
-            new_local = new_local_extremum[i] + (total_window - local_window - 1)
-            if not new_local in pre_local_extremum:
-                pre_local_extremum = np.append(pre_local_extremum, [new_local])
-        return pre_local_extremum

@@ -6,7 +6,7 @@ class Config:
     balance = 10000
     leverage = 100
     spreads = {'EURUSD': 20, 'GBPUSD': 30, 'NZDUSD': 40, 'USDCAD': 40, 'USDCHF': 30, 'USDJPY': 30,
-                     'AUDUSD': 30, 'XAUUSD': 50, 'XAGUSD': 50, 'US30USD': 20, 'USATECHUSD': 100, 'US500USD': 100}     # in point
+                     'AUDUSD': 30, 'XAUUSD': 50, 'XAGUSD': 50, 'US30USD': 60, 'USATECHUSD': 100, 'US500USD': 100}     # in point
     volume_digit = 2    # for example 2 -> at least 0.01 lot
     start_date = "01.02.2017 00:00:00.000"
     end_date = "01.01.2021 00:00:00.000"

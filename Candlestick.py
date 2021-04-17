@@ -11,7 +11,7 @@ register_matplotlib_converters()
 
 
 
-def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, divergence_line=None,
+def candlestick_plot(df, name, indicator_enable = False, df_indicator = None, df_indicator2 = None, divergence_line=None,
                      indicator_divergene_line=None, divergence_line_2=None,
                      indicator_divergene_line_2=None, indicatorLocalMax=None, indicatorLocalMin=None, indicatorLocalMax2=None,
                      indicatorLocalMin2=None, lines=None, extend_lines=None, localMax=None, localMin=None, localMax2=None,
@@ -28,7 +28,7 @@ def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, dive
         number_format1 = '%0.5f'
     number_format2 = '%0.' + str(Config.volume_digit) + 'f'
     number_format3 = '%0.1f'
-    # if df['GMT'][start].hour > 0:
+    # if df['Time'][start].hour > 0:
     #     xaxis_dt_format = '%d %b %Y, %H:%M:%S'
 
 
@@ -67,7 +67,7 @@ def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, dive
         bottom1=df.Close[inc],
         high1=df.High[inc],
         low1=df.Low[inc],
-        date1=df.GMT[inc]
+        date1=df.Time[inc]
     ))
 
     dec_source = ColumnDataSource(data=dict(
@@ -76,7 +76,7 @@ def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, dive
         bottom2=df.Close[dec],
         high2=df.High[dec],
         low2=df.Low[dec],
-        date2=df.GMT[dec]
+        date2=df.Time[dec]
     ))
 
     # sizing settings
@@ -199,7 +199,7 @@ def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, dive
 
     # Add date labels to x axis
     fig.xaxis.major_label_overrides = {
-        i: date.strftime(xaxis_dt_format) for i, date in enumerate(pd.to_datetime(df["GMT"], utc=True))
+        i: date.strftime(xaxis_dt_format) for i, date in enumerate(pd.to_datetime(df["Time"], utc=True))
     }
 
     if indicator_enable:
@@ -214,23 +214,29 @@ def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, dive
                          )
 
         indicator_color = '#72a1dc'
+        indicator_color2 = '#d2a17c'
 
         indicator = ColumnDataSource(data=dict(
             index1=df_indicator.index,
             value1=df_indicator.value
         ))
+        indicator2 = ColumnDataSource(data=dict(
+            index2=df_indicator2.index,
+            value2=df_indicator2.value
+        ))
 
-        indicator_line = top_fig.line(x='index1', y='value1', source=indicator, line_width=2, line_color=indicator_color)
+        top_fig.line(x='index1', y='value1', source=indicator, line_width=2, line_color=indicator_color)
+        top_fig.line(x='index2', y='value2', source=indicator2, line_width=2, line_color=indicator_color2)
 
         if indicatorLocalMax is not None:
             top_fig.circle(indicatorLocalMax, df_indicator.value[indicatorLocalMax], size=6, color="red")
         if indicatorLocalMin is not None:
-            top_fig.circle(indicatorLocalMin, df_indicator.value[indicatorLocalMin], size=6, color="blue")
+            top_fig.circle(indicatorLocalMin, df_indicator2.value[indicatorLocalMin], size=6, color="blue")
 
         if indicatorLocalMax2 is not None:
             top_fig.circle(indicatorLocalMax2, df_indicator.value[indicatorLocalMax2], size=3, color="red")
         if indicatorLocalMin2 is not None:
-            top_fig.circle(indicatorLocalMin2, df_indicator.value[indicatorLocalMin2], size=3, color="blue")
+            top_fig.circle(indicatorLocalMin2, df_indicator2.value[indicatorLocalMin2], size=3, color="blue")
 
         if indicator_divergene_line != None:
             for line in indicator_divergene_line:

@@ -22,7 +22,7 @@ class HighLowBreakAlgorithm:
                 return -1, self.data_window[-1]['Close']
         return 0, 0
 
-    def on_data(self, candle):
+    def on_data(self, candle, cash):
         self.signal_triggered = False
         self.data_window.pop(0)
         self.data_window.append(candle)

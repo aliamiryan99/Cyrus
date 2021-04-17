@@ -322,7 +322,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
         value2=df_equity.equity
     ))
 
-    equity_line= top_fig.line(x='index2', y='value2', source=equity, line_width=2, line_color=equity_color)
+    equity_line = top_fig.line(x='index2', y='value2', source=equity, line_width=2, line_color=equity_color)
     balance_line = top_fig.line(x='index1', y='value1', source=balance, line_width=2, line_color=balance_color)
 
     top_fig.add_tools(HoverTool(
