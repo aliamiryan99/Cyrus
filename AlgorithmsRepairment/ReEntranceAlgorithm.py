@@ -70,11 +70,11 @@ class ReEntrance:
     def on_data(self):
         if self.buy_position_trigger == 1:
             if self.algorithm_history[-2]['High'] > self.limit_price_buy:
-                self.limit_price_buy = self.algorithm_history[-1]['High']        # correct : -2 , instead: -1
+                self.limit_price_buy = self.algorithm_history[-2]['High']        # correct : -2 , instead: -1
             self.candles_from_last_position_buy_cnt += 1
         if self.sell_position_trigger == 1:
             if self.algorithm_history[-2]['Low'] < self.limit_price_sell:
-                self.limit_price_sell = self.algorithm_history[-1]['Low']       # correct : -2 , instead: -1
+                self.limit_price_sell = self.algorithm_history[-2]['Low']       # correct : -2 , instead: -1
             self.candles_from_last_position_sell_cnt += 1
 
     def reset_triggers(self, position_type):

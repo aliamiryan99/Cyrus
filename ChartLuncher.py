@@ -11,6 +11,7 @@ from datetime import datetime
 from Simulation import Outputs
 from Indicators.KDJ import kdj
 import pandas as pd
+from ta.momentum import stochrsi_d
 
 category = "Major"
 symbol = "EURUSD"
@@ -49,7 +50,10 @@ heikin_data = heikin_converter1.convert_many(data[1:])
 # heikin_converter2 = HeikinConverter(heikin_data[0])
 # heikin_data = heikin_converter2.convert_many(heikin_data[1:])
 
-# indicator = rsi(Series([item['Close'] for item in heikin_data]), 14).reset_index().rename(columns={'rsi': 'value'})
+# indicator = rsi(Series([item['Close'] for item in data]), 14).reset_index().rename(columns={'rsi': 'value'})
+# indicator_np = np.array(list(indicator['value']))
+
+# indicator = stochrsi_d(Series([item['Close'] for item in data]), 14, 3, 3).reset_index().rename(columns={'stochrsi_d': 'value'})
 # indicator_np = np.array(list(indicator['value']))
 
 k_value, d_value, j_value = kdj(High, Low, Close, 13, 3)

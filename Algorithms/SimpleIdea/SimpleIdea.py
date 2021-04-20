@@ -2,13 +2,11 @@ from Simulation.Config import Config as S_Config
 from MetaTrader.Config import Config as MT_Config
 
 def simpleIdea(symbol, window, winInc, winDec, shadow_threshold, body_threshold):
-    # %% -------- find Top and ciel value of each candle
     winSize = len(window)
     topCandle = [0] * winSize
     bottomCandle = [0] * winSize
 
     for i in range(0, winSize):
-        # store the top/bottom value of all candles
         if window[i]['Open'] > window[i]['Close']:
             topCandle[i] = window[i]['Open']
             bottomCandle[i] = window[i]['Close']
@@ -16,9 +14,7 @@ def simpleIdea(symbol, window, winInc, winDec, shadow_threshold, body_threshold)
             topCandle[i] = window[i]['Close']
             bottomCandle[i] = window[i]['Open']
 
-    # %% ---------  find up/down trend and wait for its reversion
-    # winInc = 5
-    # winDec = 5
+
     Config = S_Config
     if symbol not in S_Config.symbols_pip.keys():
         Config = MT_Config

@@ -35,19 +35,22 @@ class DivergenceAlgorithm:
         self.alpha = alpha
         self.extremum_mode = extremum_mode
 
-        self.heikin_converter1 = HeikinConverter(data_history[0])
-        self.heikin_data = self.heikin_converter1.convert_many(data_history[1:-1])
-        # self.heikin_converter2 = HeikinConverter(heikin_data[0])
-        # self.heikin_data = self.heikin_converter2.convert_many(heikin_data[1:])
+        # self.heikin_converter1 = HeikinConverter(data_history[0])
+        # self.heikin_data = self.heikin_converter1.convert_many(data_history[1:-1])
+        # # self.heikin_converter2 = HeikinConverter(heikin_data[0])
+        # # self.heikin_data = self.heikin_converter2.convert_many(heikin_data[1:])
 
-        #self.indicator = np.array(list(Series(rsi(Series([item['Close'] for item in self.heikin_data]), 14))))
+        indicator = np.array(list(Series(rsi(Series([item['Close'] for item in data_history[:-1]]), 14))))
 
-        k_value, d_value, j_value = kdj(self.High, self.Low, self.Close, 13, 3)
+        # k_value, d_value, j_value = kdj(self.High, self.Low, self.Close, 13, 3)
+        #
+        # values = np.array([k_value, d_value, j_value])
 
-        values = np.array([k_value, d_value, j_value])
+        # self.max_indicator = np.max(values, axis=0)
+        # self.min_indicator = np.min(values, axis=0)
 
-        self.max_indicator = np.max(values, axis=0)
-        self.min_indicator = np.min(values, axis=0)
+        self.max_indicator = indicator
+        self.min_indicator = indicator
 
         self.max_indicator = np.concatenate((np.array([len(data_history)+10]*15), self.max_indicator))
         self.min_indicator = np.concatenate((np.array([len(data_history)+10]*15), self.min_indicator))
@@ -122,11 +125,14 @@ class DivergenceAlgorithm:
         self.Close = np.append(self.Close, [self.data_window[-1]['Close']])
 
     def update_indicator(self):
-        self.update_heikin_data()
-        k_value, d_value, j_value = kdj(self.High, self.Low, self.Close, 13, 3)
-        values = np.array([k_value, d_value, j_value])
-        last_max_indicator = np.max(values, axis=0)
-        last_min_indicator = np.min(values, axis=0)
+        # self.update_heikin_data()
+        # k_value, d_value, j_value = kdj(self.High, self.Low, self.Close, 13, 3)
+        # values = np.array([k_value, d_value, j_value])
+        # last_max_indicator = np.max(values, axis=0)
+        # last_min_indicator = np.min(values, axis=0)
+        indicator = np.array(list(Series(rsi(Series([item['Close'] for item in self.data_window]), 14))))
+        last_max_indicator = indicator
+        last_min_indicator = indicator
 
         self.max_indicator = self.max_indicator[1:]
         self.max_indicator = np.append(self.max_indicator, last_max_indicator[-1])

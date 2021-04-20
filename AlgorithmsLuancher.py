@@ -21,7 +21,7 @@ def launch():
     algorithm_end_indexes, trailing_data_total, trailing_start_indexes, trailing_end_indexes = initialize_data()
 
     # Algorithms
-    algorithm_data, trailing_data, history_size, algorithms, re_entrance_algorithms, close_modes, \
+    algorithm_data, trailing_data, history_size, algorithms, re_entrance_algorithms, recovery_algorithms, close_modes, \
     tp_sl_tools, trailing_tools, account_managements, market, last_ticket, last_algorithm_signal_ticket, \
     algorithm_histories, trailing_histories, buy_open_positions_lens, sell_open_positions_lens, last_buy_closed, \
     last_sell_closed, trade_buy_in_candle_counts, trade_sell_in_candle_counts, virtual_buys, virtual_sells = \
@@ -47,9 +47,10 @@ def launch():
             tp_sl_tool = tp_sl_tools[symbol]
             trailing_tool = trailing_tools[symbol]
             re_entrance_algorithm = re_entrance_algorithms[symbol]
+            recovery_algorithm = recovery_algorithms[symbol]
 
             # Debug Section
-            if symbol == 'US30USD' and data_time == datetime(year=2020, month=3, day=4, hour=0, minute=0):
+            if data_time == datetime(year=2019, month=6, day=3, hour=22, minute=4):
                 print(data_time)
 
             # Ignore Holidays
@@ -99,6 +100,9 @@ def launch():
                                       trade_sell_in_candle_counts, virtual_buys, virtual_sells, volume, last_ticket,
                                       symbol)
 
+            if config.recovery_enable:
+                recovery_signal, modify_signals = recovery_algorithm.on_tick()
+
     # Exit Section
     market.exit()
     return market
@@ -108,7 +112,6 @@ def initialize_data():
     # Simulation init
     global data
     symbols = LauncherConfig.symbols
-    categories = LauncherConfig.categories
     symbols_ratio = LauncherConfig.symbols_ratio
     algorithm_time_frame = LauncherConfig.algorithm_time_frame
     trailing_time_frame = LauncherConfig.trailing_time_frame
@@ -137,11 +140,10 @@ def initialize_data():
     data_trailing_paths = []
     for i in range(len(symbols)):
         symbol = symbols[i]
-        data_algorithm_paths += ["Data/" + categories[i] + "/" + symbol + "/" + algorithm_time_frame + ".csv"]
-        data_trailing_paths += ["Data/" + categories[i] + "/" + symbol + "/" + trailing_time_frame + ".csv"]
+        data_algorithm_paths += ["Data/" + Config.categories_list[symbol] + "/" + symbol + "/" + algorithm_time_frame + ".csv"]
+        data_trailing_paths += ["Data/" + Config.categories_list[symbol] + "/" + symbol + "/" + trailing_time_frame + ".csv"]
     algorithm_data = ut.csv_to_df(data_algorithm_paths, date_format=Config.date_format)
     trailing_data = ut.csv_to_df(data_trailing_paths, date_format=Config.date_format)
-
 
     algorithm_start_indexes = {}
     trailing_start_indexes = {}
@@ -187,6 +189,11 @@ def initialize_algorithms(symbols, start_indexes, configs, algorithm_data_total,
     re_entrance_algorithms = {}
     for symbol in symbols:
         re_entrance_algorithms[symbol] = configs[symbol].repairment_algorithm
+
+    # Recovery
+    recovery_algorithms = {}
+    for symbol in symbols:
+        recovery_algorithms[symbol] = configs[symbol].recovery_algorithm
 
     # Algorithm Tools
     close_modes = {}
@@ -237,7 +244,7 @@ def initialize_algorithms(symbols, start_indexes, configs, algorithm_data_total,
         virtual_buys[symbol] = []
         virtual_sells[symbol] = []
 
-    return algorithm_data, trailing_data, history_size, algorithms, re_entrance_algorithms, close_modes, \
+    return algorithm_data, trailing_data, history_size, algorithms, re_entrance_algorithms, recovery_algorithms, close_modes, \
            tp_sl_tools, trailing_tools, account_managements, market, last_ticket, last_algorithm_signal_ticket, \
            algorithm_histories, trailing_histories, buy_open_positions_lens, sell_open_positions_lens, last_buy_closed, \
            last_sell_closed, trade_buy_in_candle_counts, trade_sell_in_candle_counts, virtual_buys, virtual_sells
@@ -560,6 +567,8 @@ def re_entrance(market, config, tp_sl_tool, close_modes, re_entrance_algorithm, 
     return last_ticket
 
 
+def recovery():
+    pass
 
 
 

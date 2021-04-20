@@ -22,7 +22,7 @@ class Recovery:
             self.new_position_type = open_positions[0]['Type']
             self.body_mean = 0
             for row in self.history:
-                self.body_mean += abs(row['Close'] - row['Open']) / len(self.history)
+                self.body_mean += abs(row['High'] - row['Low']) / len(self.history)
             self.fibo1 = 1
             self.fibo2 = 1
             if self.new_position_type == 'buy':
@@ -33,9 +33,18 @@ class Recovery:
         if len(open_positions) > 0:
             if self.last_open_position_type == 'buy':
                 if candle['Close'] <= self.limit_price:
-                    pass
+                    tp = (open_positions[-1]['OpenPrice'] + self.limit_price / 2) - candle['Close']
+                    volume = open_positions[-1]['Volume'] * 2
+                    modify_array = []
+                    for position in open_positions:
+                        modify_array.append({'Ticket': position['Ticket'], 'TP': tp})
+                    return {'signal': 1, 'TP': tp, 'Volume': volume}, modify_array
             elif self.last_open_position_type == 'sell':
-                pass
-
-
+                if candle['Close'] >= self.limit_price:
+                    tp = (open_positions[-1]['OpenPrice'] + self.limit_price / 2) - candle['Close']
+                    volume = open_positions[-1]['Volume'] * 2
+                    modify_array = []
+                    for position in open_positions:
+                        modify_array.append({'Ticket': position['Ticket'], 'TP': tp})
+                    return {'signal': -1, 'TP': tp, 'Volume': volume}, modify_array
 

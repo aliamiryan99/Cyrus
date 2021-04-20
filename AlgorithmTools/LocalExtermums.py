@@ -124,7 +124,7 @@ def get_indicator_local_extermums_asymetric(max_data, min_data, window, alpha):
 
 
 def get_last_local_extermum(data, window):
-    localMin, localMax = get_local_extermums(data, window)
+    localMin, localMax = get_local_extermums(data, window, 1)
     return localMin[-1], localMax[-1]
 
 
