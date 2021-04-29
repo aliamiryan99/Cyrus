@@ -10,12 +10,11 @@ from Simulation.Config import Config
 register_matplotlib_converters()
 
 
-
-def candlestick_plot(df, name, indicator_enable = False, df_indicator = None, df_indicator2 = None, divergence_line=None,
+def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, df_indicator2 = None, divergence_line=None,
                      indicator_divergene_line=None, divergence_line_2=None,
                      indicator_divergene_line_2=None, indicatorLocalMax=None, indicatorLocalMin=None, indicatorLocalMax2=None,
                      indicatorLocalMin2=None, lines=None, extend_lines=None, localMax=None, localMin=None, localMax2=None,
-                     localMin2=None, marker=None, buyMarker=None, sellMarker=None):
+                     localMin2=None, marker=None, buyMarker=None, sellMarker=None, resistance_lines=None, support_lines=None):
     # Select the datetime format for the x axis depending on the timeframe
     df = df.reset_index()
 
@@ -125,13 +124,25 @@ def candlestick_plot(df, name, indicator_enable = False, df_indicator = None, df
     if localMin2 is not None:
         fig.circle(localMin2, df.Low[localMin2], size=4, color="blue")
 
-    if divergence_line != None:
+    if divergence_line is not None:
         for line in divergence_line:
             fig.line(x=line['x'], y=line['y'], line_color='blue', line_width=1)
 
-    if divergence_line_2 != None:
+    if divergence_line_2 is not None:
         for line in divergence_line_2:
             fig.line(x=line['x'], y=line['y'], line_color='red', line_width=1)
+
+    if resistance_lines is not None:
+        for line in resistance_lines:
+            fig.line(x=[1, line['x'][1]], y=[line['y'][1], line['y'][1]], line_color='red', line_width=2, line_dash='dotted')
+            fig.line(x=line['x'], y=line['y'], line_color='red', line_width=2)
+            fig.line(x=[line['x'][0], len(df)-2], y=[line['y'][0], line['y'][0]], line_color='red', line_width=2, line_dash='dotted')
+
+    if support_lines is not None:
+        for line in support_lines:
+            fig.line(x=[1, line['x'][1]], y=[line['y'][1], line['y'][1]], line_color='blue', line_width=2, line_dash='dotted')
+            fig.line(x=line['x'], y=line['y'], line_color='blue', line_width=2)
+            fig.line(x=[line['x'][0], len(df) - 2], y=[line['y'][0], line['y'][0]], line_color='blue', line_width=2, line_dash='dotted')
 
     if marker is not None:
         marker_source = ColumnDataSource(data=dict(

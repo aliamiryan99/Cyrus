@@ -97,7 +97,7 @@ class Visualization:
 
     def open(self, position):
         self.open_positions.append({'Type': position['Type'], 'Symbol': position['Symbol'],
-                                    'OpenPrice': position['PriceOpen'], 'OpenTime': position['TimeOpen'],
+                                    'OpenPrice': position['OpenPrice'], 'OpenTime': position['TimeOpen'],
                                     'ClosePrice': position['PriceClose'], 'CloseTime': position['TimeClose'],
                                     'Volume': position['Volume']})
 
@@ -153,8 +153,7 @@ class Visualization:
         return time
 
 
-backtest = [["D", "H12", "M1", "SI&ReEntrance", "US30USD"],
-            ["D", "D", "M1", "SemiHammer", "US30USD"]]
+backtest = [["D", "H1", "M1", "SI", "US30USD"]]
 
 balance = 10000
 new_time_frame = "H1"

@@ -12,6 +12,7 @@ from Simulation import Outputs
 from Indicators.KDJ import kdj
 import pandas as pd
 from ta.momentum import stochrsi_d
+from ta.momentum import stochrsi_k
 
 category = "Major"
 symbol = "EURUSD"
@@ -53,15 +54,21 @@ heikin_data = heikin_converter1.convert_many(data[1:])
 # indicator = rsi(Series([item['Close'] for item in data]), 14).reset_index().rename(columns={'rsi': 'value'})
 # indicator_np = np.array(list(indicator['value']))
 
-# indicator = stochrsi_d(Series([item['Close'] for item in data]), 14, 3, 3).reset_index().rename(columns={'stochrsi_d': 'value'})
-# indicator_np = np.array(list(indicator['value']))
+indicator = stochrsi_d(Series([item['Close'] for item in data]), 14, 3, 3).reset_index().rename(columns={'stochrsi_d': 'value'})
+indicator_np_d = np.array(list(indicator['value']))
 
-k_value, d_value, j_value = kdj(High, Low, Close, 13, 3)
+indicator = stochrsi_k(Series([item['Close'] for item in data]), 14, 3, 3).reset_index().rename(columns={'stochrsi_k': 'value'})
+indicator_np_k = np.array(list(indicator['value']))
 
-values = np.array([k_value, d_value, j_value])
+# k_value, d_value, j_value = kdj(High, Low, Close, 13, 3)
+#
+# values = np.array([k_value, d_value, j_value])
+#
+# max_indicator = np.max(values, axis=0)
+# min_indicator = np.min(values, axis=0)
 
-max_indicator = np.max(values, axis=0)
-min_indicator = np.min(values, axis=0)
+max_indicator = indicator_np_d
+min_indicator = indicator_np_k
 
 local_min_indicator_left, local_max_indicator_left = LocalExtermums.get_indicator_local_extermums(max_indicator, min_indicator, 5)
 local_min_indicator_right, local_max_indicator_right = LocalExtermums.get_indicator_local_extermums_asymetric(max_indicator, min_indicator, 3, 15)

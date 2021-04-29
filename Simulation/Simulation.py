@@ -9,18 +9,18 @@
                 profit : float ,
             private:
                 leverage : int
-                open_buy_positions : ListOfDictionary{ 'start_gmt', 'start_price', 'symbol', 'take_profit',
-                'stop_loss', 'volume', 'close_volume', 'ticket' } ,
-                open_sell_position : ListOfDictionary{ 'start_gmt', 'start_price', 'symbol', 'take_profit',
-                'stop_loss', 'volume', 'close_volume', 'ticket' } ,
-                closed_buy_positions : ListOfDictionary{ 'start_gmt', 'start_price', 'end_gmt', 'end_price',
-                 'close_type', 'symbol', 'stop_loss', 'take_profit', 'volume', 'ticket'  } ,
-                closed_sell_positions : ListOfDictionary{ 'start_gmt', 'start_price', 'end_gmt', 'end_price',
-                 'close_type', 'symbol', 'stop_loss', 'take_profit', 'volume', 'ticket'  } ,
-                open_buy_limits : ListOfDictionary{'start_gmt', 'price', 'symbol', 'take_profit' 'stop_loss',
-                 'volume', 'ticket' } ,
-                open_sell_limits : ListOfDictionary{'start_gmt', 'price', 'symbol', 'take_profit' 'stop_loss',
-                 'volume', 'ticket' } ,
+                open_buy_positions : ListOfDictionary{ 'start_gmt' 'Type', 'OpenPrice', 'Symbol', 'TP',
+                'SL', 'Volume', 'close_volume', 'Ticket' } ,
+                open_sell_position : ListOfDictionary{ 'start_gmt', 'OpenPrice', 'Symbol', 'TP',
+                'SL', 'Volume', 'close_volume', 'Ticket' } ,
+                closed_buy_positions : ListOfDictionary{ 'start_gmt', 'OpenPrice', 'end_gmt', 'end_price',
+                 'close_type', 'Symbol', 'SL', 'TP', 'Volume', 'Ticket'  } ,
+                closed_sell_positions : ListOfDictionary{ 'start_gmt', 'OpenPrice', 'end_gmt', 'end_price',
+                 'close_type', 'Symbol', 'SL', 'TP', 'Volume', 'Ticket'  } ,
+                open_buy_limits : ListOfDictionary{'start_gmt', 'price', 'Symbol', 'TP' 'SL',
+                 'Volume', 'Ticket' } ,
+                open_sell_limits : ListOfDictionary{'start_gmt', 'price', 'Symbol', 'TP' 'SL',
+                 'Volume', 'Ticket' } ,
         Methods:
             public:
                 take_order (date, price, symbol, tp, sl, volume, ticket) : void
@@ -270,20 +270,21 @@ class Simulation:
         row = data[symbols_dict[symbol]][index]
         if (take_profit < start_price and take_profit != 0) or (stop_loss > start_price and stop_loss != 0):
             print(f"order is invalid(tp&sl)({symbol})(buy)(price:{start_price})(tp:{take_profit})(sl:{stop_loss})[{start_gmt}]")
-            return
+            return None
         if start_price < row['Low'] - 0.00001 or start_price > row['High'] + 0.00001:
             print(f"order is invalid(price)({symbol})(buy)(price:{start_price})(low:{row['Low']})(high:{row['High']})[{start_gmt}]")
-            return
+            return None
         if row['Volume'] == 0:
             print(f"order is invalid(Weekend)")
-            return
+            return None
 
         if self.order_possible(start_price, volume, symbol):
-            self.open_buy_positions.append({'start_gmt': start_gmt,
-                                            'start_price': start_price + (spreads[symbol]),
-                                            'symbol': symbol, 'take_profit': take_profit, 'stop_loss': stop_loss,
-                                            'volume': volume, 'closed_volume': 0, 'ticket': ticket})
-            # self.close_all_symbol('sell', symbol, row['Time'], row['Open'])
+            self.open_buy_positions.append({'start_gmt': start_gmt, 'Type': 'Buy',
+                                            'OpenPrice': start_price + (spreads[symbol]),
+                                            'Symbol': symbol, 'TP': take_profit, 'SL': stop_loss,
+                                            'Volume': volume, 'ClosedVolume': 0, 'Ticket': ticket})
+            return self.open_buy_positions[-1]
+        return None
 
     def sell(self, start_gmt, start_price, symbol, take_profit, stop_loss, volume, ticket):  # row is a series
         """
@@ -296,20 +297,21 @@ class Simulation:
         row = data[symbols_dict[symbol]][index]
         if (take_profit > start_price and take_profit != 0) or (stop_loss < start_price and stop_loss != 0):
             print(f"order is invalid(tp&sl)({symbol})(sell)(price:{start_price})(tp:{take_profit})(sl:{stop_loss})[{start_gmt}]")
-            return
+            return None
         if start_price < row['Low'] - 0.00001 or start_price > row['High'] + 0.00001:
             print(f"order is invalid(price)({symbol})(sell)(price:{start_price})(low:{row['Low']})(high:{row['High']})[{start_gmt}]")
-            return
+            return None
         if row['Volume'] == 0:
             print(f"order is invalid(Weekend)")
-            return
+            return None
 
         if self.order_possible(start_price, volume, symbol):
             self.open_sell_positions.append(
-                {'start_gmt': start_gmt, 'start_price': start_price, 'symbol': symbol,
-                 'take_profit': take_profit, 'stop_loss': stop_loss, 'volume': volume,
-                 'closed_volume': 0, 'ticket': ticket})
-            # self.close_all_symbol('buy', symbol, row['Time'], row['Open'])
+                {'start_gmt': start_gmt, 'Type': 'Sell', 'OpenPrice': start_price, 'Symbol': symbol,
+                 'TP': take_profit, 'SL': stop_loss, 'Volume': volume,
+                 'ClosedVolume': 0, 'Ticket': ticket})
+            return self.open_sell_positions[-1]
+        return None
 
     def take_order(self, date, price, symbol, tp, sl, volume, ticket):
         if symbol in symbols_list:
@@ -323,23 +325,34 @@ class Simulation:
         pass
 
     def modify(self, ticket, take_profit, stop_loss):
+
         for position in self.open_buy_positions:
-            if position['ticket'] == ticket:
-                position['take_profit'] = take_profit
-                position['stop_loss'] = stop_loss
+            if position['Ticket'] == ticket:
+                i = self.last_index[position['Symbol']]
+                row = data[symbols_dict[position['Symbol']]][i]
+                if (take_profit < row['Low'] and take_profit != 0) or (stop_loss > row['High'] and stop_loss != 0):
+                    print(f"order is invalid(tp&sl)({position['Symbol']})(buy)(price:{row['Low']})(tp:{take_profit})(sl:{stop_loss})")
+                    continue
+                position['TP'] = take_profit
+                position['SL'] = stop_loss
                 return
         for position in self.open_sell_positions:
-            if position['ticket'] == ticket:
-                position['take_profit'] = take_profit
-                position['stop_loss'] = stop_loss
+            if position['Ticket'] == ticket:
+                i = self.last_index[position['Symbol']]
+                row = data[symbols_dict[position['Symbol']]][i]
+                if (take_profit > row['High'] and take_profit != 0) or (stop_loss < row['Low'] and stop_loss != 0):
+                    print(f"order is invalid(tp&sl)({position['Symbol']})(sell)(price:{row['High']})(tp:{take_profit})(sl:{stop_loss})")
+                    continue
+                position['TP'] = take_profit
+                position['SL'] = stop_loss
 
     def buy_limit(self, GMT, price, symbol, take_profit, stop_loss, volume, ticket):
-        self.open_buy_limits.append({'start_gmt': GMT, 'price': price, 'symbol': symbol, 'take_profit': take_profit,
-                                     'stop_loss': stop_loss, 'volume': volume, 'ticket': ticket})
+        self.open_buy_limits.append({'start_gmt': GMT, 'price': price, 'Symbol': symbol, 'TP': take_profit,
+                                     'SL': stop_loss, 'Volume': volume, 'Ticket': ticket})
 
     def sell_limit(self, GMT, price, symbol, take_profit, stop_loss, volume, ticket):
-        self.open_sell_limits.append({'start_gmt': GMT, 'price': price, 'symbol': symbol, 'take_profit': take_profit,
-                                      'stop_loss': stop_loss, 'volume': volume, 'ticket': ticket})
+        self.open_sell_limits.append({'start_gmt': GMT, 'price': price, 'Symbol': symbol, 'TP': take_profit,
+                                      'SL': stop_loss, 'Volume': volume, 'Ticket': ticket})
 
     def close(self, gmt, price, volume, ticket, p='Manual Close'):  # t is 'buy' or 'sell'
         """
@@ -347,55 +360,55 @@ class Simulation:
         """
 
         t, position = self.get_position(ticket)
-        if volume > position['volume']:
+        if volume > position['Volume']:
             if DEBUG:
                 print("close volume greater than remainder volume")
             return
         if t == 'buy':
-            if position['closed_volume'] == 0:
+            if position['ClosedVolume'] == 0:
                 self.closed_buy_positions.append(
-                    {'start_gmt': position['start_gmt'], 'start_price': position['start_price'], 'end_gmt': gmt,
-                     'end_price': price, 'close_type': p, 'symbol': position['symbol'],
-                     'stop_loss': position['stop_loss'],
-                     'take_profit': position['take_profit'], 'volume': volume, 'ticket': ticket})
-                self.balance += self.cal_profit(t, position['symbol'], position['start_price'], price,
+                    {'start_gmt': position['start_gmt'], 'OpenPrice': position['OpenPrice'], 'end_gmt': gmt,
+                     'end_price': price, 'close_type': p, 'Symbol': position['Symbol'],
+                     'SL': position['SL'],
+                     'TP': position['TP'], 'Volume': volume, 'Ticket': ticket})
+                self.balance += self.cal_profit(t, position['Symbol'], position['OpenPrice'], price,
                                                 volume)  # profit or loss
-                position['volume'] -= volume
-                position['closed_volume'] = volume
+                position['Volume'] -= volume
+                position['ClosedVolume'] = volume
             else:
                 for c_position in self.closed_buy_positions:
-                    if c_position['ticket'] == ticket:
-                        c_position['volume'] += volume
-                        self.balance += self.cal_profit(t, position['symbol'], position['start_price'], price,
+                    if c_position['Ticket'] == ticket:
+                        c_position['Volume'] += volume
+                        self.balance += self.cal_profit(t, position['Symbol'], position['OpenPrice'], price,
                                                         volume)  # profit or loss
-                        position['volume'] -= volume
-                        position['closed_volume'] += volume
+                        position['Volume'] -= volume
+                        position['ClosedVolume'] += volume
                         break
-            if position['volume'] == 0:
+            if position['Volume'] == 0:
                 self.open_buy_positions.remove(position)
 
         elif t == 'sell':
-            price = price + (spreads[position['symbol']])
-            if position['closed_volume'] == 0:
+            price = price + (spreads[position['Symbol']])
+            if position['ClosedVolume'] == 0:
                 self.closed_sell_positions.append(
-                    {'start_gmt': position['start_gmt'], 'start_price': position['start_price'], 'end_gmt': gmt,
-                     'end_price': price, 'close_type': p, 'symbol': position['symbol'],
-                     'stop_loss': position['stop_loss'],
-                     'take_profit': position['take_profit'], 'volume': volume, 'ticket': ticket})
-                self.balance += self.cal_profit(t, position['symbol'], position['start_price'], price,
+                    {'start_gmt': position['start_gmt'], 'OpenPrice': position['OpenPrice'], 'end_gmt': gmt,
+                     'end_price': price, 'close_type': p, 'Symbol': position['Symbol'],
+                     'SL': position['SL'],
+                     'TP': position['TP'], 'Volume': volume, 'Ticket': ticket})
+                self.balance += self.cal_profit(t, position['Symbol'], position['OpenPrice'], price,
                                                 volume)  # profit or loss
-                position['volume'] -= volume
-                position['closed_volume'] = volume
+                position['Volume'] -= volume
+                position['ClosedVolume'] = volume
             else:
                 for c_position in self.closed_sell_positions:
-                    if c_position['ticket'] == ticket:
-                        c_position['volume'] += volume
-                        self.balance += self.cal_profit(t, position['symbol'], position['start_price'], price,
+                    if c_position['Ticket'] == ticket:
+                        c_position['Volume'] += volume
+                        self.balance += self.cal_profit(t, position['Symbol'], position['OpenPrice'], price,
                                                         volume)  # profit or loss
-                        position['volume'] -= volume
-                        position['closed_volume'] += volume
+                        position['Volume'] -= volume
+                        position['ClosedVolume'] += volume
                         break
-            if position['volume'] == 0:
+            if position['Volume'] == 0:
                 self.open_sell_positions.remove(position)
 
     def close_all_symbol(self, t, symbol, gmt, price, p='Manual Close'):  # t is 'buy' or 'sell'   , close all positions of a specific symbol
@@ -404,86 +417,86 @@ class Simulation:
         """
         if t == 'buy':
             for position in self.open_buy_positions:
-                if position['symbol'] == symbol:
+                if position['Symbol'] == symbol:
                     self.open_buy_positions.remove(position)
-                    if position['volume'] == 0:
+                    if position['Volume'] == 0:
                         self.closed_buy_positions.append(
-                            {'start_gmt': position['start_gmt'], 'start_price': position['start_price'], 'end_gmt': gmt,
+                            {'start_gmt': position['start_gmt'], 'OpenPrice': position['OpenPrice'], 'end_gmt': gmt,
                              'end_price': price,
-                             'close_type': p, 'symbol': position['symbol'], 'stop_loss': position['stop_loss']
-                                , 'take_profit': position['take_profit'], 'volume': position['volume'],
-                             'ticket': position['ticket']})
-                        self.balance += self.cal_profit(t, position['symbol'], position['start_price'], price,
-                                                        position['volume'])  # profit or loss
+                             'close_type': p, 'Symbol': position['Symbol'], 'SL': position['SL']
+                                , 'TP': position['TP'], 'Volume': position['Volume'],
+                             'Ticket': position['Ticket']})
+                        self.balance += self.cal_profit(t, position['Symbol'], position['OpenPrice'], price,
+                                                        position['Volume'])  # profit or loss
                     else:
                         for c_position in self.closed_buy_positions:
-                            if c_position['ticket'] == position['ticket']:
-                                c_position['volume'] += position['volume']
-                                self.balance += self.cal_profit(t, position['symbol'], position['start_price'], price,
-                                                                position['volume'])  # profit or loss
+                            if c_position['Ticket'] == position['Ticket']:
+                                c_position['Volume'] += position['Volume']
+                                self.balance += self.cal_profit(t, position['Symbol'], position['OpenPrice'], price,
+                                                                position['Volume'])  # profit or loss
                                 break
         elif t == 'sell':
             for position in self.open_sell_positions:
-                price = price + (spreads[position['symbol']])
-                if position['symbol'] == symbol:
+                price = price + (spreads[position['Symbol']])
+                if position['Symbol'] == symbol:
                     self.open_sell_positions.remove(position)
-                    if position['volume'] == 0:
+                    if position['Volume'] == 0:
                         self.closed_sell_positions.append(
-                            {'start_gmt': position['start_gmt'], 'start_price': position['start_price'], 'end_gmt': gmt,
+                            {'start_gmt': position['start_gmt'], 'OpenPrice': position['OpenPrice'], 'end_gmt': gmt,
                              'end_price': price,
-                             'close_type': p, 'symbol': position['symbol'], 'stop_loss': position['stop_loss']
-                                , 'take_profit': position['take_profit'], 'volume': position['volume'],
-                             'ticket': position['ticket']})
-                        self.balance += self.cal_profit(t, position['symbol'], position['start_gmt'], price,
-                                                        position['volume'])  # profit or loss
+                             'close_type': p, 'Symbol': position['Symbol'], 'SL': position['SL']
+                                , 'TP': position['TP'], 'Volume': position['Volume'],
+                             'Ticket': position['Ticket']})
+                        self.balance += self.cal_profit(t, position['Symbol'], position['start_gmt'], price,
+                                                        position['Volume'])  # profit or loss
                     else:
                         for c_position in self.closed_buy_positions:
-                            if c_position['ticket'] == position['ticket']:
-                                c_position['volume'] += position['volume']
-                                self.balance += self.cal_profit(t, position['symbol'], position['start_gmt'], price,
-                                                                position['volume'])  # profit or loss
+                            if c_position['Ticket'] == position['Ticket']:
+                                c_position['Volume'] += position['Volume']
+                                self.balance += self.cal_profit(t, position['Symbol'], position['start_gmt'], price,
+                                                                position['Volume'])  # profit or loss
                                 break
 
     def close_all(self, order):  # close all positions
         for position in self.open_buy_positions:
-            i = self.last_index[position['symbol']]
-            price = data[symbols_dict[position['symbol']]][i]['Close']
-            if position['closed_volume'] == 0:
+            i = self.last_index[position['Symbol']]
+            price = data[symbols_dict[position['Symbol']]][i]['Close']
+            if position['ClosedVolume'] == 0:
                 self.closed_buy_positions.append(
-                    {'start_gmt': position['start_gmt'], 'start_price': position['start_price'],
-                     'end_gmt': data[symbols_dict[position['symbol']]][i]['Time'],
-                     'end_price': price, 'close_type': order, 'symbol': position['symbol'],
-                     'stop_loss': position['stop_loss'], 'take_profit': position['take_profit'],
-                     'volume': position['volume'], 'ticket': position['ticket']})
-                self.balance += self.cal_profit('buy', position['symbol'], position['start_price'], price,
-                                                position['volume'])  # profit or loss
+                    {'start_gmt': position['start_gmt'], 'OpenPrice': position['OpenPrice'],
+                     'end_gmt': data[symbols_dict[position['Symbol']]][i]['Time'],
+                     'end_price': price, 'close_type': order, 'Symbol': position['Symbol'],
+                     'SL': position['SL'], 'TP': position['TP'],
+                     'Volume': position['Volume'], 'Ticket': position['Ticket']})
+                self.balance += self.cal_profit('buy', position['Symbol'], position['OpenPrice'], price,
+                                                position['Volume'])  # profit or loss
             else:
                 for c_position in self.closed_buy_positions:
-                    if c_position['ticket'] == position['ticket']:
-                        c_position['volume'] += position['volume']
-                        self.balance += self.cal_profit('buy', position['symbol'], position['start_price'], price,
-                                                        position['volume'])  # profit or loss
+                    if c_position['Ticket'] == position['Ticket']:
+                        c_position['Volume'] += position['Volume']
+                        self.balance += self.cal_profit('buy', position['Symbol'], position['OpenPrice'], price,
+                                                        position['Volume'])  # profit or loss
                         break
         self.open_buy_positions.clear()
         for position in self.open_sell_positions:
-            i = self.last_index[position['symbol']]
-            price = data[symbols_dict[position['symbol']]][i]['Close'] \
-                    + (spreads[position['symbol']])
-            if position['closed_volume'] == 0:
+            i = self.last_index[position['Symbol']]
+            price = data[symbols_dict[position['Symbol']]][i]['Close'] \
+                    + (spreads[position['Symbol']])
+            if position['ClosedVolume'] == 0:
                 self.closed_sell_positions.append(
-                    {'start_gmt': position['start_gmt'], 'start_price': position['start_price'],
-                     'end_gmt': data[symbols_dict[position['symbol']]][i]['Time'],
-                     'end_price': price, 'close_type': order, 'symbol': position['symbol'],
-                     'stop_loss': position['stop_loss'], 'take_profit': position['take_profit'],
-                     'volume': position['volume'], 'ticket': position['ticket']})
-                self.balance += self.cal_profit('sell', position['symbol'], position['start_price'], price,
-                                                position['volume'])  # profit or loss
+                    {'start_gmt': position['start_gmt'], 'OpenPrice': position['OpenPrice'],
+                     'end_gmt': data[symbols_dict[position['Symbol']]][i]['Time'],
+                     'end_price': price, 'close_type': order, 'Symbol': position['Symbol'],
+                     'SL': position['SL'], 'TP': position['TP'],
+                     'Volume': position['Volume'], 'Ticket': position['Ticket']})
+                self.balance += self.cal_profit('sell', position['Symbol'], position['OpenPrice'], price,
+                                                position['Volume'])  # profit or loss
             else:
                 for c_position in self.closed_buy_positions:
-                    if c_position['ticket'] == position['ticket']:
-                        c_position['volume'] += position['volume']
-                        self.balance += self.cal_profit('sell', position['symbol'], position['start_price'], price,
-                                                        position['volume'])  # profit or loss
+                    if c_position['Ticket'] == position['Ticket']:
+                        c_position['Volume'] += position['Volume']
+                        self.balance += self.cal_profit('sell', position['Symbol'], position['OpenPrice'], price,
+                                                        position['Volume'])  # profit or loss
                         break
 
         self.open_sell_positions.clear()
@@ -500,28 +513,28 @@ class Simulation:
     def get_margin(self):
         self.margin = 0
         for position in self.open_buy_positions:
-            self.margin += self.cal_margin('buy', position['symbol'], position['start_price'], position['volume'])
+            self.margin += self.cal_margin('buy', position['Symbol'], position['OpenPrice'], position['Volume'])
         for position in self.open_sell_positions:
-            self.margin += self.cal_margin('sell', position['symbol'], position['start_price'], position['volume'])
+            self.margin += self.cal_margin('sell', position['Symbol'], position['OpenPrice'], position['Volume'])
         return self.margin
 
     def get_equity(self):
         self.equity = self.balance
         for position in self.open_buy_positions:
             time = self.adjust_time(position['start_gmt'], time_frame_input)
-            i = self.last_index[position['symbol']]
-            if time != data[symbols_dict[position['symbol']]][i]['Time']:
-                self.equity += self.cal_profit('buy', position['symbol'], position['start_price'],
-                                               data[symbols_dict[position['symbol']]][i]['Open'],
-                                               position['volume'])  # add profit
+            i = self.last_index[position['Symbol']]
+            if time != data[symbols_dict[position['Symbol']]][i]['Time']:
+                self.equity += self.cal_profit('buy', position['Symbol'], position['OpenPrice'],
+                                               data[symbols_dict[position['Symbol']]][i]['Open'],
+                                               position['Volume'])  # add profit
         for position in self.open_sell_positions:
             time = self.adjust_time(position['start_gmt'], time_frame_input)
-            i = self.last_index[position['symbol']]
-            if time != data[symbols_dict[position['symbol']]][i]['Time']:
-                self.equity += self.cal_profit('sell', position['symbol'], position['start_price'],
-                                               data[symbols_dict[position['symbol']]][i]['Open']
-                                               + (spreads[position['symbol']]),
-                                               position['volume'])  # add profit
+            i = self.last_index[position['Symbol']]
+            if time != data[symbols_dict[position['Symbol']]][i]['Time']:
+                self.equity += self.cal_profit('sell', position['Symbol'], position['OpenPrice'],
+                                               data[symbols_dict[position['Symbol']]][i]['Open']
+                                               + (spreads[position['Symbol']]),
+                                               position['Volume'])  # add profit
         return self.equity
 
     def get_free_margin(self):
@@ -538,10 +551,10 @@ class Simulation:
 
     def get_position(self, ticket):
         for position in self.open_buy_positions:
-            if position['ticket'] == ticket:
+            if position['Ticket'] == ticket:
                 return 'buy', position
         for position in self.open_sell_positions:
-            if position['ticket'] == ticket:
+            if position['Ticket'] == ticket:
                 return 'sell', position
         return False, False
 
@@ -558,23 +571,23 @@ class Simulation:
         """
         open_buy_positions_origin = copy.copy(self.open_buy_positions)
         for position in open_buy_positions_origin:
-            i = self.last_index[position['symbol']]
-            row = data[symbols_dict[position['symbol']]][i]
+            i = self.last_index[position['Symbol']]
+            row = data[symbols_dict[position['Symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
-            if time < row['Time'] and position['stop_loss'] != 0:
-                if row['Low'] <= position['stop_loss']:
-                    self.close(row['Time'], position['stop_loss'], position['volume'],
-                               position['ticket'], 'Stop Loss')
+            if time < row['Time'] and position['SL'] != 0:
+                if row['Low'] <= position['SL']:
+                    self.close(row['Time'], position['SL'], position['Volume'],
+                               position['Ticket'], 'Stop Loss')
 
         open_sell_positions_origin = copy.copy(self.open_sell_positions)
         for position in open_sell_positions_origin:
-            i = self.last_index[position['symbol']]
-            row = data[symbols_dict[position['symbol']]][i]
+            i = self.last_index[position['Symbol']]
+            row = data[symbols_dict[position['Symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
-            if time < row['Time'] and position['stop_loss'] != 0:
-                if row['High'] + spreads[position['symbol']] >= position['stop_loss']:
-                    self.close(row['Time'], position['stop_loss'], position['volume'],
-                               position['ticket'], 'Stop Loss')
+            if time < row['Time'] and position['SL'] != 0:
+                if row['High'] + spreads[position['Symbol']] >= position['SL']:
+                    self.close(row['Time'], position['SL'], position['Volume'],
+                               position['Ticket'], 'Stop Loss')
 
     def take_profit_check(self):
         """
@@ -583,65 +596,65 @@ class Simulation:
         """
         open_buy_positions_origin = copy.copy(self.open_buy_positions)
         for position in open_buy_positions_origin:
-            i = self.last_index[position['symbol']]
-            row = data[symbols_dict[position['symbol']]][i]
+            i = self.last_index[position['Symbol']]
+            row = data[symbols_dict[position['Symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
-            if time <= row['Time'] and position['take_profit'] != 0:
-                if row['High'] > position['take_profit']:
-                    self.close(row['Time'], position['take_profit'], position['volume'],
-                               position['ticket'], 'Take Profit')
+            if time <= row['Time'] and position['TP'] != 0:
+                if row['High'] > position['TP']:
+                    self.close(row['Time'], position['TP'], position['Volume'],
+                               position['Ticket'], 'Take Profit')
         open_sell_positions_origin = copy.copy(self.open_sell_positions)
         for position in open_sell_positions_origin:
-            i = self.last_index[position['symbol']]
-            row = data[symbols_dict[position['symbol']]][i]
+            i = self.last_index[position['Symbol']]
+            row = data[symbols_dict[position['Symbol']]][i]
             time = self.adjust_time(position['start_gmt'], time_frame_input)
-            if time <= row['Time'] and position['take_profit'] != 0:
-                if row['Low'] + spreads[position['symbol']] <= position['take_profit']:
-                    self.close(row['Time'], position['take_profit'], position['volume'],
-                               position['ticket'], 'Take Profit')
+            if time <= row['Time'] and position['TP'] != 0:
+                if row['Low'] + spreads[position['Symbol']] <= position['TP']:
+                    self.close(row['Time'], position['TP'], position['Volume'],
+                               position['Ticket'], 'Take Profit')
 
     def pending_orders_check(self):
         for buy in self.open_buy_limits:
-            i = self.last_index[buy['symbol']]
-            if data[symbols_dict[buy['symbol']]][i]['Low'] <= buy['price']:
-                self.buy(data[symbols_dict[buy['symbol']]][i]['Time'], buy['price'], buy['symbol'],
-                         buy['take_profit'], buy['stop_loss'], buy['volume'],
-                         buy['ticket'])
+            i = self.last_index[buy['Symbol']]
+            if data[symbols_dict[buy['Symbol']]][i]['Low'] <= buy['price']:
+                self.buy(data[symbols_dict[buy['Symbol']]][i]['Time'], buy['price'], buy['Symbol'],
+                         buy['TP'], buy['SL'], buy['Volume'],
+                         buy['Ticket'])
                 self.open_buy_limits.remove(buy)
         for sell in self.open_sell_limits:
-            i = self.last_index[sell['symbol']]
-            if data[symbols_dict[sell['symbol']]][i]['High'] + spreads[sell['symbol']] >= sell['price']:
-                self.sell(data[symbols_dict[sell['symbol']]][i]['Time'], sell['price'], sell['symbol'],
-                          sell['take_profit'], sell['stop_loss'],
-                          sell['volume'], sell['ticket'])
+            i = self.last_index[sell['Symbol']]
+            if data[symbols_dict[sell['Symbol']]][i]['High'] + spreads[sell['Symbol']] >= sell['price']:
+                self.sell(data[symbols_dict[sell['Symbol']]][i]['Time'], sell['price'], sell['Symbol'],
+                          sell['TP'], sell['SL'],
+                          sell['Volume'], sell['Ticket'])
                 self.open_sell_limits.remove(sell)
 
     def get_closed_positions(self):
         positions = []
         for position in self.closed_buy_positions:
             positions.append(
-                [position['start_gmt']] + ['buy'] + [position['ticket'], position['volume'], position['symbol']] + [
-                    position['start_price']]
-                + [position['stop_loss']] + [position['take_profit']]
+                [position['start_gmt']] + ['buy'] + [position['Ticket'], position['Volume'], position['Symbol']] + [
+                    position['OpenPrice']]
+                + [position['SL']] + [position['TP']]
                 + [position['end_gmt']] + [position['end_price']] + [position['close_type']] +
-                [self.cal_profit('buy', position['symbol'], position['start_price'], position['end_price'],
-                                 position['volume'])] +
-                [(position['end_price'] - position['start_price']) * 10 ** symbols_pip[position['symbol']] / 10] +
-                [Outputs.index_date_v2(data_shows[symbols_dict[position['symbol']]],
+                [self.cal_profit('buy', position['Symbol'], position['OpenPrice'], position['end_price'],
+                                 position['Volume'])] +
+                [(position['end_price'] - position['OpenPrice']) * 10 ** symbols_pip[position['Symbol']] / 10] +
+                [Outputs.index_date_v2(data_shows[symbols_dict[position['Symbol']]],
                                     self.adjust_time(position['start_gmt'], time_frame_input))]
-                + [Outputs.index_date_v2(data_shows[symbols_dict[position['symbol']]], position['end_gmt'])])
+                + [Outputs.index_date_v2(data_shows[symbols_dict[position['Symbol']]], position['end_gmt'])])
         for position in self.closed_sell_positions:
             positions.append(
-                [position['start_gmt']] + ['sell'] + [position['ticket'], position['volume'], position['symbol']] + [
-                    position['start_price']]
-                + [position['stop_loss']] + [position['take_profit']]
+                [position['start_gmt']] + ['sell'] + [position['Ticket'], position['Volume'], position['Symbol']] + [
+                    position['OpenPrice']]
+                + [position['SL']] + [position['TP']]
                 + [position['end_gmt']] + [position['end_price']] + [position['close_type']] +
-                [self.cal_profit('sell', position['symbol'], position['start_price'], position['end_price'],
-                                 position['volume'])] +
-                [(position['start_price'] - position['end_price']) * 10 ** symbols_pip[position['symbol']] / 10] +
-                [Outputs.index_date_v2(data_shows[symbols_dict[position['symbol']]],
+                [self.cal_profit('sell', position['Symbol'], position['OpenPrice'], position['end_price'],
+                                 position['Volume'])] +
+                [(position['OpenPrice'] - position['end_price']) * 10 ** symbols_pip[position['Symbol']] / 10] +
+                [Outputs.index_date_v2(data_shows[symbols_dict[position['Symbol']]],
                                     self.adjust_time(position['start_gmt'], time_frame_input))]
-                + [Outputs.index_date_v2(data_shows[symbols_dict[position['symbol']]], position['end_gmt'])])
+                + [Outputs.index_date_v2(data_shows[symbols_dict[position['Symbol']]], position['end_gmt'])])
         return positions
 
     def get_total_profit(self):
@@ -649,30 +662,30 @@ class Simulation:
         wins = 0
         total = len(self.closed_buy_positions) + len(self.closed_sell_positions)
         for position in self.closed_buy_positions:
-            profit = self.cal_profit('buy', position['symbol'], position['start_price'], position['end_price'],
-                                     position['volume'])  # add profit
+            profit = self.cal_profit('buy', position['Symbol'], position['OpenPrice'], position['end_price'],
+                                     position['Volume'])  # add profit
             if profit > 0:
                 wins += 1
             total_profit += profit
         for position in self.closed_sell_positions:
-            profit = self.cal_profit('sell', position['symbol'], position['start_price'], position['end_price'],
-                                     position['volume'])  # add profit
+            profit = self.cal_profit('sell', position['Symbol'], position['OpenPrice'], position['end_price'],
+                                     position['Volume'])  # add profit
             if profit > 0:
                 wins += 1
             total_profit += profit
         for position in self.open_buy_positions:
-            i = self.last_index[position['symbol']]
-            profit = self.cal_profit('buy', position['symbol'], position['start_price']
-                                     , data[symbols_dict[position['symbol']]][i]['Open'],
-                                     position['volume'])
+            i = self.last_index[position['Symbol']]
+            profit = self.cal_profit('buy', position['Symbol'], position['OpenPrice']
+                                     , data[symbols_dict[position['Symbol']]][i]['Open'],
+                                     position['Volume'])
             if profit > 0:
                 wins += 1
             total_profit += profit
         for position in self.open_sell_positions:
-            i = self.last_index[position['symbol']]
-            profit = self.cal_profit('sell', position['symbol'], position['start_price']
-                                     , data[symbols_dict[position['symbol']]][i]['Open'],
-                                     position['volume'])
+            i = self.last_index[position['Symbol']]
+            profit = self.cal_profit('sell', position['Symbol'], position['OpenPrice']
+                                     , data[symbols_dict[position['Symbol']]][i]['Open'],
+                                     position['Volume'])
             if profit > 0:
                 wins += 1
             total_profit += profit
@@ -681,26 +694,26 @@ class Simulation:
     def get_open_buy_positions_count(self, symbol):
         cnt = 0
         for position in self.open_buy_positions:
-            if position['symbol'] == symbol:
+            if position['Symbol'] == symbol:
                 cnt+=1
         return cnt
 
     def get_open_sell_positions_count(self, symbol):
         cnt = 0
         for position in self.open_sell_positions:
-            if position['symbol'] == symbol:
+            if position['Symbol'] == symbol:
                 cnt+=1
         return cnt
 
     def get_last_buy_closed(self, symbol):
         for i in range(len(self.closed_buy_positions)-1, -1, -1):
-            if self.closed_buy_positions[i]['symbol'] == symbol:
+            if self.closed_buy_positions[i]['Symbol'] == symbol:
                 return self.closed_buy_positions[i]
         return None
 
     def get_last_sell_closed(self, symbol):
         for i in range(len(self.closed_sell_positions)-1, -1, -1):
-            if self.closed_sell_positions[i]['symbol'] == symbol:
+            if self.closed_sell_positions[i]['Symbol'] == symbol:
                 return self.closed_sell_positions[i]
         return None
 
@@ -805,7 +818,7 @@ def simulate(simulation, predicts, data, start_date, end_date, risk):
             elif predicts[i_predict][2] == 'close':  # close
                 t, position = simulation.get_position(predicts[i_predict][1])
                 if t:
-                    simulation.close(t, position, date, row['Open'], position['volume']
+                    simulation.close(t, position, date, row['Open'], position['Volume']
                                      , predicts[i_predict][1])
             elif predicts[i_predict][2] == 'modify':
                 simulation.modify(predicts[i_predict][2], predicts[i_predict][5], predicts[i_predict][6])
@@ -1002,7 +1015,7 @@ def get_output(simulation, trends=None, extends=None):
     total_profit, wins, total = simulation.get_total_profit()
 
     positions_df = pd.DataFrame(positions,
-                                columns=['TimeOpen', 'Type', 'ticket', 'Volume', 'Symbol', 'PriceOpen', 'S/L', 'T/P'
+                                columns=['TimeOpen', 'Type', 'Ticket', 'Volume', 'Symbol', 'OpenPrice', 'S/L', 'T/P'
                                         ,'TimeClose', 'PriceClose', 'Result', 'Profit', 'Profit in pip', 'Index',
                                          'IndexEnd'])
     positions_df = positions_df.sort_values(['TimeOpen'])
@@ -1061,7 +1074,7 @@ def run():
     total_profit, wins, total = simulation.get_total_profit(len_data - 1)
 
     positions_df = pd.DataFrame(positions,
-                                columns=['TimeOpen', 'Type', 'ticket', 'Volume', 'Symbol', 'PriceOpen', 'S/L', 'T/P'
+                                columns=['TimeOpen', 'Type', 'Ticket', 'Volume', 'Symbol', 'OpenPrice', 'S/L', 'T/P'
                                     , 'TimeClose', 'PriceClose', 'Result', 'Profit', 'Profit in pip', 'Index',
                                          'IndexEnd'])
     positions_df = positions_df.sort_values(['TimeOpen'])

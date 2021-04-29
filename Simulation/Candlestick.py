@@ -84,7 +84,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
     buy_line_source = ColumnDataSource(data=dict(
         x7=position_df.Index[buy] - start,
         x8=position_df.IndexEnd[buy] - start,
-        price7=position_df.PriceOpen[buy],
+        price7=position_df.OpenPrice[buy],
         price8=position_df.PriceClose[buy],
         date7=position_df.TimeOpen[buy],
         date8=position_df.TimeClose[buy],
@@ -100,7 +100,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
     sell_line_source = ColumnDataSource(data=dict(
         x9=position_df.Index[sell] - start,
         x10=position_df.IndexEnd[sell] - start,
-        price9=position_df.PriceOpen[sell],
+        price9=position_df.OpenPrice[sell],
         price10=position_df.PriceClose[sell],
         date9=position_df.TimeOpen[sell],
         date10=position_df.TimeClose[sell],
@@ -152,7 +152,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
     fig.add_layout(open_sell_arrow)
     fig.add_layout(close_sell_arrow)
 
-    if trends != None:
+    if trends is not None:
         up_trend_source = ColumnDataSource(data=dict(
             x11=trends['xUpTrend']['open'],
             x12=trends['xUpTrend']['close'],
@@ -172,7 +172,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
         fig.segment(x0='x13', y0='price13', x1='x14', y1='price14', source=down_trend_source,
                     color=DOWN_TREND_COLOR, line_width=2)
 
-    if extends != None:
+    if extends is not None:
         up_extend_source = ColumnDataSource(data=dict(
             x15=extends['xExtendInc']['open'],
             x16=extends['xExtendInc']['close'],

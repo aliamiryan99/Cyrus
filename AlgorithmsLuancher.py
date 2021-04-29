@@ -24,9 +24,9 @@ def launch():
     algorithm_data, trailing_data, history_size, algorithms, re_entrance_algorithms, recovery_algorithms, close_modes, \
     tp_sl_tools, trailing_tools, account_managements, market, last_ticket, last_algorithm_signal_ticket, \
     algorithm_histories, trailing_histories, buy_open_positions_lens, sell_open_positions_lens, last_buy_closed, \
-    last_sell_closed, trade_buy_in_candle_counts, trade_sell_in_candle_counts, virtual_buys, virtual_sells = \
-        initialize_algorithms(symbols, start_indexes, configs, algorithm_data_total,
-                              algorithm_start_indexes, trailing_data_total, trailing_start_indexes)
+    last_sell_closed, trade_buy_in_candle_counts, trade_sell_in_candle_counts, virtual_buys, virtual_sells,\
+    recovery_trades = initialize_algorithms(symbols, start_indexes, configs, algorithm_data_total,
+                                            algorithm_start_indexes, trailing_data_total, trailing_start_indexes)
 
     # Back Test
     back_test_length = end_indexes[symbols[0]] - start_indexes[symbols[0]]
@@ -48,10 +48,11 @@ def launch():
             trailing_tool = trailing_tools[symbol]
             re_entrance_algorithm = re_entrance_algorithms[symbol]
             recovery_algorithm = recovery_algorithms[symbol]
+            recovery_trades_symbol = recovery_trades[symbol]
 
             # Debug Section
-            if data_time == datetime(year=2019, month=6, day=3, hour=22, minute=4):
-                print(data_time)
+            # if data_time == datetime(year=2017, month=4, day=23, hour=0, minute=0):
+            #     print(data_time)
 
             # Ignore Holidays
             if history[-1]['Volume'] == 0:
@@ -59,8 +60,9 @@ def launch():
 
             # Update History
             signal, price = update_history(history, algorithm_histories, trailing_histories, algorithm,
-                                           re_entrance_algorithm, trailing_tool, trade_buy_in_candle_counts,
-                                           trade_sell_in_candle_counts, config, symbol, market.equity)
+                                           re_entrance_algorithm, trailing_tool, tp_sl_tool, recovery_algorithm,
+                                           trade_buy_in_candle_counts, trade_sell_in_candle_counts, config, symbol,
+                                           market.equity)
 
             # Take Profit And Stop Loss
             take_profit, stop_loss, first_stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell,\
@@ -76,7 +78,7 @@ def launch():
             last_ticket = algorithm_execute(market, history, signal, price, config, data_time, symbol, take_profit_buy,
                                             stop_loss_buy, take_profit_sell, stop_loss_sell, volume, last_ticket,
                                             last_algorithm_signal_ticket, virtual_buys, virtual_sells,
-                                            trade_buy_in_candle_counts, trade_sell_in_candle_counts)
+                                            trade_buy_in_candle_counts, trade_sell_in_candle_counts, recovery_trades_symbol)
 
             # Trailing Stop Section
             trailing(market, history, trailing_histories, data_time, trailing_tool, config, close_modes,
@@ -101,7 +103,34 @@ def launch():
                                       symbol)
 
             if config.recovery_enable:
-                recovery_signal, modify_signals = recovery_algorithm.on_tick()
+                for i in range(len(recovery_trades_symbol)):
+                    recovery_signal, modify_signals = recovery_algorithm.on_tick(recovery_trades_symbol[i])
+                    if recovery_signal['Signal'] == 1:
+                        recovery_signal['TP'] += history[-1]['Close']
+                        trade = market.buy(data_time, recovery_signal['Price'], symbol, recovery_signal['TP'], 0, recovery_signal['Volume'], last_ticket)
+                        if trade is not None:
+                            last_ticket += 1
+                            recovery_trades_symbol[i].append(trade)
+                        for modify_signal in modify_signals:
+                            modify_signal['TP'] += history[-1]['Close']
+                            market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
+                    elif recovery_signal['Signal'] == -1:
+                        recovery_signal['TP'] += history[-1]['Close']
+                        trade = market.sell(data_time, recovery_signal['Price'], symbol, recovery_signal['TP'], 0,
+                                           recovery_signal['Volume'], last_ticket)
+                        if trade is not None:
+                            last_ticket += 1
+                            recovery_trades_symbol[i].append(trade)
+                        for modify_signal in modify_signals:
+                            modify_signal['TP'] += history[-1]['Close']
+                            market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
+                recovery_trades_copy = copy.copy(recovery_trades_symbol)
+                for i in range(len(recovery_trades_copy)):
+                    if (recovery_trades_copy[i][0]['Type'] == 'Buy' and history[-1]['High'] > recovery_trades_copy[i][0]['TP']) or \
+                            (recovery_trades_copy[i][0]['Type'] == 'Sell' and history[-1]['Low'] + Config.spreads[symbol] < recovery_trades_copy[i][0]['TP']):
+                        recovery_algorithm.tp_touched(recovery_trades_copy[i][0]['Ticket'])
+                        recovery_trades_symbol.remove(recovery_trades_copy[i])
+
 
     # Exit Section
     market.exit()
@@ -227,6 +256,7 @@ def initialize_algorithms(symbols, start_indexes, configs, algorithm_data_total,
     trade_sell_in_candle_counts = {}
     virtual_buys = {}
     virtual_sells = {}
+    recovery_trades = {}
     for symbol in symbols:
         row = data[symbol][start_indexes[symbol]]
 
@@ -244,10 +274,13 @@ def initialize_algorithms(symbols, start_indexes, configs, algorithm_data_total,
         virtual_buys[symbol] = []
         virtual_sells[symbol] = []
 
+        recovery_trades[symbol] = []
+
     return algorithm_data, trailing_data, history_size, algorithms, re_entrance_algorithms, recovery_algorithms, close_modes, \
            tp_sl_tools, trailing_tools, account_managements, market, last_ticket, last_algorithm_signal_ticket, \
            algorithm_histories, trailing_histories, buy_open_positions_lens, sell_open_positions_lens, last_buy_closed, \
-           last_sell_closed, trade_buy_in_candle_counts, trade_sell_in_candle_counts, virtual_buys, virtual_sells
+           last_sell_closed, trade_buy_in_candle_counts, trade_sell_in_candle_counts, virtual_buys, virtual_sells,\
+           recovery_trades
 
 
 def get_time_id(time, time_frame):
@@ -271,8 +304,8 @@ def get_time_id(time, time_frame):
     return identifier
 
 
-def update_history(history, algorithm_histories, trailing_histories, algorithm, re_entrance_algorithm, trailing_tool,
-                   trade_buy_in_candle_counts, trade_sell_in_candle_counts, config, symbol, equity):
+def update_history(history, algorithm_histories, trailing_histories, algorithm, re_entrance_algorithm, trailing_tool, tp_sl_tool,
+                   recovery_algorithm, trade_buy_in_candle_counts, trade_sell_in_candle_counts, config, symbol, equity):
     # Algorithm Time ID
     history_time = get_time_id(history[-1]['Time'], config.algorithm_time_frame)
     algorithm_time = get_time_id(algorithm_histories[symbol][-1]['Time'], config.algorithm_time_frame)
@@ -283,6 +316,8 @@ def update_history(history, algorithm_histories, trailing_histories, algorithm, 
         algorithm_histories[symbol].append(last_candle)
         algorithm_histories[symbol].pop(0)
         signal, price = algorithm.on_data(algorithm_histories[symbol][-1], equity)
+        recovery_algorithm.on_data(algorithm_histories[symbol][-1])
+        tp_sl_tool.on_data(algorithm_histories[symbol][-1])
     else:
         # Update Last Candle Section
         algorithm_histories[symbol][-1]['High'] = max(algorithm_histories[symbol][-1]['High'],history[-1]['High'])
@@ -340,7 +375,7 @@ def tp_sl(close_modes, tp_sl_tool, algorithm_histories, signal, price, symbol):
 
 def algorithm_execute(market, history, signal, price, config, data_time, symbol, take_profit_buy, stop_loss_buy, take_profit_sell,
                       stop_loss_sell, volume, last_ticket, last_algorithm_signal_ticket, virtual_buys, virtual_sells,
-                      trade_buy_in_candle_counts, trade_sell_in_candle_counts):
+                      trade_buy_in_candle_counts, trade_sell_in_candle_counts, recovery_trades):
     if signal == 1:  # buy signal
         if config.multi_position or (
                 not config.multi_position and market.get_open_buy_positions_count(symbol) == 0):
@@ -351,10 +386,12 @@ def algorithm_execute(market, history, signal, price, config, data_time, symbol,
                     if not config.algorithm_force_price and not history[-1]['Low'] <= price <= history[-1]['High']:
                         price = history[-1]['Open']
                     if not config.algorithm_virtual_signal:
-                        market.buy(data_time, price, symbol, take_profit_buy, stop_loss_buy, volume, last_ticket)
-                        last_algorithm_signal_ticket[symbol] = last_ticket
-                        last_ticket += 1
-                        trade_buy_in_candle_counts[symbol] += 1
+                        trade = market.buy(data_time, price, symbol, take_profit_buy, stop_loss_buy, volume, last_ticket)
+                        if trade is not None:
+                            recovery_trades.append([trade])
+                            last_algorithm_signal_ticket[symbol] = last_ticket
+                            last_ticket += 1
+                            trade_buy_in_candle_counts[symbol] += 1
                     else:
                         virtual_buys[symbol].append({'start_gmt': data_time,
                                                      'start_price': price,
@@ -375,10 +412,12 @@ def algorithm_execute(market, history, signal, price, config, data_time, symbol,
                     if not config.algorithm_force_price and not history[-1]['Low'] <= price <= history[-1]['High']:
                         price = history[-1]['Open']
                     if not config.algorithm_virtual_signal:
-                        market.sell(data_time, price, symbol, take_profit_sell, stop_loss_sell, volume, last_ticket)
-                        last_algorithm_signal_ticket[symbol] = last_ticket
-                        last_ticket += 1
-                        trade_sell_in_candle_counts[symbol] += 1
+                        trade = market.sell(data_time, price, symbol, take_profit_sell, stop_loss_sell, volume, last_ticket)
+                        if trade is not None:
+                            recovery_trades.append([trade])
+                            last_algorithm_signal_ticket[symbol] = last_ticket
+                            last_ticket += 1
+                            trade_sell_in_candle_counts[symbol] += 1
                     else:
                         virtual_sells[symbol].append({'start_gmt': data_time,
                                                       'start_price': price,
@@ -397,47 +436,47 @@ def trailing(market, history, trailing_histories, data_time, trailing_tool, conf
     if close_modes[symbol] == 'trailing' or close_modes[symbol] == 'both':
         open_buy_positions = copy.deepcopy(market.open_buy_positions) + virtual_buys[symbol]
         for position in open_buy_positions:
-            if position['symbol'] == symbol:
+            if position['Symbol'] == symbol:
                 entry_point = Outputs.index_date_v2(trailing_histories[symbol],
                                                     position['start_gmt'])
                 is_close, close_price = trailing_tool.on_tick(trailing_histories[symbol],
                                                               entry_point, 'buy', data_time)
                 if is_close:
                     if history[-1]['Low'] <= close_price <= history[-1]['High']:
-                        if position['ticket'] == -1:
+                        if position['Ticket'] == -1:
                             last_buy_closed[symbol] = virtual_close(position, history[-1]['Time'], close_price)
                             virtual_buys[symbol].remove(position)
                         else:
-                            market.close(data_time, close_price, position['volume'], position['ticket'])
+                            market.close(data_time, close_price, position['Volume'], position['Ticket'])
                     elif not config.force_close_on_algorithm_price and history[-1]['Open'] < close_price:
-                        if position['ticket'] == -1:
+                        if position['Ticket'] == -1:
                             last_buy_closed[symbol] = virtual_close(position, history[-1]['Time'],
                                                                     history[-1]['Open'])
                             virtual_buys[symbol].remove(position)
                         else:
-                            market.close(data_time, history[-1]['Open'], position['volume'], position['ticket'])
+                            market.close(data_time, history[-1]['Open'], position['Volume'], position['Ticket'])
 
         open_sell_poses = copy.deepcopy(market.open_sell_positions) + virtual_sells[symbol]
         for position in open_sell_poses:
-            if position['symbol'] == symbol:
+            if position['Symbol'] == symbol:
                 entry_point = Outputs.index_date_v2(trailing_histories[symbol],
                                                     position['start_gmt'])
                 is_close, close_price = trailing_tool.on_tick(trailing_histories[symbol],
                                                               entry_point, 'sell', data_time)
                 if is_close:
                     if history[-1]['Low'] <= close_price <= history[-1]['High']:
-                        if position['ticket'] == -1:
+                        if position['Ticket'] == -1:
                             last_sell_closed[symbol] = virtual_close(position, history[-1]['Time'], close_price)
                             virtual_sells[symbol].remove(position)
                         else:
-                            market.close(data_time, close_price, position['volume'], position['ticket'])
+                            market.close(data_time, close_price, position['Volume'], position['Ticket'])
                     elif not config.force_close_on_algorithm_price and close_price < history[-1]['Open']:
-                        if position['ticket'] == -1:
+                        if position['Ticket'] == -1:
                             last_sell_closed[symbol] = virtual_close(position, history[-1]['Time'],
                                                                      history[-1]['Open'])
                             virtual_sells[symbol].remove(position)
                         else:
-                            market.close(data_time, history[-1]['Open'], position['volume'], position['ticket'])
+                            market.close(data_time, history[-1]['Open'], position['Volume'], position['Ticket'])
 
 
 def virtuals_check(virtual_buys, virtual_sells, history, last_buy_closed, last_sell_closed, symbol, spread):
@@ -487,11 +526,11 @@ def re_entrance(market, config, tp_sl_tool, close_modes, re_entrance_algorithm, 
                                                              last_buy_closed[symbol]['start_gmt'])
             if start_index_position_buy == -1:
                 start_index_position_buy = len(algorithm_histories[symbol]) - 1
-            if last_buy_closed[symbol]['ticket'] == last_algorithm_signal_ticket[symbol]:
+            if last_buy_closed[symbol]['Ticket'] == last_algorithm_signal_ticket[symbol]:
                 is_algorithm_signal = True
             position = last_buy_closed[symbol]
-            profit_in_pip = (position['end_price'] - position['start_price']) * 10 ** Config.symbols_pip[
-                position['symbol']] / 10
+            profit_in_pip = (position['end_price'] - position['OpenPrice']) * 10 ** Config.symbols_pip[
+                position['Symbol']] / 10
         if sell_open_positions_lens[symbol] > market.get_open_sell_positions_count(symbol) + len(
                 virtual_sells[symbol]):
             is_sell_closed = True
@@ -499,11 +538,11 @@ def re_entrance(market, config, tp_sl_tool, close_modes, re_entrance_algorithm, 
                                                               last_sell_closed[symbol]['start_gmt'])
             if start_index_position_sell == -1:
                 start_index_position_sell = len(algorithm_histories[symbol]) - 1
-            if last_sell_closed[symbol]['ticket'] == last_algorithm_signal_ticket[symbol]:
+            if last_sell_closed[symbol]['Ticket'] == last_algorithm_signal_ticket[symbol]:
                 is_algorithm_signal = True
             position = last_sell_closed[symbol]
-            profit_in_pip = (position['start_price'] - position['end_price']) * 10 ** Config.symbols_pip[
-                position['symbol']] / 10
+            profit_in_pip = (position['OpenPrice'] - position['end_price']) * 10 ** Config.symbols_pip[
+                position['Symbol']] / 10
 
         signal_re_entrance, price_re_entrance = re_entrance_algorithm.on_tick(algorithm_histories[symbol],
                                                                               is_buy_closed, is_sell_closed,

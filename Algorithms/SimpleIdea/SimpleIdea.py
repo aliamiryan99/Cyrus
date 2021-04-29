@@ -1,18 +1,18 @@
 from Simulation.Config import Config as S_Config
 from MetaTrader.Config import Config as MT_Config
 
-def simpleIdea(symbol, window, winInc, winDec, shadow_threshold, body_threshold):
-    winSize = len(window)
-    topCandle = [0] * winSize
-    bottomCandle = [0] * winSize
+def simpleIdea(symbol, data, winInc, winDec, shadow_threshold, body_threshold, mode, mean_window):     # mode 1 : Simlpe , mode 2 : average condition
+    win_size = len(data)
+    topCandle = [0] * win_size
+    bottomCandle = [0] * win_size
 
-    for i in range(0, winSize):
-        if window[i]['Open'] > window[i]['Close']:
-            topCandle[i] = window[i]['Open']
-            bottomCandle[i] = window[i]['Close']
+    for i in range(0, win_size):
+        if data[i]['Open'] > data[i]['Close']:
+            topCandle[i] = data[i]['Open']
+            bottomCandle[i] = data[i]['Close']
         else:
-            topCandle[i] = window[i]['Close']
-            bottomCandle[i] = window[i]['Open']
+            topCandle[i] = data[i]['Close']
+            bottomCandle[i] = data[i]['Open']
 
 
     Config = S_Config
@@ -21,19 +21,27 @@ def simpleIdea(symbol, window, winInc, winDec, shadow_threshold, body_threshold)
     shadow_threshold *= (10 ** -Config.symbols_pip[symbol])
     body_threshold *= (10 ** -Config.symbols_pip[symbol])
     # -- check the decreasing trend reversion
+
+    if mode == 2:
+        body_mean = 0
+        for i in range(mean_window):
+            body_mean += abs(data[-i-1]['Close'] - data[-i-1]['Open']) / mean_window
+        if abs(data[-1]['Close'] - data[-1]['Open']) < body_mean or abs(data[-2]['Close'] - data[-2]['Open']) < body_mean:
+            return 0
+
     cnt = 0
     for j in range(0, winDec):
-        if (topCandle[winSize - j - 2] <= topCandle[winSize - j - 3]) or (window[winSize - j - 2]['Open'] > window[winSize - j - 2]['Close'] + body_threshold):
+        if (topCandle[- j - 2] <= topCandle[- j - 3]) or (data[- j - 2]['Open'] > data[- j - 2]['Close'] + body_threshold):
             cnt += 1
-    if (cnt == winDec) and (window[-1]['Open'] + body_threshold < window[-1]['Close']) and topCandle[-2] <= topCandle[-1]:        #   it can be replaced by  bottomCandle[-2] < bottomCandle[-1]:
+    if (cnt == winDec) and (data[-1]['Open'] + body_threshold < data[-1]['Close']) and topCandle[-2] <= topCandle[-1]:        #   it can be replaced by  bottomCandle[-2] < bottomCandle[-1]:
         return 1
 
     # -- check the increasing trend reversion
     cnt = 0
     for j in range(0, winInc):
-        if (bottomCandle[winSize - j - 2] >= bottomCandle[winSize - j - 3]) or (window[winSize - j - 2]['Open'] + body_threshold  < window[winSize - j - 2]['Close']):
+        if (bottomCandle[- j - 2] >= bottomCandle[- j - 3]) or (data[- j - 2]['Open'] + body_threshold  < data[- j - 2]['Close']):
             cnt += 1
-    if (cnt == winInc) and (window[-1]['Open'] > window[-1]['Close'] + body_threshold) and bottomCandle[-2] >= bottomCandle[-1]:          #   it can be replaced by  topCnadle[-2] > topCnadle[-1]:
+    if (cnt == winInc) and (data[-1]['Open'] > data[-1]['Close'] + body_threshold) and bottomCandle[-2] >= bottomCandle[-1]:          #   it can be replaced by  topCnadle[-2] > topCnadle[-1]:
         return -1
 
     return 0
