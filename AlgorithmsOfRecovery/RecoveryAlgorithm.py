@@ -69,6 +69,9 @@ class Recovery:
                     return {'Signal': -1, 'Price': price, 'TP': tp, 'Volume': volume}, modify_array
         return {'Signal': 0, 'TP': 0, 'Volume': 0}, []
 
+    def on_tick_reset(self):
+        pass
+
     def tp_touched(self, ticket):
         self.body_mean.pop(ticket)
         self.position_type.pop(ticket)

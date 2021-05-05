@@ -36,6 +36,9 @@ class StochasticTrailing:
                 return True, history[-1]['Close']
         return False, 0
 
+    def on_tick_reset(self):
+        pass
+
     def update_indicator(self):
         #indicator = list(Series(rsi(Series([item['Close'] for item in self.data_window]), 14)))
         indicator = list(Series(stochrsi_k(Series([item['Close'] for item in self.data_window]), self.stoch_window)))

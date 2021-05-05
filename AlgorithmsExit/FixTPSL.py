@@ -8,7 +8,7 @@ class FixTPSL:
         self.tp = tp
         self.sl = sl
 
-    def on_data(self):
+    def on_data(self, candle):
         pass
 
     def on_tick(self, data, position_type):    # position_type : (buy or sell)

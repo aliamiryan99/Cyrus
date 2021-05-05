@@ -109,6 +109,9 @@ class AdvTraling:
                     return True,  new_candle['Open'] - self.body_mean_local_min
         return False, 0
 
+    def on_tick_reset(self):
+        pass
+
     def get_first_stop_loss(self, history, position_type):
         old_candle = history[-2]
         if position_type == "buy":

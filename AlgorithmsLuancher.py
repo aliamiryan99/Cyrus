@@ -51,7 +51,7 @@ def launch():
             recovery_trades_symbol = recovery_trades[symbol]
 
             # Debug Section
-            # if data_time == datetime(year=2017, month=4, day=23, hour=0, minute=0):
+            # if data_time == datetime(year=2017, month=4, day=23, hour=20, minute=0):
             #     print(data_time)
 
             # Ignore Holidays
@@ -82,7 +82,7 @@ def launch():
 
             # Trailing Stop Section
             trailing(market, history, trailing_histories, data_time, trailing_tool, config, close_modes,
-                     last_buy_closed, last_sell_closed, virtual_buys, virtual_sells, symbol)
+                     last_buy_closed, last_sell_closed, virtual_buys, virtual_sells, symbol, recovery_trades_symbol)
 
             if last_buy_closed[symbol] is None:
                 last_buy_closed[symbol] = market.get_last_buy_closed(symbol)
@@ -106,30 +106,35 @@ def launch():
                 for i in range(len(recovery_trades_symbol)):
                     recovery_signal, modify_signals = recovery_algorithm.on_tick(recovery_trades_symbol[i])
                     if recovery_signal['Signal'] == 1:
-                        recovery_signal['TP'] += history[-1]['Close']
+                        if recovery_signal['TP'] != 0:
+                            recovery_signal['TP'] += history[-1]['Close']
                         trade = market.buy(data_time, recovery_signal['Price'], symbol, recovery_signal['TP'], 0, recovery_signal['Volume'], last_ticket)
                         if trade is not None:
                             last_ticket += 1
                             recovery_trades_symbol[i].append(trade)
                         for modify_signal in modify_signals:
-                            modify_signal['TP'] += history[-1]['Close']
+                            if modify_signal['TP'] != 0:
+                                modify_signal['TP'] += history[-1]['Close']
                             market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
                     elif recovery_signal['Signal'] == -1:
-                        recovery_signal['TP'] += history[-1]['Close']
+                        if recovery_signal['TP'] != 0:
+                            recovery_signal['TP'] += history[-1]['Close']
                         trade = market.sell(data_time, recovery_signal['Price'], symbol, recovery_signal['TP'], 0,
                                            recovery_signal['Volume'], last_ticket)
                         if trade is not None:
                             last_ticket += 1
                             recovery_trades_symbol[i].append(trade)
                         for modify_signal in modify_signals:
-                            modify_signal['TP'] += history[-1]['Close']
+                            if modify_signal['TP']:
+                                modify_signal['TP'] += history[-1]['Close']
                             market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
                 recovery_trades_copy = copy.copy(recovery_trades_symbol)
                 for i in range(len(recovery_trades_copy)):
-                    if (recovery_trades_copy[i][0]['Type'] == 'Buy' and history[-1]['High'] > recovery_trades_copy[i][0]['TP']) or \
-                            (recovery_trades_copy[i][0]['Type'] == 'Sell' and history[-1]['Low'] + Config.spreads[symbol] < recovery_trades_copy[i][0]['TP']):
+                    if (recovery_trades_copy[i][0]['Type'] == 'Buy' and history[-1]['High'] > recovery_trades_copy[i][0]['TP'] and recovery_trades_copy[i][0]['TP'] != 0) or \
+                            (recovery_trades_copy[i][0]['Type'] == 'Sell' and history[-1]['Low'] + Config.spreads[symbol] < recovery_trades_copy[i][0]['TP'] and recovery_trades_copy[i][0]['TP'] != 0):
                         recovery_algorithm.tp_touched(recovery_trades_copy[i][0]['Ticket'])
                         recovery_trades_symbol.remove(recovery_trades_copy[i])
+                recovery_algorithm.on_tick_reset()
 
 
     # Exit Section
@@ -430,7 +435,7 @@ def algorithm_execute(market, history, signal, price, config, data_time, symbol,
 
 
 def trailing(market, history, trailing_histories, data_time, trailing_tool, config, close_modes, last_buy_closed,
-             last_sell_closed, virtual_buys, virtual_sells, symbol):
+             last_sell_closed, virtual_buys, virtual_sells, symbol, recovery_trades_symbol):
     last_buy_closed[symbol] = None
     last_sell_closed[symbol] = None
     if close_modes[symbol] == 'trailing' or close_modes[symbol] == 'both':
@@ -448,6 +453,10 @@ def trailing(market, history, trailing_histories, data_time, trailing_tool, conf
                             virtual_buys[symbol].remove(position)
                         else:
                             market.close(data_time, close_price, position['Volume'], position['Ticket'])
+                            for trades in recovery_trades_symbol:
+                                if trades[0]['Ticket'] == position['Ticket']:
+                                    recovery_trades_symbol.remove(trades)
+                                    break
                     elif not config.force_close_on_algorithm_price and history[-1]['Open'] < close_price:
                         if position['Ticket'] == -1:
                             last_buy_closed[symbol] = virtual_close(position, history[-1]['Time'],
@@ -455,6 +464,10 @@ def trailing(market, history, trailing_histories, data_time, trailing_tool, conf
                             virtual_buys[symbol].remove(position)
                         else:
                             market.close(data_time, history[-1]['Open'], position['Volume'], position['Ticket'])
+                            for trades in recovery_trades_symbol:
+                                if trades[0]['Ticket'] == position['Ticket']:
+                                    recovery_trades_symbol.remove(trades)
+                                    break
 
         open_sell_poses = copy.deepcopy(market.open_sell_positions) + virtual_sells[symbol]
         for position in open_sell_poses:
@@ -470,6 +483,10 @@ def trailing(market, history, trailing_histories, data_time, trailing_tool, conf
                             virtual_sells[symbol].remove(position)
                         else:
                             market.close(data_time, close_price, position['Volume'], position['Ticket'])
+                            for trades in recovery_trades_symbol:
+                                if trades[0]['Ticket'] == position['Ticket']:
+                                    recovery_trades_symbol.remove(trades)
+                                    break
                     elif not config.force_close_on_algorithm_price and close_price < history[-1]['Open']:
                         if position['Ticket'] == -1:
                             last_sell_closed[symbol] = virtual_close(position, history[-1]['Time'],
@@ -477,6 +494,11 @@ def trailing(market, history, trailing_histories, data_time, trailing_tool, conf
                             virtual_sells[symbol].remove(position)
                         else:
                             market.close(data_time, history[-1]['Open'], position['Volume'], position['Ticket'])
+                            for trades in recovery_trades_symbol:
+                                if trades[0]['Ticket'] == position['Ticket']:
+                                    recovery_trades_symbol.remove(trades)
+                                    break
+        trailing_tool.on_tick_reset()
 
 
 def virtuals_check(virtual_buys, virtual_sells, history, last_buy_closed, last_sell_closed, symbol, spread):

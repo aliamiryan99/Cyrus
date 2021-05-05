@@ -74,6 +74,9 @@ class TrailingWithHugeCandle:
                 return True, old_high
         return False, 0
 
+    def on_tick_reset(self):
+        pass
+
     def update_local_extremum(self):
         self.local_min_price = update_local_extremum(self.local_min_price)
         self.local_max_price = update_local_extremum(self.local_max_price)
