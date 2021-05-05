@@ -253,7 +253,6 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
 
                                         if ac2bd_cond and xb2ac_cond and xb2bd_cond:
                                             res.append([local_min[i], local_max[j], local_min[k], local_max[p], local_min[l], x, a, b, c, d, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd])
-                                            cnt = cnt + 1
 
 
 # check Regression Condition function

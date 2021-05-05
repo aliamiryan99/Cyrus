@@ -1,94 +1,48 @@
+import numpy as np
+
 # ---------- filter patterns function
-def filter_results(high, low, res, c, harmonic_name, trend_direction):
+def filter_results(high, low, res, middle, harmonic_name, trend_direction):
     if len(res) == 0:
         return
 
-    % define
-    Candle
-    Size
-    res = GetPatternSize(res); % 1
-    to
-    5
-    from very small
+    # define Candle Size
+    res = get_pattern_size(res) # 1 to 5 from very small to very larg.very small, small, medium, large, very large
+    filter_mode = 'Percent'
+    res = eliminate_duplicate_patterns(res, trend_direction)
 
-    to
-    very
-    larg.very
-    small, small, medium, larg, very
-    larg
-    filterMode = 'Percent';
-    res = EliminateDuplicatePatterns(res, TrendDirection);
-    %
-    if strcmpi(filterMode, 'std')
-        res = EliminateHighSTDPatterns(res, c);
-    elseif
-    strcmpi(filterMode, 'Percent')
-    alpha = .37; % .37
-    STD
-    coefficient.higher
-    led
-    to
-    bigger
-    channel
-    beta = .94; % .94
-    percent
-    of
-    data
-    should
-    be in the
-    channel
-    res = EliminateOutOfBoundPatterns(res, c, Low, High, HarmonicName, alpha, beta);
-    end`
+    if filter_mode == 'std':
+        res = eliminate_high_std_patterns(res, middle)
+    elif filter_mode == 'Percent':
+        alpha = .37 # .37 STD coefficient.higher led to bigger channel
+        beta = .94 # .94 percent of should be in the channel
+        res = eliminate_out_of_bound_patterns(res, middle, Low, High, harmonic_name, alpha, beta)
 
-% ---- check
-the
-ratio is near
-to
-fibonacci
-number or not
-res = CheckTheFibboRatio(res, HarmonicName, TrendDirection);
+    # ---- check the ratio is near to fibonacci number or not
+    res = check_the_fibbo_ratio(res, harmonic_name, trend_direction)
 
-% % ------- filter
-based
-on
-the
-Vortex
-res = isVertexOfHarmonicExtremum(d, res, TrendDirection); % add
-short
-term
-trend and long
-trem
-trend
-to
-the
-results
-res = Checkvertex(HarmonicName, res);
-end
+    # # ------- filter based on the Vortex
+    res = is_vertex_of_harmonic_extremum(d, res, trend_direction) # add short term trend and long treme trend to the results
+    res = check_vertex(harmonic_name, res)
+    return res
 
-% -- filter
-based
-on
-STD
-function
-res = EliminateHighSTDPatterns(res, c)
-xIdx = 1;
-aIdx = 2;
-bIdx = 3;
-cIdx = 4;
-dIdx = 5;
+# -- filte based on STD
+def eliminate_high_std_patterns(res, middle):
+    x_idx = 0
+    a_idx = 1
+    b_idx = 2
+    c_idx = 3
+    d_idx = 4
 
-situation = false(size(res, 2), 1);
-for i=1:size(res, 2)
-situationXA = checkSTDOfWaves(res(xIdx:aIdx, i), c(res(xIdx, i): res(aIdx, i)));
-situationAB = checkSTDOfWaves(res(aIdx:bIdx, i), c(res(aIdx, i): res(bIdx, i)));
-situationBC = checkSTDOfWaves(res(bIdx:cIdx, i), c(res(bIdx, i): res(cIdx, i)));
-situationCD = checkSTDOfWaves(res(cIdx:dIdx, i), c(res(cIdx, i): res(dIdx, i)));
-if situationXA & & situationAB & & situationBC & & situationCD
-    situation(i) = true;
-end
-end
-res = res(:, situation);
-end
+    situation = [False] * len(res)
+    for i in range(len(res)):
+        situation_x_a = check_std_of_waves(res[i][x_idx:a_idx], middle[res[i][x_idx]: res[i][a_idx]])
+        situation_a_b = check_std_of_waves(res[i][a_idx:b_idx], middle[res[i][a_idx]: res[i][b_idx]])
+        situation_b_c = check_std_of_waves(res[i][b_idx:c_idx], middle[res[i][b_idx]: res[i][c_idx]])
+        situation_c_d = check_std_of_waves(res[i][c_idx:d_idx], middle[res[i][c_idx]: res[i][d_idx]])
+        if situation_x_a and situation_a_b and situation_b_c and situation_c_d:
+            situation[i] = True
+        res[i].append(situation[i])
+
 function
 situation = checkSTDOfWaves(rng, c)
 alpha = 2; % STD

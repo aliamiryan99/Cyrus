@@ -51,7 +51,7 @@ def launch():
             recovery_trades_symbol = recovery_trades[symbol]
 
             # Debug Section
-            # if data_time == datetime(year=2017, month=4, day=23, hour=20, minute=0):
+            # if data_time == datetime(year=2020, month=4, day=30, hour=12, minute=0):
             #     print(data_time)
 
             # Ignore Holidays
