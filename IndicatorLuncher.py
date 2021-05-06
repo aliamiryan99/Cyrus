@@ -6,7 +6,7 @@ from datetime import datetime
 
 from Indicators.ForcastingMultiInterpolation import forecastingMultiInterpolation
 from Indicators.ForcastingParabloicApproach import forecasting_ParabolicApproach
-import Candlestick
+from Visualization import BaseChart
 
 from Indicators.LocalExtremum import localExtremum
 
@@ -47,7 +47,7 @@ def multi_interpolation_launch():
 
     [localMin, localMax] = localExtremum(data, 2)
 
-    Candlestick.candlestick_plot(dataFrame, "Interpolation", lines, extends, localMax=localMax, localMin=localMin)
+    BaseChart.candlestick_plot(dataFrame, "Interpolation", lines, extends, localMax=localMax, localMin=localMin)
 
 
 def parabloic_approach_launch():
@@ -71,7 +71,7 @@ def parabloic_approach_launch():
     sellMarker = {'x': sellIdx, 'y': dataFrame['Close'].iloc[sellIdx]}
     print(extends)
 
-    Candlestick.candlestick_plot(dataFrame, "Interpolation", buyMarker=buyMarker, sellMarker=sellMarker)
+    BaseChart.candlestick_plot(dataFrame, "Interpolation", buyMarker=buyMarker, sellMarker=sellMarker)
 
 
 multi_interpolation_launch()

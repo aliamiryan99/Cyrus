@@ -1,15 +1,12 @@
 from Simulation import Utility as ut
-from bokeh.io import output_file
 from AlgorithmTools import LocalExtermums
-import Candlestick
-from ta.momentum import rsi
+from Visualization import BaseChart
 from Algorithms.Divergence.Divergence import divergence_calculation
 from AlgorithmTools.HeikinCandle import HeikinConverter
 import numpy as np
 from pandas import Series
 from datetime import datetime
 from Simulation import Outputs
-from Indicators.KDJ import kdj
 import pandas as pd
 from ta.momentum import stochrsi_d
 from ta.momentum import stochrsi_k
@@ -130,10 +127,10 @@ for i in range(len(idx4)):
     indicator_line_2.append({'x': [row[1][0], row[1][1]], 'y': [max_indicator[row[1][0]], max_indicator[row[1][1]]]})
 
 
-Candlestick.candlestick_plot(data_shows, symbol, True, pd.DataFrame(max_indicator).rename(columns={0: 'value'}), pd.DataFrame(min_indicator).rename(columns={0: 'value'}), divergence_line=line1,
-                             indicator_divergene_line=indicator_line_1, divergence_line_2=line2,
-                             indicator_divergene_line_2=indicator_line_2, indicatorLocalMax=local_max_indicator_left,
-                             indicatorLocalMin=local_min_indicator_left, indicatorLocalMax2=local_max_indicator_right,
-                             indicatorLocalMin2=local_min_indicator_right, localMax=local_max_price_left,
-                             localMin=local_min_price_left, localMax2=local_max_price_right,
-                             localMin2=local_min_price_right)
+BaseChart.candlestick_plot(data_shows, symbol, True, pd.DataFrame(max_indicator).rename(columns={0: 'value'}), pd.DataFrame(min_indicator).rename(columns={0: 'value'}), divergence_line=line1,
+                           indicator_divergene_line=indicator_line_1, divergence_line_2=line2,
+                           indicator_divergene_line_2=indicator_line_2, indicatorLocalMax=local_max_indicator_left,
+                           indicatorLocalMin=local_min_indicator_left, indicatorLocalMax2=local_max_indicator_right,
+                           indicatorLocalMin2=local_min_indicator_right, localMax=local_max_price_left,
+                           localMin=local_min_price_left, localMax2=local_max_price_right,
+                           localMin2=local_min_price_right)
