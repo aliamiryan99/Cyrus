@@ -128,6 +128,20 @@ def get_last_local_extermum(data, window):
     return localMin[-1], localMax[-1]
 
 
+def get_local_extremum_area(data, local_min, local_max, time_range, price_range):
+    local_max_area = []
+    for i in range(len(local_max)):
+        for j in range(max(0, local_max[i] - time_range), min(local_max[i] + time_range, len(data))):
+            if data[local_max[i]]['High'] - data[j]['High'] < price_range:
+                local_max_area.append(j)
+    local_min_area = []
+    for i in range(len(local_min)):
+        for j in range(max(0, local_min[i] - time_range), min(local_min[i] + time_range, len(data))):
+            if data[j]['Low'] - data[local_min[i]]['Low'] < price_range:
+                local_min_area.append(j)
+    return local_min_area, local_max_area
+
+
 def update_local_extremum(local_extremum):
     while local_extremum[0] <= 0:
         local_extremum = local_extremum[1:]

@@ -5,6 +5,7 @@ import pandas as pd
 from bokeh.io import show
 from bokeh.layouts import column
 from bokeh.plotting import figure
+from bokeh.io.state import curstate
 from bokeh.models import CustomJS, ColumnDataSource, HoverTool, NumeralTickFormatter, Arrow, VeeHead, Range1d
 from Simulation.Config import Config
 register_matplotlib_converters()
@@ -65,8 +66,6 @@ def get_base_fig(df, name):
         low2=df.Low[dec],
         date2=df.Time[dec]
     ))
-
-
 
     # # Plot candles
 
@@ -147,39 +146,90 @@ def get_base_fig(df, name):
 
     # Finalise the figure
     fig.x_range.js_on_change('start', callback)
+    curstate().file['title'] = name
 
     return fig
 
 
-def get_top_fig(title, fig, height, indicators):
-    top_fig = figure(sizing_mode="stretch_width",
-                     plot_height=height,
-                     tools="xpan,xwheel_zoom,reset,save",
-                     active_drag='xpan',
-                     active_scroll='xwheel_zoom',
-                     x_axis_type='linear',
-                     x_range=fig.x_range,
-                     title=title
-                     )
+def get_secondary_fig(title, fig, height, df, indicators, min_indicator, max_indicator):
+    secondary_fig = figure(sizing_mode="stretch_width",
+                           plot_height=height,
+                           tools="xpan,xwheel_zoom,reset,save",
+                           active_drag='xpan',
+                           active_scroll='xwheel_zoom',
+                           x_axis_type='linear',
+                           x_range=fig.x_range,
+                           title=title)
 
-    if len(indicators) != 0:
+    if indicators is not None and len(indicators) != 0:
         indicators_list = []
+        number_format = '%0.2f'
         for indicator in indicators:
             df_indicator = indicator['df']
             indicators_list.append(df_indicator.to_dict('Records'))
-            indicator = ColumnDataSource(data=dict(
+            source = ColumnDataSource(data=dict(
                 index1=df_indicator.index,
                 value1=df_indicator.value
             ))
-            top_fig.line(x='index1', y='value1', source=indicator, line_width=indicator['width'], line_color=indicator['color'])
+            indicator_line = secondary_fig.line(x='index1', y='value1', source=source, line_width=indicator['width'], line_color=indicator['color'])
 
-        max_indicator_value = indicators_list[0]
-        min_indicator_value = indicators_list[0]
+            secondary_fig.add_tools(HoverTool(
+                renderers=[indicator_line],
+                tooltips=[
+                    ("Value", "@value1{" + number_format + "}")
+                ],
+                formatters={
+                    '@value1': 'printf'
+                }))
+
+        # JavaScript callback function to automatically zoom the Y axis to
+        # view the Data properly
+        source = ColumnDataSource({'Index': df.index, 'High': df.High, 'Low': df.Low,
+                                   'Index_Indicator': max_indicator.index, 'Max_Value_Indicator': max_indicator.value, 'Min_Value_Indicator': min_indicator.value})
+        callback = CustomJS(args={'y_range_candle': fig.y_range, 'y_range_indicator': secondary_fig.y_range,
+                                  'source': source}, code='''
+                           clearTimeout(window._autoscale_timeout);
+                           var indexCandle = source.data.Index,
+                               low = source.data.Low,
+                               high = source.data.High,
+                               start = cb_obj.start,
+                               end = cb_obj.end,
+                               minCandle = Infinity,
+                               maxCandle = -Infinity;
+                           for (var i=0; i < indexCandle.length; ++i) {
+                               if (start <= indexCandle[i] && indexCandle[i] <= end) {
+                                   maxCandle = Math.max(high[i], maxCandle);
+                                   minCandle = Math.min(low[i], minCandle);
+                               }
+                           }
+                           var indexInd = source.data.Index_Indicator,
+                                maxValue = source.data.Max_Value_Indicator,
+                                minValue = source.data.Min_Value_Indicator,
+                                minInd = Infinity,
+                                maxInd = -Infinity;
+                            for (var i=0; i < indexInd.length; ++i) {
+                                if (start <= indexInd[i] && indexInd[i] <= end) {
+                                    maxInd = Math.max(maxValue[i], maxInd);
+                                    minInd = Math.min(minValue[i], minInd);
+                                }
+                            }
+                           var padCandle = (maxCandle - minCandle) * .1;
+                           var padInd = (maxInd - minInd) * .2;
+                           window._autoscale_timeout = setTimeout(function() {
+                               y_range_candle.start = minCandle - padCandle;
+                               y_range_candle.end = maxCandle + padCandle;
+                               y_range_be.start = minInd - padInd;
+                               y_range_be.end = maxInd + padInd;
+                           });
+                       ''')
+
+        # Finalise the figure
+        fig.x_range.js_on_change('start', callback)
+
+        return secondary_fig
 
 
-
-
-def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, df_indicator2 = None, divergence_line=None,
+def candlestick_plot(df, name, indicator_enable = False, df_indicator=None, df_indicator2=None, divergence_line=None,
                      indicator_divergene_line=None, divergence_line_2=None,
                      indicator_divergene_line_2=None, indicatorLocalMax=None, indicatorLocalMin=None, indicatorLocalMax2=None,
                      indicatorLocalMin2=None, lines=None, extend_lines=None, localMax=None, localMin=None, localMax2=None,

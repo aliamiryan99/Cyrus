@@ -1,4 +1,7 @@
 import numpy as np
+import math
+import pandas as pd
+
 
 # ---------- filter patterns function
 def filter_results(high, low, res, middle, harmonic_name, trend_direction):
@@ -6,24 +9,22 @@ def filter_results(high, low, res, middle, harmonic_name, trend_direction):
         return
 
     # define Candle Size
-    res = get_pattern_size(res) # 1 to 5 from very small to very larg.very small, small, medium, large, very large
+    res = get_pattern_size(res) # 1 to 5 from very small to very large.very small, small, medium, large, very large
     filter_mode = 'Percent'
     res = eliminate_duplicate_patterns(res, trend_direction)
 
-    if filter_mode == 'std':
-        res = eliminate_high_std_patterns(res, middle)
-    elif filter_mode == 'Percent':
-        alpha = .37 # .37 STD coefficient.higher led to bigger channel
-        beta = .94 # .94 percent of should be in the channel
-        res = eliminate_out_of_bound_patterns(res, middle, Low, High, harmonic_name, alpha, beta)
+    # if filter_mode == 'std':
+    #     res = eliminate_high_std_patterns(res, middle)
+    # elif filter_mode == 'Percent':
+    #     alpha = .37 # .37 STD coefficient.higher led to bigger channel
+    #     beta = .94 # .94 percent of should be in the channel
+    #     res = eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha, beta)
 
     # ---- check the ratio is near to fibonacci number or not
     res = check_the_fibbo_ratio(res, harmonic_name, trend_direction)
 
-    # # ------- filter based on the Vortex
-    res = is_vertex_of_harmonic_extremum(d, res, trend_direction) # add short term trend and long treme trend to the results
-    res = check_vertex(harmonic_name, res)
     return res
+
 
 # -- filte based on STD
 def eliminate_high_std_patterns(res, middle):
@@ -42,313 +43,223 @@ def eliminate_high_std_patterns(res, middle):
         if situation_x_a and situation_a_b and situation_b_c and situation_c_d:
             situation[i] = True
         res[i].append(situation[i])
+    return res
 
-function
-situation = checkSTDOfWaves(rng, c)
-alpha = 2; % STD
-coefficient
-beta = .85; % numberr
-of
-candles
-which
-be
-out
-of
-theSTD
-boundery
-situation = false;
-Rng = (rng(1):rng(end))';
-p = polyfit([rng(1);
-rng(end)], [c(1);
-c(end)], 1);
-line = polyval(p, Rng);
 
-lowerSTD = line - alpha. * std(line);
-upperSTD = line + alpha. * std(line);
+def check_std_of_waves(rng, middle):
+    alpha = 2 # STD coefficient
+    beta = .85 # numberr of candles which be out of theSTD boundery
+    situation = False
+    range = np.arange(rng[0], rng[-1])
+    p = np.polyfit([rng[0], rng[-1]], [middle[0], middle[-1]], 1)
+    line = np.polyval(p, range)
 
-if sum(c >= lowerSTD) > numel(lowerSTD) * beta & & sum(c <= upperSTD) > numel(lowerSTD) * beta
-    situation = true;
-end
-end
+    lower_std = line - alpha * np.std(line)
+    upper_std = line + alpha * np.std(line)
 
-% classifiy
-pattern
-by
-their
-size
-function
-res = GetPatternSize(res)
-xIdx = 1;
-aIdx = 2;
-bIdx = 3;
-cIdx = 4;
-dIdx = 5;
+    if np.sum(middle >= lower_std) > lower_std.size * beta and np.sum(middle <= upper_std) > lower_std.size * beta:
+        situation = True
+    return situation
 
-tr1 = 15;
-tr2 = 30;
-tr3 = 45;
-tr4 = 60;
 
-pattSize = zeros(size(res, 2), 1);
-for i=1:size(res, 2)
-PatternLen = res(dIdx, i) - res(xIdx, i);
-if PatternLen <= tr1
-    pattSize(i) = 1;
-elseif
-PatternLen > tr1 & & PatternLen <= tr2
-pattSize(i) = 2;
-elseif
-PatternLen > tr2 & & PatternLen <= tr3
-pattSize(i) = 3;
-elseif
-PatternLen > tr3 & & PatternLen <= tr4
-pattSize(i) = 4;
-elseif
-PatternLen > tr4
-pattSize(i) = 5;
-end
-end
-res = [res;
-pattSize
-'];
-end
+# classifiy pattern by their size
+def get_pattern_size(res):
+    x_idx = 0
+    a_idx = 1
+    b_idx = 2
+    c_idx = 3
+    d_idx = 4
 
-% -- filter
-Based
-on
-percentage
-of
-line
-function
-res = EliminateOutOfBoundPatterns(res, c, Low, High, HarmonicName, alpha, beta)
-meanOfCandle = mean(High - Low);
+    tr1 = 15
+    tr2 = 30
+    tr3 = 45
+    tr4 = 60
 
-c = mean([High Low], 2);
-% High = High - mean(c);
-% Low = Low - mean(c);
-% c = c - mean(c);
-High = (c);
-Low = c;
+    patt_size = np.zeros((len(res), 1))
+    for i in range(len(res)):
+        pattern_len = res[i][d_idx] - res[i][x_idx]
+        if pattern_len <= tr1:
+            patt_size[i] = 1
+        elif pattern_len > tr1 and pattern_len <= tr2:
+            patt_size[i] = 2
+        elif pattern_len > tr2 and pattern_len <= tr3:
+            patt_size[i] = 3
+        elif pattern_len > tr3 and pattern_len <= tr4:
+            patt_size[i] = 4
+        elif pattern_len > tr4:
+            patt_size[i] = 5
+        res[i].append(patt_size[i])
+    return res
 
-xIdx = 1;
-aIdx = 2;
-bIdx = 3;
-cIdx = 4;
-dIdx = 5;
 
-situation = false(size(res, 2), 1);
+# -- filter Based on percentage of line
+def eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha, beta):
+    mean_of_candle = np.mean(high - low)
 
-for i = 1:size(res, 2)
-rng = res(xIdx, i):res(aIdx, i);
+    high = middle
+    low = middle
 
-p = polyfit([rng(1);
-rng(end)], [Low(rng(1));
-High(rng(end))], 1);
-l = polyval(p, rng);
-[lowerBound, upperBound] = FindBoundery(meanOfCandle, c, Low(rng(1)), High(rng(end)), rng, l, alpha); % XA
-Leg
-situationXA = sum(lowerBound < Low(rng) & High(rng) < upperBound) >= numel(rng) * beta;
-if strcmpi(HarmonicName, 'ABCD')
-situationXA = true;
-end
+    x_idx = 0
+    a_idx = 1
+    b_idx = 2
+    c_idx = 3
+    d_idx = 4
+    res = res.transpose()
+    situation = [False] * len(res)
 
-rng = res(aIdx, i):res(bIdx, i);
+    for i in range(len(res)):
+        rng = np.arange(int(res[i, x_idx]), int(res[i, a_idx]))
 
-p = polyfit([rng(1);
-rng(end)], [High(rng(1));
-Low(rng(end))], 1);
-l = polyval(p, rng);
-[lowerBound, upperBound] = FindBoundery(meanOfCandle, c, High(rng(1)), Low(rng(end)), rng, l, alpha); % AB
-Leg
-situationAB = sum(lowerBound < Low(rng) & High(rng) < upperBound) >= numel(rng) * beta;
+        p = np.polyfit([rng[0], rng[-1]], [low[rng[0]], high[rng[-1]]], 1)
+        l = np.polyval(p, rng)
+        lower_bound, upper_bound = find_boundery(mean_of_candle, middle, low[rng[0]], high[rng[-1]], rng, l, alpha) # XA Leg
+        situation_xa = np.sum(np.logical_and(lower_bound < low[rng], high[rng] < upper_bound)) >= rng.size * beta
+        if harmonic_name == 'ABCD':
+            situation_xa = True
 
-rng = res(bIdx, i):res(cIdx, i);
+        rng = np.arange(int(res[i, a_idx]), int(res[i, b_idx]))
 
-p = polyfit([rng(1);
-rng(end)], [Low(rng(1));
-High(rng(end))], 1);
-l = polyval(p, rng);
-[lowerBound, upperBound] = FindBoundery(meanOfCandle, c, Low(rng(1)), High(rng(end)), rng, l, alpha); % BC
-Leg
-situationBC = sum(lowerBound < Low(rng) & High(rng) < upperBound) >= numel(rng) * beta;
+        p = np.polyfit([rng[0], rng[-1]], [high[rng[0]], low[rng[-1]]], 1)
+        l = np.polyval(p, rng)
+        lower_bound, upper_bound = find_boundery(mean_of_candle, middle, high[rng[0]], low[rng[-1]], rng, l, alpha)  # AB Leg
+        situation_ab = np.sum(np.logical_and(lower_bound < low[rng], high[rng] < upper_bound)) >= rng.size * beta
 
-rng = res(cIdx, i):res(dIdx, i);
+        rng = np.arange(int(res[i, b_idx]), int(res[i, c_idx]))
 
-p = polyfit([rng(1);
-rng(end)], [High(rng(1));
-Low(rng(end))], 1);
-l = polyval(p, rng);
-[lowerBound, upperBound] = FindBoundery(meanOfCandle, c, High(rng(1)), Low(rng(end)), rng, l, alpha); % CD
-Leg
-situationCD = sum(lowerBound < Low(rng) & High(rng) < upperBound) >= numel(rng) * beta;
+        p = np.polyfit([rng[0], rng[-1]], [low[rng[0]], high[rng[-1]]], 1)
+        l = np.polyval(p, rng)
+        lower_bound, upper_bound = find_boundery(mean_of_candle, middle, low[rng[0]], high[rng[-1]], rng, l, alpha)  # BC Leg
+        situation_bc = np.sum(np.logical_and(lower_bound < low[rng], high[rng] < upper_bound)) >= rng.size * beta
 
-if situationXA & & situationAB & & situationBC & & situationCD
-situation(i) = true;
-end
-end
-res = res(:, situation);
-end
-function[alpha, beta] = GetTheCoefficientOFBound(rng1, rng2)
-tr1 = 8;
-tr2 = 20;
-tr3 = 40;
-tr4 = 70;
+        rng = np.arange(int(res[i, c_idx]), int(res[i, d_idx]))
 
-if rng2 - rng1 <= tr1
-alpha = .60;
-beta = .92;
-elseif
-rng2 - rng1 >= tr1 & & rng2 - rng1 < tr2
-alpha = .63;
-beta = .92;
-elseif
-rng2 - rng1 >= tr2 & & rng2 - rng1 < tr3
-alpha = .64;
-beta = .92;
-elseif
-rng2 - rng1 >= tr3 & & rng2 - rng1 < tr4
-alpha = .65;
-beta = .92;
-elseif
-rng2 - rng1 >= tr4
-alpha = .70;
-beta = .92;
-end
+        p = np.polyfit([rng[0], rng[-1]], [low[rng[0]], high[rng[-1]]], 1)
+        l = np.polyval(p, rng)
+        lower_bound, upper_bound = find_boundery(mean_of_candle, middle, low[rng[0]], high[rng[-1]], rng, l, alpha)  # CD Leg
+        situation_cd = np.sum(np.logical_and(lower_bound < low[rng], high[rng] < upper_bound)) >= rng.size * beta
 
-end
-function[lowerBoundHat, upperBoundHat] = FindBoundery(meanOfCandle, c, startVal, endVal, x, y, alpha) \
-                                         % alpha = .50;
-% % Example
-coordinates
-% y = [1 4 7 10 13 16];
-% x = 101:numel(y) + 100;
+        if situation_xa and situation_ab and situation_bc and situation_cd:
+            situation[i] = True
+        res[i].append(situation[i])
 
-% ------------------ find
-the
-rotation
-degree
-slope = rad2deg(atan((endVal - startVal) / (x(end) - x(1))));
 
-% ------------------ rotate
-line
-[xHat, yHat] = RotateLine(x, y, -slope);
+def get_the_coefficient_of_bound(rng1, rng2):
+    tr1 = 8
+    tr2 = 20
+    tr3 = 40
+    tr4 = 70
 
-% ------------------ find
-bound
-of
-line \
-% upperBound = yHat * (1 + alpha);
-% lowerBound = yHat * (1 - alpha);
-upperBound = yHat + (1 + alpha) * std(c(x));
-lowerBound = yHat - (1 + alpha) * std(c(x));
-% ------------------ de - rotate
-boundery
-lines
-[~, upperBoundHat] = RotateLine(xHat, upperBound, slope);
-[~, lowerBoundHat] = RotateLine(xHat, lowerBound, slope);
+    alpha, beta = 0, 0
+    if rng2 - rng1 <= tr1:
+        alpha = .60
+        beta = .92
+    elif rng2 - rng1 >= tr1 and rng2 - rng1 < tr2:
+        alpha = .63
+        beta = .92
+    elif rng2 - rng1 >= tr2 and rng2 - rng1 < tr3:
+        alpha = .64
+        beta = .92
+    elif rng2 - rng1 >= tr3 and rng2 - rng1 < tr4:
+        alpha = .65
+        beta = .92
+    elif rng2 - rng1 >= tr4:
+        alpha = .70
+        beta = .92
+    return alpha, beta
 
-isPlot = false;
-if isPlot
-figure;
-plot([x(1);
-x(end)], [startVal;
-endVal], 'b:', 'MarkerSize', 25);  hold
-on; % Original
-plot(x, c(x), 'k.-', 'MarkerSize', 25);
-hold
-on; % middle
-Of
-Candle
-plot(x, upperBoundHat, 'r.-', 'MarkerSize', 8); % Rotated
-around
-centre
-of
-line
-plot(x, lowerBoundHat, 'r.-', 'MarkerSize', 8); % Rotated
-around
-centre
-of
-line
-grid
-on;
-end
-end
-function[x, y] = RotateLine(x, y, Deg)
-                 % Vertices
-matrix
-V = [x(:) y(:) zeros(size(y(:)))];
-V_centre = mean(V, 1); % Centre, of
-line
-Vc = V - ones(size(V, 1), 1) * V_centre; % Centering
-coordinates
-a_rad = ((Deg * pi). / 180); % Angle in radians
-E = [0  0 a_rad]; % Euler
-angles
-for X, Y, Z - axis rotations
 
-                   % Direction Cosines (rotation matrix) construction
-Rx=[1        0        0;...
-0        cos(E(1))  -sin(E(1));...
-0        sin(E(1))  cos(E(1))]; % X-Axis rotation
-Ry=[cos(E(2))  0        sin(E(2));...
-0        1        0;...
--sin(E(2)) 0        cos(E(2))]; % Y-axis rotation
-Rz=[cos(E(3))  -sin(E(3)) 0;...
-sin(E(3))  cos(E(3))  0;...
-0        0        1]; % Z-axis rotation
-R   = Rx * Ry * Rz; % Rotation matrix
-Vrc = (R * Vc')'; % Rotating centred coordinates
-Vr  = Vrc+ones(size(V, 1), 1) * V_centre; % Shifting back to original location
-x   = Vr(:,
-    1);
-y = Vr(:, 2);
+def find_boundery(mean_of_candle, middle, start_val, end_val, x, y, alpha):  # alpha = .50
+    # Example coordinates
+    # y = [1 4 7 10 13 16];
+    # x = 101:numel(y) + 100;
 
-end
-% eliminate
-duplicate
-pattern
-with common D point
-function uniquePatterns = EliminateDuplicatePatterns(res, TrendDirection)
-dIdx    = 5;
-xValIdx = 6;
-aValIdx = 7;
-bValIdx = 8;
-cValIdx = 9;
+    # ------------------ find the rotation degree
+    slope = np.rad2deg(np.arctan((end_val - start_val) / (x[-1] - x[0])))
 
-if strcmpi(TrendDirection, 'Bearish')
-str = {'ascend' 'descend' 'ascend' 'descend'};
-elseif strcmpi(TrendDirection, 'Bullish')
-str = {'descend' 'ascend' 'descend' 'ascend'};
-end
-if isempty(res)
-return;
-end
-uniqueMem = unique(res(dIdx,:));
-uniquePatterns = zeros(size(res, 1), numel(uniqueMem));
-for i=1:length(uniqueMem)
-uniqueIdx = uniqueMem(i) == res(dIdx,:);
-% -------- select
-best
-patterns, Bullish
-Patterns
-[B, ~] = sortrows(res(:, uniqueIdx)',[cValIdx xValIdx aValIdx bValIdx  ],str);
-uniquePatterns(:, i) = B(1,:)';
-end
-end
+    # ------------------ rotate line
+    x_hat, y_hat = rotate_line(x, y, -slope)
 
-function
-res = Checkvertex(HarmonicName, res)
-if strcmpi(HarmonicName, 'ABCD')
-alpha = 2;
-res = res(:, sum(res(end - 2: end,:)) >= alpha & res(end - 1,:) == 1 & res(end,:) == 1);
-else
-alpha = 3;
-res = res(:, sum(res(end - 3: end,:)) >= alpha & res(end - 1,:) == 1 & res(end,:) == 1);
-end
-end
+    # ------------------ find bound of line \
+    # upperBound = yHat * (1 + alpha);
+    # lowerBound = yHat * (1 - alpha);
+    upper_bound = y_hat + (1 + alpha) * np.std(middle[x])
+    lower_bound = y_hat - (1 + alpha) * np.std(middle[x])
+    # ------------------ de - rotate boundery lines
+    _, upper_bound_hat = rotate_line(x_hat, upper_bound, slope)
+    _, lower_bound_hat = rotate_line(x_hat, lower_bound, slope)
 
-% ---
-function
-res = CheckTheFibboRatio(res, HarmonicName, TrendDirection)
+    return lower_bound_hat, upper_bound_hat
 
-end
+
+def rotate_line(x, y, deg): # Vertices matrix
+    v = np.array((x, y, np.zeros(y.size))).transpose()
+    v_centre = np.mean(v, 0)  # Centre, of line
+    vc = v - np.ones((v.shape[0], 1)) * v_centre  # Centering coordinates
+    a_rad = ((deg * math.pi) / 180)  # Angle in radians
+    e = [0,  0, a_rad]  # Euler angles for X, Y, Z - axis rotations
+
+    # Direction Cosines (rotation matrix) construction
+    rx=np.array([[1, 0, 0],
+                 [0,math.cos(e[0]),  -math.sin(e[0])],
+                 [0, math.sin(e[0]),  -math.cos(e[0])]])  # X-Axis rotation
+
+    ry=np.array([[math.cos(e[1]), 0, math.sin(e[1])],
+                 [0, 1, 0],
+                 [-math.sin(e[1]), 0, math.cos(e[1])]])  # Y-axis rotation
+
+    rz=np.array([[math.cos(e[2]), -math.sin(e[2]), 0],
+                 [math.sin(e[2]),  math.cos(e[2]),  0],
+                 [0, 0, 1]]) # Z-axis rotation
+
+    r = rx.dot(ry.dot(rz))  # Rotation matrix
+    vrc = (r.dot(vc.transpose())).transpose()  # Rotating centred coordinates
+    vr = vrc+np.ones((v.shape[0], 1)) * v_centre  # Shifting back to original location
+    x = vr[:, 0]
+    y = vr[:, 1]
+    return x, y
+
+
+# eliminate duplicate pattern with common D point
+def eliminate_duplicate_patterns(res, trend_direction):
+    d_idx = 4
+    x_val_idx = 5
+    a_val_idx = 6
+    b_val_idx = 7
+    c_val_idx = 8
+
+    ascending = [True, False, True, False]
+    if trend_direction == 'Bearish':
+        ascending = [True, False, True, False]
+    elif trend_direction == 'Bullish':
+        ascending = [False, True, False, True]
+
+    if len(res) == 0:
+        return
+
+    res = np.array(res)
+    unique_mem = np.unique(res[:, d_idx])
+    unique_patterns = np.zeros((res.shape[1], unique_mem.size))
+
+    for i in range(len(unique_mem)):
+        unique_idx = unique_mem[i] == res[:, d_idx]
+        res_df = pd.DataFrame(res[unique_idx, :])
+        # -------- select best patterns, Bullish Patterns
+        b = res_df.sort_values(by=[c_val_idx, x_val_idx, a_val_idx, b_val_idx], ascending=ascending).to_numpy()
+        unique_patterns[:, i] = b[0, :]
+    return unique_patterns.transpose()
+
+
+def check_vertex(harmonic_name, res):
+    res = np.array(res)
+    if harmonic_name == 'ABCD':
+        alpha = 2
+        res = res[:, np.sum(res[-3: -1,:]) >= alpha & res[-2,:] == 1 & res[-1,:] == 1]
+    else:
+        alpha = 3
+        res = res[:, np.sum(res[-4: -1,:]) >= alpha & res[-2,:] == 1 & res[-1,:] == 1]
+
+    return res
+
+# ---
+def check_the_fibbo_ratio(res, harmonic_name, trend_direction):
+    return res

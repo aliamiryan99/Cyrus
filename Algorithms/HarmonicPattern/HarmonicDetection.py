@@ -7,7 +7,7 @@ def harmonic_pattern(open, high, low, close,top, bottom, middle, local_min, loca
     ind = []
 
     # define Fibbo Ratios
-    f_r_norm = np.array([.382, .50, .618, .786, 1, 1.272, 1.618]) # Most Important FiboRatio
+    f_r_norm = np.array([.382, .50, .618, .786, 1, 1.272, 1.618])  # Most Important FiboRatio
     fibo_tolerance = 0.01
     f_r_norm_lower = f_r_norm * (1 - fibo_tolerance)
     f_r_norm_uper = f_r_norm * (1 + fibo_tolerance)
@@ -97,38 +97,36 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
         max_candle_diff = 150
     min_candle_diff = 3
 
-    cnt = 1
-
     # fibonacci number Tolerance
     if harmonic_name == 'Inverse':
-        tol = 0.035 # default 0.003
+        tol = 0.035  # default 0.003
     else:
         tol = 0.005
 
-    reg_tol = 0.25 # regression Line Tolerance
+    reg_tol = 0.15  # regression Line Tolerance
 
     # ----  build the targets bounds
     if len(x_b_ratio_target) == 1:
         x_b_ratio_target = [x_b_ratio_target[0] * (1 - tol), x_b_ratio_target[0] * (1 + tol)]
     if len(a_c_ratio_target) == 1:
-        a_c_ratio_target = [a_c_ratio_target * (1 - tol), a_c_ratio_target * (1 + tol)]
+        a_c_ratio_target = [a_c_ratio_target[0] * (1 - tol), a_c_ratio_target[0] * (1 + tol)]
     if len(b_d_ratio_target) == 1:
-        b_d_ratio_target = [b_d_ratio_target * (1 - tol), b_d_ratio_target * (1 + tol)]
+        b_d_ratio_target = [b_d_ratio_target[0] * (1 - tol), b_d_ratio_target[0] * (1 + tol)]
     if len(x_d_ratio_target) == 1:
-        x_d_ratio_target = [x_d_ratio_target * (1 - tol), x_d_ratio_target * (1 + tol)]
+        x_d_ratio_target = [x_d_ratio_target[0] * (1 - tol), x_d_ratio_target[0] * (1 + tol)]
 
     # find complete pattern with X A B C D
     # bearish patterns
-    tmp_a, tmp_b, tmp_c, tmp_d = 0, 0, 0 ,0
+    tmp_a, tmp_b, tmp_c, tmp_d = 0, 0, 0, 0
     for i in range(len(local_min)):
         x = low[local_min[i]]
 
         # find for A point
         while local_max[tmp_a] <= local_min[i]:
             tmp_a += 1
-            if tmp_a > len(local_max):
+            if tmp_a >= len(local_max):
                 break
-        if tmp_a > len(local_max):
+        if tmp_a >= len(local_max):
             break
         tmp_b = i
         for j in range(tmp_a, len(local_max)):
@@ -143,15 +141,15 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
             # find for the B point
             while local_min[tmp_b] <= local_max[j]:
                 tmp_b += 1
-                if tmp_b > len(local_min):
+                if tmp_b >= len(local_min):
                     break
-            if tmp_b > len(local_min):
+            if tmp_b >= len(local_min):
                 break
             tmp_c = j
-            if is_regression_cond and rng[1] - rng[2] > min_candle_diff:
+            if is_regression_cond and rng[1] - rng[0] > min_candle_diff:
                 for k in range(tmp_b, len(local_min)):
                     # check for the range of the waves
-                    if local_min[k] - local_max[i] > max_candle_diff:
+                    if local_min[k] - local_min[i] > max_candle_diff:
                         break
 
                     b = low[local_min[k]]
@@ -175,9 +173,9 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
                         # find for the C point
                         while local_max[tmp_c] <= local_min[k]:
                             tmp_c += 1
-                            if tmp_c > len(local_max):
+                            if tmp_c >= len(local_max):
                                 break
-                        if tmp_c > len(local_max):
+                        if tmp_c >= len(local_max):
                             break
                         tmp_d = k
                         for p in range(tmp_c, len(local_max)):
@@ -204,23 +202,20 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
 
                             if (a_c_ratio_target[0] <= a_c_ratio) and (a_c_ratio_target[-1] >= a_c_ratio) and cond_len_bc:
                                 # find for the d point
-                                while local_min[tmp_d] <= local_max[p]:
-                                    tmp_d += 1
-                                    if tmp_d > len(local_min):
-                                        break
-                                if tmp_d > len(local_min):
+                                tmp_d = local_max[p] + 1
+                                if tmp_d >= len(high):
                                     break
-                                for l in range(tmp_d, len(local_max)):
+                                for l in range(tmp_d, len(high)):
                                     # Check the Patterns Trend
                                     if bc > 0 and trend_direction == 'Bearish':
                                         break
                                     elif bc < 0 and trend_direction == 'Bullish':
                                         break
                                     # check for the range of the waves
-                                    if local_min(l) - local_min(i) > max_candle_diff:
+                                    if l - local_min[i] > max_candle_diff:
                                         break
 
-                                    d = low[local_min[l]]
+                                    d = low[l]
                                     # make BD wave ratio
                                     cd = (c - d)
                                     b_d_ratio = cd / bc
@@ -230,7 +225,7 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
                                     x_d_ratio = 1 - (xd / xa)
 
                                     # Check regression Similarity
-                                    rng = [local_max(p), local_min(l)]
+                                    rng = [local_max[p], l]
                                     is_regression_cond = regression_check(middle, rng, reg_tol)
 
                                     # check the AC wave ratio
@@ -242,7 +237,7 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
                                         xb2bd_cond = True
                                         xb = local_min[k] - local_min[i]
                                         ac = local_max[p] - local_max[j]
-                                        bd = local_min[l] - local_min[k]
+                                        bd = l - local_min[k]
                                         ac2bd = abs(ac - bd) / max([ac, bd])
                                         xb2bd = abs(xb - bd) / max([xb, bd])
                                         xb2ac = abs(xb - ac) / max([xb, ac])
@@ -252,17 +247,15 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
                                             xb2bd_cond = False
 
                                         if ac2bd_cond and xb2ac_cond and xb2bd_cond:
-                                            res.append([local_min[i], local_max[j], local_min[k], local_max[p], local_min[l], x, a, b, c, d, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd])
+                                            res.append([local_min[i], local_max[j], local_min[k], local_max[p], l, x, a, b, c, d, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd])
+    return res
 
 
 # check Regression Condition function
 def regression_check(middle, rng, reg_tol):
 
-    # mode = 'AllCandle'; % 'AllCandle' 'MinMaxCandle' 'CombineMethod'
-
-    fit_mode = 2
     # cast the number to single precision
-    c = middle[rng[0]:rng[1]]
+    c = middle[rng[0]:rng[1]+1]
 
     # ----- regression Line of harmonic pattern
     S = (c[-1] - c[0]) / (rng[-1] - rng[0]) # slope
@@ -276,16 +269,20 @@ def regression_check(middle, rng, reg_tol):
     return np.sum(np.abs(p2 - p) < abs(p * reg_tol)) == len(p)
 
     # evaluate Slope and intersect with regression
-def regression_fit(rng, c):
-    n = rng(2)-rng(1)+1
+
+
+def regression_fit(rng, middle):
+    n = rng[1]-rng[0]+1
 
     n_floor = math.floor(n / 2)
-    numerator = np.sum(((n - 1) / 2 - np.arange(0, n_floor-1)) * (c(n - np.arange(0, n_floor-1)) - c(np.arange(0, n_floor-1) + 1)))
-    denumerator = ((n ^ 3) - n) / 12
+    numerator = np.sum(((n - 1) / 2 - np.arange(0, n_floor-1)) * (middle[n - np.arange(1, n_floor)] - middle[np.arange(0, n_floor-1)]))
+    denumerator = ((n ** 3) - n) / 12
 
     # slop of regression
     p1 = (numerator / denumerator)
 
     # intersect of regression
-    p2 = (sum(c) / n) - p1 * ((rng(2) + rng(1)) / 2)
+    p2 = (np.sum(middle) / n) - p1 * ((rng[1] + rng[0]) / 2)
     return np.array([p1, p2])
+
+
