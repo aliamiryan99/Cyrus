@@ -112,10 +112,11 @@ def launch():
                         if trade is not None:
                             last_ticket += 1
                             recovery_trades_symbol[i].append(trade)
-                        for modify_signal in modify_signals:
-                            if modify_signal['TP'] != 0:
-                                modify_signal['TP'] += history[-1]['Close']
-                            market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
+                            for modify_signal in modify_signals:
+                                if modify_signal['TP'] != 0:
+                                    modify_signal['TP'] += history[-1]['Close']
+                                market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
+
                     elif recovery_signal['Signal'] == -1:
                         if recovery_signal['TP'] != 0:
                             recovery_signal['TP'] += history[-1]['Close']
@@ -124,10 +125,11 @@ def launch():
                         if trade is not None:
                             last_ticket += 1
                             recovery_trades_symbol[i].append(trade)
-                        for modify_signal in modify_signals:
-                            if modify_signal['TP']:
-                                modify_signal['TP'] += history[-1]['Close']
-                            market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
+                            for modify_signal in modify_signals:
+                                if modify_signal['TP']:
+                                    modify_signal['TP'] += history[-1]['Close']
+                                market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
+
                 recovery_trades_copy = copy.copy(recovery_trades_symbol)
                 for i in range(len(recovery_trades_copy)):
                     if (recovery_trades_copy[i][0]['Type'] == 'Buy' and history[-1]['High'] > recovery_trades_copy[i][0]['TP'] and recovery_trades_copy[i][0]['TP'] != 0) or \

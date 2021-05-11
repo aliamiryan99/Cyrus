@@ -134,11 +134,15 @@ def get_local_extremum_area(data, local_min, local_max, time_range, price_range)
         for j in range(max(0, local_max[i] - time_range), min(local_max[i] + time_range, len(data))):
             if data[local_max[i]]['High'] - data[j]['High'] < price_range:
                 local_max_area.append(j)
+    local_max_area.sort()
+    local_max_area = list(dict.fromkeys(local_max_area))        # Remove Duplicates
     local_min_area = []
     for i in range(len(local_min)):
         for j in range(max(0, local_min[i] - time_range), min(local_min[i] + time_range, len(data))):
             if data[j]['Low'] - data[local_min[i]]['Low'] < price_range:
                 local_min_area.append(j)
+    local_min_area.sort()
+    local_min_area = list(dict.fromkeys(local_min_area))        # Remove Duplicates
     return local_min_area, local_max_area
 
 
@@ -157,3 +161,14 @@ def update_new_local_extremum(pre_local_extremum, new_local_extremum, total_wind
             pre_local_extremum = np.append(pre_local_extremum, [new_local])
     return pre_local_extremum
 
+
+def update_local_extremum_list(data_window, local_min, local_max, extremum_window, extremum_mode):
+    local_min = update_local_extremum(local_min)
+    local_max = update_local_extremum(local_max)
+
+    window_size = extremum_window*4
+    new_local_min, new_local_max = get_local_extermums(data_window[-window_size:], extremum_window, extremum_mode)
+
+    local_min = update_new_local_extremum(local_min, new_local_min, len(data_window), window_size)
+    local_max = update_new_local_extremum(local_max, new_local_max, len(data_window), window_size)
+    return local_min, local_max

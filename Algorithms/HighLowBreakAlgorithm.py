@@ -39,7 +39,7 @@ class HighLowBreakAlgorithm:
     def detect_pattern(self, type):
         if type == 'buy':
             detection = 1
-            for i in range(1,self.window_size+1):
+            for i in range(1, self.window_size+1):
                 if self.data_window[-i]['High'] >= self.data_window[-i-1]['High']:
                     detection = 0
                     break

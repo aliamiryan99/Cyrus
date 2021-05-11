@@ -6,6 +6,9 @@ class WaveTPSL:
         self.alpha = alpha
         self.beta = beta
 
+    def on_data(self, candle):
+        pass
+
     def on_tick(self, data, position_type):    # position_type : (buy or sell)
         from statistics import mean
         import numpy as np

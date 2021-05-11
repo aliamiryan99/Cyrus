@@ -6,18 +6,18 @@ import pandas as pd
 # ---------- filter patterns function
 def filter_results(high, low, res, middle, harmonic_name, trend_direction):
     if len(res) == 0:
-        return
+        return []
 
     # define Candle Size
-    res = get_pattern_size(res) # 1 to 5 from very small to very large.very small, small, medium, large, very large
+    res = get_pattern_size(res)  # 1 to 5 from very small to very large.very small, small, medium, large, very large
     filter_mode = 'Percent'
     res = eliminate_duplicate_patterns(res, trend_direction)
 
     # if filter_mode == 'std':
     #     res = eliminate_high_std_patterns(res, middle)
     # elif filter_mode == 'Percent':
-    #     alpha = .37 # .37 STD coefficient.higher led to bigger channel
-    #     beta = .94 # .94 percent of should be in the channel
+    #     alpha = .37  # .37 STD coefficient.higher led to bigger channel
+    #     beta = .94  # .94 percent of should be in the channel
     #     res = eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha, beta)
 
     # ---- check the ratio is near to fibonacci number or not
@@ -104,7 +104,7 @@ def eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha
     b_idx = 2
     c_idx = 3
     d_idx = 4
-    res = res.transpose()
+
     situation = [False] * len(res)
 
     for i in range(len(res)):
@@ -234,7 +234,7 @@ def eliminate_duplicate_patterns(res, trend_direction):
         ascending = [False, True, False, True]
 
     if len(res) == 0:
-        return
+        return []
 
     res = np.array(res)
     unique_mem = np.unique(res[:, d_idx])

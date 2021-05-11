@@ -29,7 +29,7 @@ class ChartLauncher:
 
         self.config = Config(self.data)
 
-        output_dir = "Visualization/Outputs/" + Config.name + "/" + Config.time_frame + "/"
+        output_dir = "Combiner/Outputs/" + Config.name + "/" + Config.time_frame + "/"
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
         output_file(output_dir + Config.symbol + ".html")

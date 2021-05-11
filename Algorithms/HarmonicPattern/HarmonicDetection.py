@@ -1,9 +1,11 @@
 import numpy as np
 from AlgorithmTools.LocalExtermums import *
 import math
+from tqdm import tqdm
+
 
 # find Harmonic Patterns function
-def harmonic_pattern(open, high, low, close,top, bottom, middle, local_min, local_max, symbol, time_frame, harmonic_name, trend_direction):
+def harmonic_pattern(open, high, low, close,top, bottom, middle, local_min, local_max, symbol, time_frame, harmonic_name, trend_direction, is_visual):
     ind = []
 
     # define Fibbo Ratios
@@ -75,11 +77,11 @@ def harmonic_pattern(open, high, low, close,top, bottom, middle, local_min, loca
         a_c_ratio = [1 / alpha]
         b_d_ratio = [alpha]
         x_d_ratio = [0.000, 10.00]
-    results = harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max,  symbol, time_frame, harmonic_name, trend_direction, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio)
+    results = harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max,  symbol, time_frame, harmonic_name, trend_direction, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, is_visual)
     return results
 
 
-def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max, symbol, time_frame, harmonic_name, trend_direction, x_b_ratio_target, a_c_ratio_target, b_d_ratio_target, x_d_ratio_target):
+def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max, symbol, time_frame, harmonic_name, trend_direction, x_b_ratio_target, a_c_ratio_target, b_d_ratio_target, x_d_ratio_target, is_visual):
 
     res = []
 
@@ -117,6 +119,8 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
 
     # find complete pattern with X A B C D
     # bearish patterns
+    if is_visual:
+        p_bar = tqdm(len(local_min))
     tmp_a, tmp_b, tmp_c, tmp_d = 0, 0, 0, 0
     for i in range(len(local_min)):
         x = low[local_min[i]]

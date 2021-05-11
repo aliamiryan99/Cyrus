@@ -3,6 +3,7 @@ from Algorithms.SimpleIdea import SimpleIdea
 from AlgorithmTools.LocalExtermums import *
 from Simulation.Config import Config
 
+
 class SSIAlgorithm:
 
     def __init__(self, symbol, data_history, win_inc, win_dec, shadow_threshold, body_threshold, mode, mean_window, extremum_window, extremum_mode, huge_detection_window, alpha, gap_threshold):
