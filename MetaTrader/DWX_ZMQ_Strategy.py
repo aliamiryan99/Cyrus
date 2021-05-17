@@ -66,6 +66,15 @@ class DWX_ZMQ_Strategy(object):
     def sell(self, symbol, volume, tp, sl):
         return self.take_order(1, symbol, volume, tp, sl)
 
+    def modify(self, ticket, tp, sl):
+        order = self._zmq._generate_default_order_dict()
+        order['_action'] = 'MODIFY'
+        order['_ticket'] = ticket
+        order['_TP'] = tp
+        order['_SL'] = sl
+        trade = self._execution._execute_(order)
+        return trade
+
     def close(self, ticket):
         self._zmq._DWX_MTX_CLOSE_TRADE_BY_TICKET_(ticket)
 

@@ -1,7 +1,6 @@
-import numpy as np
 from AlgorithmTools.LocalExtermums import *
 from AlgorithmTools.HeikinCandle import HeikinConverter
-from Algorithms.Divergence.Divergence import divergence_calculation
+from AlgorithmPackages.Divergence.DivergencePkg import divergence_calculation
 from ta.momentum import *
 from pandas import Series
 

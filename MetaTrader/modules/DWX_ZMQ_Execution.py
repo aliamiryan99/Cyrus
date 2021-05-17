@@ -16,6 +16,7 @@
 from pandas import to_datetime
 from time import sleep
 
+
 class DWX_ZMQ_Execution():
     
     def __init__(self, _zmq):
@@ -45,6 +46,10 @@ class DWX_ZMQ_Execution():
             
             _check = '_response_value'
             self._zmq._DWX_MTX_CLOSE_TRADE_BY_TICKET_(_exec_dict['_ticket'])
+
+        # MODIFY TRADE
+        elif _exec_dict['_action'] == 'MODIFY':
+            self._zmq._DWX_MTX_MODIFY_TRADE_BY_TICKET_(_exec_dict['_ticket'], _exec_dict['_SL'], _exec_dict['_TP'])
             
         if _verbose:
             print('\n[{}] {} -> MetaTrader'.format(_exec_dict['_comment'],

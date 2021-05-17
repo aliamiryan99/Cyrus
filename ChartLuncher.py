@@ -27,9 +27,9 @@ class ChartLauncher:
 
         self.data = self.data_df.to_dict("Records")
 
-        self.config = Config(self.data)
+        self.config = Config(self.data, Config.visualizer)
 
-        output_dir = "Combiner/Outputs/" + Config.name + "/" + Config.time_frame + "/"
+        output_dir = "Visualization/Outputs/" + Config.visualizer + "/" + Config.time_frame + "/"
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
         output_file(output_dir + Config.symbol + ".html")

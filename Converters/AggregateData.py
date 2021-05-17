@@ -19,7 +19,7 @@ def aggregate_data(histories, time_frame):
     return new_history
 
 category = "Major"
-symbol = "USDJPY"
+symbol = "GBPUSD"
 time_frame_source = "H1"
 time_frame_target = "H4"
 

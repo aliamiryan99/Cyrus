@@ -1,10 +1,8 @@
-import numpy as np
 from AlgorithmTools.LocalExtermums import *
-from Algorithms.Divergence.Divergence import divergence_calculation
 from ta.momentum import *
 
-from Algorithms.HarmonicPattern.HarmonicDetection import harmonic_pattern
-from Algorithms.HarmonicPattern.HarmonicFilter import filter_results
+from AlgorithmPackages.HarmonicPattern.HarmonicDetection import harmonic_pattern
+from AlgorithmPackages.HarmonicPattern import filter_results
 
 from Visualization.BaseChart import *
 

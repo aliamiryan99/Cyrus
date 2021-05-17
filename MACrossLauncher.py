@@ -5,7 +5,7 @@ import copy
 import csv
 
 from tqdm import tqdm
-from Algorithms.MACrossAlgorithm import MAAlgorithm
+from Algorithms.MACros import MovingAverageCross
 
 
 from Simulation import Simulation
@@ -40,7 +40,7 @@ def simulate():
     end_time = datetime.strptime(Config.end_date, Config.date_format)
     market = Simulation.Simulation(spread, Config.leverage, balance, start_time, end_time)
 
-    algorithm = MAAlgorithm(data[Config.symbols_dict[symbol]][start_i - 42:start_i], window_size1, window_size2, price_type, ma_type)
+    algorithm = MovingAverageCross(data[Config.symbols_dict[symbol]][start_i - 42:start_i], window_size1, window_size2, price_type, ma_type)
     last_ticket = 0
 
     stop_loss = sl * 10 ** -Config.symbols_pip[symbol]

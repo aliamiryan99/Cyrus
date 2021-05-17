@@ -123,6 +123,26 @@ def get_indicator_local_extermums_asymetric(max_data, min_data, window, alpha):
     return local_min, local_max
 
 
+def remove_continuous_extremum(local_min, local_max):
+    i, j = 0, 0
+    flag = 0
+    new_local_min, new_local_max = [], []
+    while True:
+        if j != len(local_min) and (i == len(local_max) or local_min[j] < local_max[i]):
+            if flag != 1:
+                new_local_min.append(local_min[j])
+            flag = 1
+            j += 1
+        else:
+            if i == len(local_max):
+                break
+            if flag != -1:
+                new_local_max.append(local_max[i])
+            flag = -1
+            i += 1
+    return new_local_min, new_local_max
+
+
 def get_last_local_extermum(data, window):
     localMin, localMax = get_local_extermums(data, window, 1)
     return localMin[-1], localMax[-1]

@@ -1,14 +1,14 @@
 import numpy as np
 from Indicators.LocalExtremum import localExtremum
-from Algorithms.SimpleIdea.SimpleIdea import simpleIdea
+from AlgorithmPackages.SimpleIdea.SimpleIdeaPkg import simple_idea
 
-def Forecasting_Interval(data, winExtermum, winSimpleIdea):
+
+def Forecasting_Interval(symbol, data, winExtermum, winSimpleIdea):
     time = np.array([d['GMT'] for d in data])
     open = np.array([d['open'] for d in data])
     high = np.array([d['high'] for d in data])
     low = np.array([d['low'] for d in data])
     close = np.array([d['close'] for d in data])
-
 
     a = np.c_[open, close].max(1)
     b = np.c_[open, close].min(1)
@@ -19,7 +19,7 @@ def Forecasting_Interval(data, winExtermum, winSimpleIdea):
     # call simple idea or any Buy or sell algorithm
     winDec = 3
     winInc = 3
-    [sellIdx, sell, buyIdx, buy] = simpleIdea(data, winSimpleIdea, winSimpleIdea)
+    [sellIdx, sell, buyIdx, buy] = simple_idea(symbol, data, winSimpleIdea, winSimpleIdea, 0, 0, 1, 0)
 
     # predict latest candles based on regression line
     # find which situation happen for the latest signal.it was buy or sell

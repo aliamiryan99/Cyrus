@@ -3,7 +3,8 @@ from Simulation.Config import Config
 
 class SignalRecovery:
 
-    def __init__(self, symbol, data, window_size, alpha_volume, const_tp, price_th, algorithm, tp_mode):     # tp mode : 1 : const TP, 2 : dynamic tp(candle) , 3 : dynamic tp(extremum), 4 : profit tp
+    # tp mode : 1 : const TP, 2 : dynamic tp(candle) , 3 : dynamic tp(extremum), 4 : profit tp
+    def __init__(self, symbol, data, window_size, alpha_volume, const_tp, price_th, algorithm, tp_mode):
         self.symbol = symbol
         self.alpha_volume = alpha_volume
         self.algorithm = algorithm
@@ -77,7 +78,7 @@ class SignalRecovery:
                     return {'Signal': -1, 'Price': price, 'TP': tp, 'Volume': volume}, modify_array
         return {'Signal': 0, 'TP': 0, 'Volume': 0}, []
 
-    def on_tick_reset(self):
+    def on_tick_end(self):
         self.tick_signal, tick_price = self.algorithm.on_tick()
 
     def tp_touched(self, ticket):
