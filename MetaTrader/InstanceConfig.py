@@ -4,8 +4,8 @@ import copy
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ["EURUSD"]
-    management_ratio = [0.3]
+    symbols = ["EURUSD.I"]
+    management_ratio = [2]
     history_size = 100
     algorithm_time_frame = "M1"
     trailing_time_frame = "M1"
@@ -38,9 +38,9 @@ class InstanceConfig:
             from Algorithms.SI import SimpleIdea
             si_win_inc = 2
             si_win_dec = 2
-            si_shadow_threshold = 10
+            si_shadow_threshold = 0
             si_body_threshold = 0
-            si_mode = 3  # mode 1 : Simple , mode 2 : average condition , mode 3 : impulse condition
+            si_mode = 1  # mode 1 : Simple , mode 2 : average condition , mode 3 : impulse condition
             si_mean_window = 20
             si_extremum_window = 1
             si_extremum_mode = 2
@@ -316,8 +316,8 @@ class InstanceConfig:
             from AlgorithmsOfExit.TpSl.Wave import Wave
             extremum_window = 3
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
-            alpha = 0.2
-            beta = 0.2
+            alpha = 2
+            beta = 2
 
             self.tp_sl_tool = Wave(data, extremum_window, extremum_mode, alpha, beta)
 

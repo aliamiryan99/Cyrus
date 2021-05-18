@@ -106,7 +106,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             self._zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
                                                   _timeframe=Config.timeframes_dic[algorithm_time_frame],
                                                   _count=InstanceConfig.history_size * algorithm_time_frame_ratio)
-            sleep(1)
+            sleep(2)
             self._histories[symbol] = self._zmq._History_DB[symbol+'_'+algorithm_time_frame]
             for item in self._histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
@@ -220,6 +220,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                     data = self.convert_close_position(data)
                     self.last_buy_closed[data['Symbol']] = data
                     self.close_sent_cnt[data['Symbol']] = 0
+                    for recovery_trade in self.recovery_trades[data['Symbol']]:
+                        if recovery_trade[0]['Ticket'] == data['Ticket']:
+                            self.recovery_trades[data['Symbol']].remove(recovery_trade)
             for trade in self.open_sell_trades[data['_symbol']]:
                 if data['_ticket'] == trade['_ticket']:
                     self.open_sell_trades[data['_symbol']].remove(trade)
@@ -229,6 +232,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                     data = self.convert_close_position(data)
                     self.last_sell_closed[data['Symbol']] = data
                     self.close_sent_cnt[data['Symbol']] = 0
+                    for recovery_trade in self.recovery_trades[data['Symbol']]:
+                        if recovery_trade[0]['Ticket'] == data['Ticket']:
+                            self.recovery_trades[data['Symbol']].remove(recovery_trade)
             print("Close Order Executed : ")
             print(data)
             print("________________________________________________________________________________")
@@ -263,8 +269,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                                Config.volume_digit), 10 ** -Config.volume_digit)
 
         # Algorithm Section
-        self.algorithm_execute(signal, price, time, symbol, volume, take_profit_buy, stop_loss_buy,
-                               take_profit_sell,
+        self.algorithm_execute(signal, price, time, symbol, volume, take_profit_buy, stop_loss_buy, take_profit_sell,
                                stop_loss_sell, bid)
 
         # Trailing Stop Section
@@ -275,6 +280,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
 
         # Re Entrance Algorithm Section
         self.re_entrance(symbol, min_bid_tick_price, max_bid_tick_price, bid, ask)
+
+        # Recovery Algorithm Section
+        self.recovery(symbol, ask, bid)
 
     ##########################################################################
     def update_history(self, time, symbol, bid):
@@ -288,10 +296,10 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                            "Low": bid, "Close": bid, "Volume": 1}
             self._histories[symbol].append(last_candle)
             self._histories[symbol].pop(0)
-            signal, price = self._algorithms[symbol].on_data(self._histories[symbol][-1])
-            self._re_entrance_algorithms[symbol].on_data()
+            signal, price = self._algorithms[symbol].on_data(self._histories[symbol][-1], self.balance)
+            self._recovery_algorithms[symbol].on_data(self._histories[symbol][-1])
             print(symbol)
-            print(pd.DataFrame(self._histories[symbol][-2:]))
+            print(pd.DataFrame(self._histories[symbol][-2:-1]))
             print("________________________________________________________________________________")
         else:
             # Update Last Candle Section
@@ -310,11 +318,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             self.trade_sell_in_candle_counts[symbol] = 0
             self.re_entrance_sent[symbol] = False
             self._trailing_tools[symbol].on_data(self._trailing_histories[symbol][:-1])
+            self._re_entrance_algorithms[symbol].on_data()
             self._reporting._get_balance()
             self._reporting._get_equity()
-            print(f"{symbol} Trailing")
-            print(pd.DataFrame(self._trailing_histories[symbol][-2:]))
-            print("________________________________________________________________________________")
         else:
             # Update Last Candle Section
             self.update_candle_with_tick(self._trailing_histories[symbol][-1], bid)
@@ -325,13 +331,13 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell = 0, 0, 0, 0, 0
         if signal == 1 or signal == -1:
             if self._close_modes[symbol] == 'tp_sl' or self._close_modes[symbol] == 'both':
-                take_profit_buy, stop_loss_buy = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'buy')
-                take_profit_sell, stop_loss_sell = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'sell')
+                take_profit_buy, stop_loss_buy = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'Buy')
+                take_profit_sell, stop_loss_sell = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'Sell')
                 stop_loss = stop_loss_buy - spread if signal == 1 else stop_loss_sell + spread
-                take_profit_buy *= 10 ** Config.symbols_pip[symbol]
-                stop_loss_buy *= -10 ** Config.symbols_pip[symbol]
-                take_profit_sell *= -10 ** Config.symbols_pip[symbol]
-                stop_loss_sell *= 10 ** Config.symbols_pip[symbol]
+                take_profit_buy = abs(int(take_profit_buy * 10 ** Config.symbols_pip[symbol]))
+                stop_loss_buy = abs(int(stop_loss_buy * 10 ** Config.symbols_pip[symbol]))
+                take_profit_sell = abs(int(take_profit_sell * 10 ** Config.symbols_pip[symbol]))
+                stop_loss_sell = abs(int(stop_loss_sell * 10 ** Config.symbols_pip[symbol]))
         return stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell
 
     def algorithm_execute(self, signal, price, time, symbol, volume, take_profit_buy, stop_loss_buy, take_profit_sell,
@@ -386,7 +392,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             for position in open_buy_positions:
                 if position['Symbol'] == symbol:
                     entry_point = 0
-                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'buy', time)
+                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'Buy', time)
                     if is_close and min_bid_tick_price <= close_price <= max_bid_tick_price:
                         region_price = self.configs[symbol].force_region * 10 ** -Config.symbols_pip[symbol]
                         if (self.configs[symbol].force_close_on_algorithm_price and
@@ -408,7 +414,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             for position in open_sell_positions:
                 if position['Symbol'] == symbol:
                     entry_point = 0
-                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'sell', time)
+                    is_close, close_price = self._trailing_tools[symbol].on_tick(self._trailing_histories[symbol], entry_point, 'Sell', time)
                     if is_close and min_bid_tick_price <= close_price <= max_bid_tick_price:
                         region_price = self.configs[symbol].force_region * 10**-Config.symbols_pip[symbol]
                         if (self.configs[symbol].force_close_on_algorithm_price and
@@ -550,6 +556,8 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                     if type == 'Sell':
                         modify_signal['TP'] *= -1
                 self.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
+        elif self.configs[symbol].recovery_enable:
+            self.recovery_trades[symbol].append([data])
 
     @staticmethod
     def aggregate_data(histories, time_frame):
@@ -577,9 +585,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
     @staticmethod
     def convert_open_position(mt_position):
         return {'Symbol': mt_position['_symbol'], 'OpenTime': mt_position['_open_time'],
-                'OpenPrice': mt_position['_open_price'], 'TP': mt_position['_take_profit'],
-                'SL': mt_position['_stop_loss'], 'Volume': mt_position['_volume'],
-                'Ticket': mt_position['_ticket'], 'Type': mt_position['Type']}
+                'OpenPrice': mt_position['_open_price'], 'TP': mt_position['_tp'],
+                'SL': mt_position['_sl'], 'Volume': mt_position['_volume'],
+                'Ticket': mt_position['_ticket'], 'Type': mt_position['_type']}
 
     @staticmethod
     def convert_close_position(mt_position):
@@ -591,14 +599,14 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
     @staticmethod
     def update_candle_with_candle(candle, sub_candle):
         candle['High'] = max(candle['High'], sub_candle['High'])
-        candle['Low'] = max(candle['Low'], sub_candle['Low'])
+        candle['Low'] = min(candle['Low'], sub_candle['Low'])
         candle['Close'] = sub_candle['Close']
         candle['Volume'] += sub_candle['Volume']
 
     @staticmethod
     def update_candle_with_tick(candle, tick):
         candle['High'] = max(candle['High'], tick)
-        candle['Low'] = max(candle['Low'], tick)
+        candle['Low'] = min(candle['Low'], tick)
         candle['Close'] = tick
         candle['Volume'] += 1
 

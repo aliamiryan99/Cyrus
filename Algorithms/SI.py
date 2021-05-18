@@ -1,6 +1,6 @@
 from AlgorithmPackages.SimpleIdea import SimpleIdeaPkg
 from AlgorithmTools.LocalExtermums import *
-from Simulation.Config import Config
+from Shared.Variables import Variables
 
 
 class SimpleIdea:
@@ -18,7 +18,7 @@ class SimpleIdea:
         self.extremum_window = extremum_window
         self.extremum_mode = extremum_mode
         self.alpha = alpha
-        self.impulse_threshold = impulse_threshold * 10 ** -Config.symbols_pip[symbol]
+        self.impulse_threshold = impulse_threshold * 10 ** -Variables.config.symbols_pip[symbol]
         len_window = len(data_history)
         if len_window <= self.window_size:
             raise Exception("window len should be greater than window size")
