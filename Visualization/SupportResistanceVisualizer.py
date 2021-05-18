@@ -47,10 +47,12 @@ class SupportResistanceVisualizer:
             if not self.sections_filed[section]:
                 if value > self.data[-1]['Close']:
                     fig.line(x=[0, r_s[0]], y=[value, value], line_color='#1243b1', line_width=2)
-                    fig.line(x=[r_s[0], len(self.data)], y=[value, value], line_color='#1243b1', line_width=2, line_dash="dotted")
+                    fig.line(x=[r_s[0], len(self.data)], y=[value, value], line_color='#1243b1', line_width=2,
+                             line_dash="dotted")
                 else:
                     fig.line(x=[0, r_s[0]], y=[value, value], line_color='#f24341', line_width=2)
-                    fig.line(x=[r_s[0], len(self.data)], y=[value, value], line_color='#f24341', line_width=2, line_dash="dotted")
+                    fig.line(x=[r_s[0], len(self.data)], y=[value, value], line_color='#f24341', line_width=2,
+                             line_dash="dotted")
                 self.sections_filed[section] = True
 
         show(fig)

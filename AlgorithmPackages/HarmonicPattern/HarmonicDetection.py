@@ -120,11 +120,12 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
     # find complete pattern with X A B C D
     # bearish patterns
     if is_visual:
-        p_bar = tqdm(len(local_min))
+        p_bar = tqdm(total=len(local_min))
     tmp_a, tmp_b, tmp_c, tmp_d = 0, 0, 0, 0
     for i in range(len(local_min)):
         x = low[local_min[i]]
-
+        if is_visual:
+            p_bar.update(1)
         # find for A point
         while local_max[tmp_a] <= local_min[i]:
             tmp_a += 1
@@ -252,6 +253,8 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
 
                                         if ac2bd_cond and xb2ac_cond and xb2bd_cond:
                                             res.append([local_min[i], local_max[j], local_min[k], local_max[p], l, x, a, b, c, d, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd])
+    if is_visual:
+        p_bar.close()
     return res
 
 

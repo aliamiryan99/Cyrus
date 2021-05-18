@@ -6,13 +6,14 @@ import numpy as np
 
 class Stochastic:
 
-    def __init__(self, data, window, type):
+    def __init__(self, data, window, smooth1, smooth2, type):
         self.window = window
+        self.smooth1, self.smooth2 = smooth1, smooth2
         self.type = type
         if type == 'K':
-            self.values = np.array(list(Series(stochrsi_k(Series([item['Close'] for item in data]), self.window))))
+            self.values = np.array(list(Series(stochrsi_k(Series([item['Close'] for item in data]), self.window, self.smooth1, self.smooth2))))
         elif type == 'D':
-            self.values = np.array(list(Series(stochrsi_d(Series([item['Close'] for item in data]), self.window))))
+            self.values = np.array(list(Series(stochrsi_d(Series([item['Close'] for item in data]), self.window, self.smooth1, self.smooth2))))
 
     def update(self, data):
         new_value = 0

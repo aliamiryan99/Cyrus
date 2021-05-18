@@ -17,7 +17,7 @@ account_management_list = ['Balance', 'Risk']
 class InstanceConfig:
     # Hyper Parameters
     symbols = ["GBPUSD"]
-    symbols_ratio = [3]
+    symbols_ratio = [2]
     history_size = 200
     algorithm_time_frame = "H4"
     trailing_time_frame = "H4"
@@ -27,9 +27,9 @@ class InstanceConfig:
     repairment_name = 'ReEntrance'
     recovery_name = 'Basic'
     close_mode = 'trailing'
-    tp_sl_name = 'Body'
+    tp_sl_name = 'Wave'
     trailing_name = 'Simple'
-    account_management_name = 'Balance'
+    account_management_name = 'Risk'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
                  tp_sl_name, trailing_name, account_management_name, management_ratio):

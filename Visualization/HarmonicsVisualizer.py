@@ -2,7 +2,7 @@ from AlgorithmTools.LocalExtermums import *
 from ta.momentum import *
 
 from AlgorithmPackages.HarmonicPattern.HarmonicDetection import harmonic_pattern
-from AlgorithmPackages.HarmonicPattern import filter_results
+from AlgorithmPackages.HarmonicPattern.HarmonicFilter import filter_results
 
 from Visualization.BaseChart import *
 
@@ -48,7 +48,7 @@ class HarmonicVisualizer:
 
         fig.circle(self.local_max_price_area, data_df.High[self.local_max_price_area], size=4, color="red")
         fig.circle(self.local_min_price_area, data_df.Low[self.local_min_price_area], size=4, color="blue")
-        width = 4
+        width = 2
         alpha = 0.1
         for result in self.bullish_result:
             if self.harmonic_name == 'ABCD':
@@ -56,6 +56,10 @@ class HarmonicVisualizer:
                 fig.line([result[1], result[2]], [result[6], result[7]], color='blue', width=width)
                 fig.line([result[2], result[3]], [result[7], result[8]], color='blue', width=width)
                 fig.line([result[3], result[4]], [result[8], result[9]], color='blue', width=width)
+                fig.line([result[1], result[3]], [result[6], result[8]], color='blue', width=int(width / 2),
+                         line_dash='dotted')
+                fig.line([result[2], result[4]], [result[7], result[9]], color='blue', width=int(width / 2),
+                         line_dash='dotted')
             else:
                 fig.patch([result[0], result[1], result[2]], [result[5], result[6], result[7]], alpha=alpha, color="blue")
                 fig.patch([result[2], result[3], result[4]], [result[7], result[8], result[9]], alpha=alpha, color="blue")
@@ -65,6 +69,10 @@ class HarmonicVisualizer:
                 fig.line([result[1], result[2]], [result[6], result[7]], color='red', width=width)
                 fig.line([result[2], result[3]], [result[7], result[8]], color='red', width=width)
                 fig.line([result[3], result[4]], [result[8], result[9]], color='red', width=width)
+                fig.line([result[1], result[3]], [result[6], result[8]], color='red', width=int(width / 2),
+                         line_dash='dotted')
+                fig.line([result[2], result[4]], [result[7], result[9]], color='red', width=int(width / 2),
+                         line_dash='dotted')
             else:
                 fig.patch([result[0], result[1], result[2]], [result[5], result[6], result[7]], alpha=alpha, color="red")
                 fig.patch([result[2], result[3], result[4]], [result[7], result[8], result[9]], alpha=alpha, color="red")

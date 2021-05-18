@@ -4,17 +4,17 @@ import copy
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ["GBPUSD.I"]
+    symbols = ["EURUSD"]
     management_ratio = [0.3]
-    history_size = 200
+    history_size = 100
     algorithm_time_frame = "M1"
     trailing_time_frame = "M1"
 
     algorithm_name = 'SimpleIdea'
     repairment_name = 'ReEntrance'
     recovery_name = 'Basic'
-    close_mode = 'trailing'
-    tp_sl_name = 'Body'
+    close_mode = 'tp_sl'
+    tp_sl_name = 'Wave'
     trailing_name = 'Simple'
     account_management_name = 'Balance'
 
@@ -22,7 +22,7 @@ class InstanceConfig:
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = True  # re entrance strategy
+        self.re_entrance_enable = False  # re entrance strategy
         self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)

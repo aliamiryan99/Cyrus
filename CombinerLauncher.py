@@ -3,9 +3,9 @@ from Combiners.EnterPositionCombiner import EnterPositionCombiner
 
 
 # Main Parameters
-combiner = 'EnterPosition'
-new_time_frame = "D"
-backtests = [["D", "D", "M1", "SI", "GBPUSD"], ["D", "D", "M1", "RSI", "GBPUSD"]]
+combiner = 'Backtest'
+new_time_frame = "H1"
+backtests = [["H4", "H4", "M1", "SuperStrongSupportResistance", "GBPUSD"]]
 
 # Enter Position Parameters
 colors = ['#1254bb', '#62ba21']

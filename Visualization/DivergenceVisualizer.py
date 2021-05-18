@@ -4,7 +4,9 @@ from AlgorithmPackages.Divergence.DivergencePkg import divergence_calculation
 from ta.momentum import *
 from pandas import Series
 
-from Indicators.KDJ import kdj
+from Indicators.KDJ import KDJ
+from Indicators.RSI import RSI
+from Indicators.Stochastic import Stochastic
 from Visualization.Tools import *
 from Visualization.BaseChart import *
 
@@ -29,26 +31,23 @@ class DivergenceVisualizer:
         self.b = np.c_[self.open, self.close].min(1)
 
         self.local_min_price_left, self.local_max_price_left = get_local_extermums(self.data, extremum_window, 1)
-        self.local_min_price_right, self.local_max_price_right = get_local_extermums_asymetric(self.data, asymmetric_extremum_window, asymmetric_alpha, 1)
-
-
+        self.local_min_price_right, self.local_max_price_right = \
+            get_local_extermums_asymetric(self.data, asymmetric_extremum_window, asymmetric_alpha, 1)
 
         self.indicator, self.indicator_np = None, None
         self.indicators = []
         self.indicators_list = []
         if indicator_name == 'rsi':
-            indicator = rsi(Series([item['Close'] for item in self.data]), 14).reset_index().rename(columns={'rsi': 'value'})
-            indicator_np = np.array(list(indicator['value']))
-            self.indicators.append(indicator_np)
+            rsi_ind = RSI(data, 14)
+            self.indicators.append(rsi_ind.values)
         elif indicator_name == 'stochastic':
-            indicator = stochrsi_d(Series([item['Close'] for item in self.data]), 14, 3, 3).reset_index().rename(columns={'stochrsi_d': 'value'})
-            indicator_np = np.array(list(indicator['value']))
-            self.indicators.append(indicator_np)
-            indicator = stochrsi_k(Series([item['Close'] for item in self.data]), 14, 3, 3).reset_index().rename(columns={'stochrsi_k': 'value'})
-            indicator_np = np.array(list(indicator['value']))
-            self.indicators.append(indicator_np)
+            stochastic_k = Stochastic(data, 14, 3, 3, 'K')
+            stochastic_d = Stochastic(data, 14, 3, 3, 'D')
+            self.indicators.append(stochastic_k.values)
+            self.indicators.append(stochastic_d.values)
         elif indicator_name == 'kdj':
-            k_value, d_value, j_value = kdj(self.high, self.low, self.close, 13, 3)
+            kdj = KDJ(data, 13, 3)
+            k_value, d_value, j_value = kdj.get_values()
             self.indicators += [k_value, d_value, j_value]
 
         self.min_indicator, self.max_indicator = get_min_max_indicator(self.indicators)
