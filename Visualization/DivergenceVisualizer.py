@@ -7,6 +7,7 @@ from pandas import Series
 from Indicators.KDJ import KDJ
 from Indicators.RSI import RSI
 from Indicators.Stochastic import Stochastic
+from Indicators.MACD import MACD
 from Visualization.Tools import *
 from Visualization.BaseChart import *
 
@@ -49,6 +50,10 @@ class DivergenceVisualizer:
             kdj = KDJ(data, 13, 3)
             k_value, d_value, j_value = kdj.get_values()
             self.indicators += [k_value, d_value, j_value]
+        elif indicator_name == 'macd':
+            macd_indicator = MACD(data, 26, 12)
+            macd_value, signal_value = macd_indicator.macd_values, macd_indicator.signal_values
+            self.indicators += [macd_value, signal_value]
 
         self.min_indicator, self.max_indicator = get_min_max_indicator(self.indicators)
         self.indicators_list.append({'df': pd.DataFrame(self.min_indicator).rename(columns={0: 'value'}), 'color': "#a36232", 'width': 2})

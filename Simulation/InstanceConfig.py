@@ -16,26 +16,26 @@ account_management_list = ['Balance', 'Risk']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ["GBPUSD"]
+    symbols = ["EURUSD"]
     symbols_ratio = [2]
-    history_size = 200
+    history_size = 500
     algorithm_time_frame = "H4"
     trailing_time_frame = "H4"
-    tag = "GBPUSD"
+    tag = "EURUSD"
 
-    algorithm_name = 'SuperStrongSupportResistance'
+    algorithm_name = 'SimpleIdea'
     repairment_name = 'ReEntrance'
     recovery_name = 'Basic'
-    close_mode = 'trailing'
+    close_mode = 'tp_sl'
     tp_sl_name = 'Wave'
     trailing_name = 'Simple'
-    account_management_name = 'Risk'
+    account_management_name = 'Balance'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = True  # re entrance strategy
+        self.re_entrance_enable = False  # re entrance strategy
         self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
@@ -153,8 +153,8 @@ class InstanceConfig:
                                                 extremum_window, extremum_mode, extremum_pivot)
         elif algorithm_name == 'SuperStrongSupportResistance':
             from Algorithms.SSSR import SuperStrongSupportResistance
-            window_size = 150
-            extremum_window = 5
+            window_size = 400
+            extremum_window = 40
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
 
             self.algorithm = SuperStrongSupportResistance(symbol, data, window_size, extremum_window, extremum_mode)
@@ -227,8 +227,8 @@ class InstanceConfig:
                                               alpha, gap_threshold)
         elif algorithm_name == 'HighLowSimpleIdea':
             from Algorithms.HLSI import HighLowSimpleIdea
-            window = 1
-            mode = 1  # mode 1 : On Open , mode 2 : On Open With Shadow Condition
+            window = 3
+            mode = 2  # mode 1 : On Open , mode 2 : On Open With Shadow Condition
 
             self.algorithm = HighLowSimpleIdea(symbol, data, window, mode)
         elif algorithm_name == 'MinMax':
@@ -304,7 +304,7 @@ class InstanceConfig:
         if tp_sl_name == 'Fix':
             from AlgorithmsOfExit.TpSl.Fix import Fix
             fix_tp = 400  # it can be disable if value equal to 0 (in point)
-            fix_sl = 200  # it can be disable if value equal to 0 (int point)
+            fix_sl = 400  # it can be disable if value equal to 0 (int point)
 
             self.tp_sl_tool = Fix(symbol, fix_tp, fix_sl)
         elif tp_sl_name == 'Body':

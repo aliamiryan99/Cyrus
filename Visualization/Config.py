@@ -2,16 +2,15 @@
 
 class Config:
 
-    symbol = "GBPUSD"
-    time_frame = "H1"
+    symbol = "EURUSD"
+    time_frame = "D"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
-    start_date = "01.01.2020 00:00:00.000"
-    end_date = "01.01.2021 00:00:00.000"
+    start_date = "01.01.2016 00:00:00.000"
+    end_date = "06.03.2020 17:00:00.000"
     holidays_show = False
-    secondary_fig_height = 200
-
+    secondary_fig_height = 400
     visualizer_set = ['divergence', 'harmonic', 'impulse', 'support_resistance', 'indicator']
-    visualizer = 'indicator'
+    visualizer = 'support_resistance'
 
     def __init__(self, data, visualizer):
 
@@ -21,7 +20,7 @@ class Config:
             extremum_window = 5
             asymmetric_extremum_window = 3
             asymmetric_alpha = 20
-            indicator_name = 'rsi'  # 'rsi', 'stochastic', 'kdj'
+            indicator_name = 'macd'  # 'rsi', 'stochastic', 'kdj', 'macd'
 
             self.visualizer = DivergenceVisualizer(data, heikin_data_level, indicator_name, extremum_window,
                                                    asymmetric_extremum_window, asymmetric_alpha)
@@ -29,7 +28,7 @@ class Config:
             from Visualization.HarmonicsVisualizer import HarmonicVisualizer
             harmonic_list = ['Gartley', 'Butterfly', 'Bat', 'Crab', 'Shark', 'Cypher', 'FiveZero', 'ThreeDrives',
                              'ExpandingFlag', 'ABCD', 'Inverse', 'All']
-            name = 'Inverse'
+            name = 'Butterfly'
             extremum_window = 6
             time_range = 5
             price_range_alpha = 1
@@ -40,10 +39,10 @@ class Config:
             from Visualization.ImpulseVisualizer import ImpulseVisualizer
             extremum_mode = 2  # 1 : High Low, 2 : Top Bottom
             extremum_window = 1
-            num_th = 1
+            candle_num_th = 1
             fib_enable = True
 
-            self.visualizer = ImpulseVisualizer(data, extremum_mode, extremum_window, num_th, fib_enable)
+            self.visualizer = ImpulseVisualizer(data, extremum_mode, extremum_window, candle_num_th, fib_enable)
         elif visualizer == 'support_resistance':
             from Visualization.SupportResistanceVisualizer import SupportResistanceVisualizer
             extremum_mode = 2  # 1 : High Low, 2 : Top Bottom
@@ -53,11 +52,14 @@ class Config:
             self.visualizer = SupportResistanceVisualizer(data, extremum_mode, extremum_window, num_sections)
         elif visualizer == 'indicator':
             from Visualization.IndicatorVisualizer import IndicatorVisualizer
-            indicator_names = ['rsi']
+            indicator_names = ['macd', 'rsi']
             heikin_data_level = 0
             extremum_enable = False
             extremum_window = 2
             extremum_mode = 1
+            ma_enable = True
+            ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 10, 'color': '#2364d1', 'width': 1},
+                       {'ma_type': 'EMA', 'price_type': 'Close', 'window': 20, 'color': '#f36491', 'width': 1}]
 
             self.visualizer = IndicatorVisualizer(data, indicator_names, heikin_data_level, extremum_enable,
-                                                  extremum_window, extremum_mode)
+                                                  extremum_window, extremum_mode, ma_enable, ma_list)

@@ -4,7 +4,9 @@ from AlgorithmTools.HeikinCandle import HeikinConverter
 
 from Indicators.KDJ import KDJ
 from Indicators.RSI import RSI
+from Indicators.MA import MovingAverage
 from Indicators.Stochastic import Stochastic
+from Indicators.MACD import MACD
 from Visualization.Tools import *
 from Visualization.BaseChart import *
 
@@ -17,6 +19,8 @@ class IndicatorVisualizer:
         self.hikin_data_level = heikin_data_level
         self.indicator_names = indicator_names
         self.extremum_enable = extremum_enable
+        self.ma_enable = ma_enable
+        self.ma_list = ma_list
 
         for i in range(self.hikin_data_level):
             heikin_converter = HeikinConverter(self.data[0])
@@ -54,6 +58,14 @@ class IndicatorVisualizer:
                                               'color': "#a36232", 'width': 2},
                                              {'df': pd.DataFrame(j_value).rename(columns={0: 'value'}),
                                               'color': "#33c232", 'width': 2}])
+            elif indicator_name == 'macd':
+                macd_indicator = MACD(data, 26, 12)
+                macd_value, signal_value = macd_indicator.macd_values, macd_indicator.signal_values
+                indicators += [macd_value, signal_value]
+                self.indicators_list.append([{'df': pd.DataFrame(macd_value).rename(columns={0: 'value'}),
+                                              'color': "#3362b2", 'width': 2},
+                                             {'df': pd.DataFrame(signal_value).rename(columns={0: 'value'}),
+                                              'color': "#a36232", 'width': 2}])
             min_indicator, max_indicator = get_min_max_indicator(indicators)
             self.min_indicators.append(pd.DataFrame(min_indicator).rename(columns={0: 'value'}))
             self.max_indicators.append(pd.DataFrame(max_indicator).rename(columns={0: 'value'}))
@@ -62,6 +74,10 @@ class IndicatorVisualizer:
             self.local_min_indicator_list.append(local_min_indicator)
             self.local_max_indicator_list.append(local_max_indicator)
 
+            self.ma_indicators = []
+            if self.ma_enable:
+                for ma in ma_list:
+                    self.ma_indicators.append(MovingAverage(data, ma['ma_type'], ma['price_type'], ma['window']))
 
     def draw(self, fig, height):
         data_df = pd.DataFrame(self.data)
@@ -82,6 +98,11 @@ class IndicatorVisualizer:
         if self.extremum_enable:
             fig.circle(self.local_max_price, data_df.High[self.local_max_price], size=8, color="red")
             fig.circle(self.local_min_price, data_df.Low[self.local_min_price], size=8, color="blue")
+
+        for i in range(len(self.ma_list)):
+            ma = self.ma_list[i]
+            ma_indicator = self.ma_indicators[i].values
+            fig.line(x=list(np.arange(len(self.data))), y=ma_indicator, color=ma['color'], width=ma['width'])
 
         figs = [fig]
         figs += indicator_fig_list

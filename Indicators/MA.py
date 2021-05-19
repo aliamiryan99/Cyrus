@@ -37,6 +37,7 @@ class MovingAverage:
     @staticmethod
     def get_ma(price, ma_type, window):
         values = None
+        price = Series(price)
         if ma_type == 'EMA':
             values = trend.ema_indicator(price, window)
         if ma_type == 'SMA':

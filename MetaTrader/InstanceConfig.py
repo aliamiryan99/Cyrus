@@ -4,17 +4,17 @@ import copy
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ["EURUSD.I"]
+    symbols = ["EURUSD"]
     management_ratio = [2]
     history_size = 100
     algorithm_time_frame = "M1"
     trailing_time_frame = "M1"
 
-    algorithm_name = 'SimpleIdea'
+    algorithm_name = 'SuperStrongSupportResistance'
     repairment_name = 'ReEntrance'
     recovery_name = 'Basic'
     close_mode = 'tp_sl'
-    tp_sl_name = 'Wave'
+    tp_sl_name = 'Fix'
     trailing_name = 'Simple'
     account_management_name = 'Balance'
 
@@ -291,7 +291,7 @@ class InstanceConfig:
         self.close_mode = close_mode  # 'tp_sl', 'trailing', 'both'
         if tp_sl_name == 'Fix':
             from AlgorithmsOfExit.TpSl.Fix import Fix
-            fix_tp = 400  # it can be disable if value equal to 0 (in point)
+            fix_tp = 200  # it can be disable if value equal to 0 (in point)
             fix_sl = 200  # it can be disable if value equal to 0 (int point)
 
             self.tp_sl_tool = Fix(symbol, fix_tp, fix_sl)

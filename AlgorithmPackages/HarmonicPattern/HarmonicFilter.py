@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 # ---------- filter patterns function
@@ -13,12 +14,12 @@ def filter_results(high, low, res, middle, harmonic_name, trend_direction):
     filter_mode = 'Percent'
     res = eliminate_duplicate_patterns(res, trend_direction)
 
-    # if filter_mode == 'std':
-    #     res = eliminate_high_std_patterns(res, middle)
-    # elif filter_mode == 'Percent':
-    #     alpha = .37  # .37 STD coefficient.higher led to bigger channel
-    #     beta = .94  # .94 percent of should be in the channel
-    #     res = eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha, beta)
+    if filter_mode == 'std':
+        res = eliminate_high_std_patterns(res, middle)
+    elif filter_mode == 'Percent':
+        alpha = .37  # .37 STD coefficient.higher led to bigger channel
+        beta = .70  # .94 percent of should be in the channel
+        res = eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha, beta)
 
     # ---- check the ratio is near to fibonacci number or not
     res = check_the_fibbo_ratio(res, harmonic_name, trend_direction)
@@ -106,9 +107,9 @@ def eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha
     d_idx = 4
 
     situation = [False] * len(res)
-
+    new_res = []
     for i in range(len(res)):
-        rng = np.arange(int(res[i, x_idx]), int(res[i, a_idx]))
+        rng = np.arange(int(res[i][x_idx]), int(res[i][a_idx] + 1))
 
         p = np.polyfit([rng[0], rng[-1]], [low[rng[0]], high[rng[-1]]], 1)
         l = np.polyval(p, rng)
@@ -117,21 +118,21 @@ def eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha
         if harmonic_name == 'ABCD':
             situation_xa = True
 
-        rng = np.arange(int(res[i, a_idx]), int(res[i, b_idx]))
+        rng = np.arange(int(res[i][a_idx]), int(res[i][b_idx] + 1))
 
         p = np.polyfit([rng[0], rng[-1]], [high[rng[0]], low[rng[-1]]], 1)
         l = np.polyval(p, rng)
         lower_bound, upper_bound = find_boundery(mean_of_candle, middle, high[rng[0]], low[rng[-1]], rng, l, alpha)  # AB Leg
         situation_ab = np.sum(np.logical_and(lower_bound < low[rng], high[rng] < upper_bound)) >= rng.size * beta
 
-        rng = np.arange(int(res[i, b_idx]), int(res[i, c_idx]))
+        rng = np.arange(int(res[i][b_idx]), int(res[i][c_idx] + 1))
 
         p = np.polyfit([rng[0], rng[-1]], [low[rng[0]], high[rng[-1]]], 1)
         l = np.polyval(p, rng)
         lower_bound, upper_bound = find_boundery(mean_of_candle, middle, low[rng[0]], high[rng[-1]], rng, l, alpha)  # BC Leg
         situation_bc = np.sum(np.logical_and(lower_bound < low[rng], high[rng] < upper_bound)) >= rng.size * beta
 
-        rng = np.arange(int(res[i, c_idx]), int(res[i, d_idx]))
+        rng = np.arange(int(res[i][c_idx]), int(res[i][d_idx] + 1))
 
         p = np.polyfit([rng[0], rng[-1]], [low[rng[0]], high[rng[-1]]], 1)
         l = np.polyval(p, rng)
@@ -140,7 +141,9 @@ def eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha
 
         if situation_xa and situation_ab and situation_bc and situation_cd:
             situation[i] = True
-        res[i].append(situation[i])
+            res[i].append(situation[i])
+            new_res.append(res[i])
+    return new_res
 
 
 def get_the_coefficient_of_bound(rng1, rng2):
@@ -199,15 +202,15 @@ def rotate_line(x, y, deg): # Vertices matrix
     e = [0,  0, a_rad]  # Euler angles for X, Y, Z - axis rotations
 
     # Direction Cosines (rotation matrix) construction
-    rx=np.array([[1, 0, 0],
+    rx = np.array([[1, 0, 0],
                  [0,math.cos(e[0]),  -math.sin(e[0])],
                  [0, math.sin(e[0]),  -math.cos(e[0])]])  # X-Axis rotation
 
-    ry=np.array([[math.cos(e[1]), 0, math.sin(e[1])],
+    ry = np.array([[math.cos(e[1]), 0, math.sin(e[1])],
                  [0, 1, 0],
                  [-math.sin(e[1]), 0, math.cos(e[1])]])  # Y-axis rotation
 
-    rz=np.array([[math.cos(e[2]), -math.sin(e[2]), 0],
+    rz = np.array([[math.cos(e[2]), -math.sin(e[2]), 0],
                  [math.sin(e[2]),  math.cos(e[2]),  0],
                  [0, 0, 1]]) # Z-axis rotation
 
@@ -246,7 +249,7 @@ def eliminate_duplicate_patterns(res, trend_direction):
         # -------- select best patterns, Bullish Patterns
         b = res_df.sort_values(by=[c_val_idx, x_val_idx, a_val_idx, b_val_idx], ascending=ascending).to_numpy()
         unique_patterns[:, i] = b[0, :]
-    return unique_patterns.transpose()
+    return unique_patterns.transpose().tolist()
 
 
 def check_vertex(harmonic_name, res):

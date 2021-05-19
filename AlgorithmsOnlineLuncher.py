@@ -106,7 +106,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             self._zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
                                                   _timeframe=Config.timeframes_dic[algorithm_time_frame],
                                                   _count=InstanceConfig.history_size * algorithm_time_frame_ratio)
-            sleep(2)
+            sleep(1)
             self._histories[symbol] = self._zmq._History_DB[symbol+'_'+algorithm_time_frame]
             for item in self._histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
