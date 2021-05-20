@@ -3,14 +3,14 @@
 class Config:
 
     symbol = "EURUSD"
-    time_frame = "D"
+    time_frame = "H4"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.01.2016 00:00:00.000"
     end_date = "06.03.2020 17:00:00.000"
     holidays_show = False
     secondary_fig_height = 400
     visualizer_set = ['divergence', 'harmonic', 'impulse', 'support_resistance', 'indicator']
-    visualizer = 'support_resistance'
+    visualizer = 'indicator'
 
     def __init__(self, data, visualizer):
 
@@ -52,14 +52,13 @@ class Config:
             self.visualizer = SupportResistanceVisualizer(data, extremum_mode, extremum_window, num_sections)
         elif visualizer == 'indicator':
             from Visualization.IndicatorVisualizer import IndicatorVisualizer
-            indicator_names = ['macd', 'rsi']
+            indicator_names = ['macd']
             heikin_data_level = 0
             extremum_enable = False
             extremum_window = 2
             extremum_mode = 1
             ma_enable = True
-            ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 10, 'color': '#2364d1', 'width': 1},
-                       {'ma_type': 'EMA', 'price_type': 'Close', 'window': 20, 'color': '#f36491', 'width': 1}]
+            ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 14, 'color': '#2364d1', 'width': 1}]
 
             self.visualizer = IndicatorVisualizer(data, indicator_names, heikin_data_level, extremum_enable,
                                                   extremum_window, extremum_mode, ma_enable, ma_list)

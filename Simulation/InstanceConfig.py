@@ -5,7 +5,7 @@ algorithm_list = ['SimpleIdea', 'SimpleIdeaRefinement', 'SimpleIdeaModified', 'D
                   'NSoldier', 'Doji', 'HighLowBreak', 'SimpleIdeaAndDoji', 'SmiHammer', 'SimpleTrendLineBreak',
                   'MovingAverageCross', 'SuperStrongSupportResistance', 'MonotoneExtremum', 'ExtremumTrendBreak',
                   'RefinementLearning', 'ShadowConfirmation', 'ConditionalDivergence', 'Stochastic',
-                  'StrongSimpleIdea', 'HighLowSimpleIdea', 'MinMax', 'Regression']
+                  'StrongSimpleIdea', 'HighLowSimpleIdea', 'MinMax', 'Regression', 'SharpPointDetection']
 repairment_list = ['ReEntrance']
 recovery_list = ['Basic', 'Signal', 'Candle']
 close_mode_list = ['tp_sl', 'trailing', 'both']
@@ -17,17 +17,17 @@ account_management_list = ['Balance', 'Risk']
 class InstanceConfig:
     # Hyper Parameters
     symbols = ["EURUSD"]
-    symbols_ratio = [2]
-    history_size = 500
-    algorithm_time_frame = "H4"
-    trailing_time_frame = "H4"
+    symbols_ratio = [0.2]
+    history_size = 200
+    algorithm_time_frame = "D"
+    trailing_time_frame = "D"
     tag = "EURUSD"
 
-    algorithm_name = 'SimpleIdea'
+    algorithm_name = 'SharpPointDetection'
     repairment_name = 'ReEntrance'
-    recovery_name = 'Basic'
+    recovery_name = 'Signal'
     close_mode = 'tp_sl'
-    tp_sl_name = 'Wave'
+    tp_sl_name = 'Fix'
     trailing_name = 'Simple'
     account_management_name = 'Balance'
 
@@ -36,7 +36,7 @@ class InstanceConfig:
 
         # Options
         self.re_entrance_enable = False  # re entrance strategy
-        self.recovery_enable = False  # recovery strategy
+        self.recovery_enable = True  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
@@ -130,8 +130,8 @@ class InstanceConfig:
             from Algorithms.SH import SemiHammer
             window = 20
             detect_mode = 1
-            alpha = 1.5
-            trigger_threshold = 2
+            alpha = 2
+            trigger_threshold = 1
 
             self.algorithm = SemiHammer(data, window, alpha, detect_mode, trigger_threshold)
         elif algorithm_name == 'SimpleTrendLineBreak':
@@ -142,7 +142,7 @@ class InstanceConfig:
         elif algorithm_name == 'MovingAverageCross':
             from Algorithms.MACros import MovingAverageCross
             total_data_size = 100
-            window_size = 12
+            window_size = 14
             price_type = 'Close'
             ma_type = "EMA"
             extremum_window = 2
@@ -153,8 +153,8 @@ class InstanceConfig:
                                                 extremum_window, extremum_mode, extremum_pivot)
         elif algorithm_name == 'SuperStrongSupportResistance':
             from Algorithms.SSSR import SuperStrongSupportResistance
-            window_size = 400
-            extremum_window = 40
+            window_size = 150
+            extremum_window = 6
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
 
             self.algorithm = SuperStrongSupportResistance(symbol, data, window_size, extremum_window, extremum_mode)
@@ -245,6 +245,12 @@ class InstanceConfig:
             window_extremum = 3
 
             self.algorithm = Regression(symbol, data, alpha, beta, window_extremum)
+        elif algorithm_name == 'SharpPointDetection':
+            from Algorithms.SPD import SharpPointDetection
+            mean_alpha = 0.05
+            candle_bound = 4
+
+            self.algorithm = SharpPointDetection(data, mean_alpha, candle_bound)
 
         # ReEntrance Section
         if repairment_name == 'ReEntrance':
@@ -285,17 +291,18 @@ class InstanceConfig:
                                                      volume_alpha)
         elif recovery_name == 'Signal':
             from AlgorithmsOfRecovery.SignalRecoveryAlgorithm import SignalRecovery
-            from Algorithms.HLSI import HighLowSimpleIdea
+            from Algorithms.HLB import HighLowBreak
             window = 1
-            mode = 1  # mode 1 : On Open , mode 2 : On Open With Shadow Condition
-            s_r_algorithm = HighLowSimpleIdea(symbol, data, window, mode)
+            pivot = 2
+            s_r_algorithm = HighLowBreak(symbol, data, window, pivot)
             # tp mode : 1 : const TP, 2 : dynamic tp(candle) , 3 : dynamic tp(extremum), 4 : profit tp
             window_size = 50
-            alpha_volume = 8
+            volume_alpha = 4
             tp_mode = 1
-            const_tp = 100
+            const_tp = 450
             price_th = 200
-            self.recovery_algorithm = SignalRecovery(symbol, data, window_size, alpha_volume, const_tp,
+
+            self.recovery_algorithm = SignalRecovery(symbol, data, window_size, volume_alpha, const_tp,
                                                      price_th, s_r_algorithm, tp_mode)
 
         # Algorithm Of Exit Section
@@ -303,8 +310,8 @@ class InstanceConfig:
         self.close_mode = close_mode  # 'tp_sl', 'trailing', 'both'
         if tp_sl_name == 'Fix':
             from AlgorithmsOfExit.TpSl.Fix import Fix
-            fix_tp = 400  # it can be disable if value equal to 0 (in point)
-            fix_sl = 400  # it can be disable if value equal to 0 (int point)
+            fix_tp = 450  # it can be disable if value equal to 0 (in point)
+            fix_sl = 0  # it can be disable if value equal to 0 (int point)
 
             self.tp_sl_tool = Fix(symbol, fix_tp, fix_sl)
         elif tp_sl_name == 'Body':
@@ -329,7 +336,7 @@ class InstanceConfig:
             extremum_window = 3
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
             alpha = 0.4
-            beta = 0.2
+            beta = 0.4
 
             self.tp_sl_tool = Wave(data, extremum_window, extremum_mode, alpha, beta)
 

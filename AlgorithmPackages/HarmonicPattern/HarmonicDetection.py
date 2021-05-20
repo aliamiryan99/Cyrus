@@ -1,20 +1,20 @@
-import numpy as np
+
 from AlgorithmTools.LocalExtermums import *
 import math
 from tqdm import tqdm
 
 
 # find Harmonic Patterns function
-def harmonic_pattern(open, high, low, close,top, bottom, middle, local_min, local_max, symbol, time_frame, harmonic_name, trend_direction, is_visual):
-    ind = []
+def harmonic_pattern(open, high, low, close, top, bottom, middle, local_min, local_max, symbol, time_frame,
+                     harmonic_name, trend_direction, is_visual):
 
-    # define Fibbo Ratios
-    f_r_norm = np.array([.382, .50, .618, .786, 1, 1.272, 1.618])  # Most Important FiboRatio
-    fibo_tolerance = 0.01
-    f_r_norm_lower = f_r_norm * (1 - fibo_tolerance)
-    f_r_norm_uper = f_r_norm * (1 + fibo_tolerance)
-    f_b_table = np.array([f_r_norm_lower, f_r_norm, f_r_norm_uper])
-    # f_ri_norm = [.236 2.618 4.236] # uncommon fibo Ratio
+    # define Fib Ratios
+    # f_r_norm = np.array([.382, .50, .618, .786, 1, 1.272, 1.618])  # Most Important FibRatio
+    # fib_tolerance = 0.01
+    # f_r_norm_lower = f_r_norm * (1 - fib_tolerance)
+    # f_r_norm_upper = f_r_norm * (1 + fib_tolerance)
+    # f_b_table = np.array([f_r_norm_lower, f_r_norm, f_r_norm_upper])
+    # f_ri_norm = [.236 2.618 4.236] # uncommon fib Ratio
 
     x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio = 0, 0, 0, 0
     if harmonic_name == 'Gartley':
@@ -77,15 +77,19 @@ def harmonic_pattern(open, high, low, close,top, bottom, middle, local_min, loca
         a_c_ratio = [1 / alpha]
         b_d_ratio = [alpha]
         x_d_ratio = [0.000, 10.00]
-    results = harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max,  symbol, time_frame, harmonic_name, trend_direction, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, is_visual)
+    results = harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max,  symbol,
+                                         time_frame, harmonic_name, trend_direction, x_b_ratio, a_c_ratio, b_d_ratio,
+                                         x_d_ratio, is_visual)
     return results
 
 
-def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max, symbol, time_frame, harmonic_name, trend_direction, x_b_ratio_target, a_c_ratio_target, b_d_ratio_target, x_d_ratio_target, is_visual):
+def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max, symbol, time_frame,
+                               harmonic_name, trend_direction, x_b_ratio_target, a_c_ratio_target, b_d_ratio_target,
+                               x_d_ratio_target, is_visual):
 
     res = []
 
-    ac2bd_tr = .15 # threshold of ac wings to bd based on Time and candle num
+    ac2bd_tr = .15  # threshold of ac wings to bd based on Time and candle num
     xb2bd_tr = ac2bd_tr
     xb2ac_tr = ac2bd_tr
     # if we need  to find Bearish Patterns Just change the High / Low
