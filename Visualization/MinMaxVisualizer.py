@@ -30,7 +30,25 @@ class MinMaxVisualizer:
                                              self.local_min_price, self.local_max_price, True)
 
     def draw(self, fig, height):
-        show(column(fig, indicator_fig, sizing_mode='stretch_both'))
+
+        fig.circle(self.buy_idx, self.buy, size=4, color="blue")
+        fig.circle(self.sell_idx, self.sell, size=4, color="red")
+
+        for i in range(len(self.x_up_trend)):
+            x, y = self.x_up_trend[i], self.y_up_trend[i]
+            x_ext, y_ext = self.x_extend_inc[i], self.y_extend_inc[i]
+            fig.line(x, y, color='blue', width=1)
+            if x_ext is not 0:
+                fig.line([x_ext[0], x_ext[-1]], [y_ext[0], y_ext[-1]], color='blue', width=1, line_dash="dotted")
+
+        for i in range(len(self.x_down_trend)):
+            x, y = self.x_down_trend[i], self.y_down_trend[i]
+            x_ext, y_ext = self.x_extend_dec[i], self.y_extend_dec[i]
+            fig.line(x, y, color='red', width=1)
+            if x_ext is not 0:
+                fig.line([x_ext[0], x_ext[-1]], [y_ext[0], y_ext[-1]], color='red', width=1, line_dash="dotted")
+
+        show(fig)
 
 
 

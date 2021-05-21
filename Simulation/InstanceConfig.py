@@ -17,26 +17,26 @@ account_management_list = ['Balance', 'Risk']
 class InstanceConfig:
     # Hyper Parameters
     symbols = ["EURUSD"]
-    symbols_ratio = [0.2]
-    history_size = 200
+    symbols_ratio = [3, 3, 3]
+    history_size = 400
     algorithm_time_frame = "D"
     trailing_time_frame = "D"
     tag = "EURUSD"
 
-    algorithm_name = 'SharpPointDetection'
+    algorithm_name = 'Regression'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'tp_sl'
-    tp_sl_name = 'Fix'
+    tp_sl_name = 'Wave'
     trailing_name = 'Simple'
-    account_management_name = 'Balance'
+    account_management_name = 'Risk'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
         self.re_entrance_enable = False  # re entrance strategy
-        self.recovery_enable = True  # recovery strategy
+        self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
@@ -233,18 +233,16 @@ class InstanceConfig:
             self.algorithm = HighLowSimpleIdea(symbol, data, window, mode)
         elif algorithm_name == 'MinMax':
             from Algorithms.MinMax import MinMax
-            window_exteremum = 1
-            window_trend = 1
-            mode_trend = 'Last'
+            extremum_window = 1
+            extremum_mode = 1
 
-            self.algorithm = MinMax(symbol, data, window_exteremum, window_trend, mode_trend)
+            self.algorithm = MinMax(symbol, data, extremum_window, extremum_mode)
         elif algorithm_name == 'Regression':
             from Algorithms.Reg import Regression
-            alpha = 1
-            beta = 1
-            window_extremum = 3
+            extremum_window = 3
+            extremum_mode = 1
 
-            self.algorithm = Regression(symbol, data, alpha, beta, window_extremum)
+            self.algorithm = Regression(data, extremum_window, extremum_mode)
         elif algorithm_name == 'SharpPointDetection':
             from Algorithms.SPD import SharpPointDetection
             mean_alpha = 0.05

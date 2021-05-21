@@ -39,3 +39,19 @@ def get_body_mean(data, window):
     for i in range(1, window+1):
         body_mean += abs(data[-i]['Open'] - data[-1]['Close']) / window
     return body_mean
+
+
+def update_top_bottom(top, bottom, candle):
+    top, bottom = top[1:], bottom[1:]
+    top = np.append(top, max(candle['Open'], candle['Close']))
+    bottom = np.append(bottom, min(candle['Open'], candle['Close']))
+    return top, bottom
+
+
+def update_ohlc(open, high, low, close, candle):
+    open, high, low, clsoe = open[1:], high[1:], low[1:], close[1:]
+    open = np.append(open, candle['Open'])
+    high = np.append(high, candle['High'])
+    low = np.append(low, candle['Low'])
+    close = np.append(close, candle['Close'])
+    return open, high, low, close

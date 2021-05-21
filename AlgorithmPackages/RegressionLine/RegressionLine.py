@@ -1,139 +1,129 @@
 import numpy as np
 import math
 
-def RegressionLine(data):
-    open = np.array([d['open'] for d in data])
-    high = np.array([d['high'] for d in data])
-    low = np.array([d['low'] for d in data])
-    close = np.array([d['close'] for d in data])
 
-    a = np.c_[open, close].max(1)
-    b = np.c_[open, close].min(1)
-    c = np.c_[open, close].mean(1)
-    d = a - b
+def regression_line_detection(open, high, low, close, top, bottom, local_min, local_max, is_visual):
 
-    # soppose that we have window
+    # suppose that we have window
     alpha = 1
     beta = 1
     # ---- finding the best window
-    window = 3
-    localMin = [0] * len(open)
-    localMax = [0] * len(open)
-    for i in range(window, len(open) - window + 1):
-        if low[i] <= low[i - window:i + window].min():
-            localMin[i] = i
-        if high[i] >= high[i - window:i + window].max():
-            localMax[i] = i
-
-    localMax = np.array(list(filter(lambda num: num != 0, localMax)))
-    localMin = np.array(list(filter(lambda num: num != 0, localMin)))
+    # window = 3
 
     # -----
-    lenMinMax = np.zeros((len(localMin)))
-    hgtMinMax = np.zeros((len(localMin)))
-    lenMaxMin = np.zeros((len(localMax)))
-    hgtMaxMin = np.zeros((len(localMax)))
-    afterLocalMin = np.zeros((len(localMin)), 'int')
-    for i in range(len(localMin)):
-        tmp = localMax[np.nonzero(localMin[i] < localMax)[0]]
+    len_min_max = np.zeros((len(local_min)))
+    hgt_min_max = np.zeros((len(local_min)))
+    len_max_min = np.zeros((len(local_max)))
+    hgt_max_min = np.zeros((len(local_max)))
+    after_local_min = np.zeros((len(local_min)), 'int')
+    for i in range(len(local_min)):
+        tmp = local_max[np.nonzero(local_min[i] < local_max)[0]]
         if len(tmp) != 0:
-            afterLocalMin[i] = tmp[0]
+            after_local_min[i] = tmp[0]
         else:
-            afterLocalMin[i] = len(open) - 1
-        lenMinMax[i] = afterLocalMin[i] - localMin[i]
-        hgtMinMax[i] = open[afterLocalMin[i]] - low[localMin[i]]
+            after_local_min[i] = len(open) - 1
+        len_min_max[i] = after_local_min[i] - local_min[i]
+        hgt_min_max[i] = open[after_local_min[i]] - low[local_min[i]]
 
-    afterLocalMin = np.array(list(filter(lambda num: num != 0, afterLocalMin)))
+    after_local_min = np.array(list(filter(lambda num: num != 0, after_local_min)))
 
-    afterLocalMax = [float('nan')] * len(localMax)
-    for i in range(len(localMax)):
-        tmp = localMin[np.nonzero(localMax[i] < localMin)[0]]
+    after_local_max = [float('nan')] * len(local_max)
+    for i in range(len(local_max)):
+        tmp = local_min[np.nonzero(local_max[i] < local_min)[0]]
         if len(tmp) != 0:
-            afterLocalMax[i] = tmp[0]
+            after_local_max[i] = tmp[0]
         else:
-            afterLocalMax[i] = len(open) - 1
+            after_local_max[i] = len(open) - 1
 
-        lenMaxMin[i] = afterLocalMax[i] - localMax[i]
-        hgtMaxMin[i] = open[afterLocalMax[i]] - high[localMax[i]]
+        len_max_min[i] = after_local_max[i] - local_max[i]
+        hgt_max_min[i] = open[after_local_max[i]] - high[local_max[i]]
 
     alpha = 1
-    meanMinMax = np.floor(alpha * np.mean(lenMinMax))
-    meanMaxMin = np.floor(alpha * np.mean(lenMaxMin))
-    windowUP = meanMinMax.copy().astype(np.int64)
-    windowDown = meanMaxMin.copy().astype(np.int64)
+    mean_min_max = np.floor(alpha * np.mean(len_min_max))
+    mean_max_min = np.floor(alpha * np.mean(len_max_min))
+    window_up = mean_min_max.copy().astype(np.int64)
+    window_down = mean_max_min.copy().astype(np.int64)
 
     # Trend Line
     # ----- Posetive trend
     x = np.zeros((2, len(open))).astype(np.int64)
     y = np.zeros((2, len(open)))
     p = np.zeros((2, len(open)))
-    lPos = np.zeros((2, len(open)))
-    for i in range(windowUP, len(open)):
-        x[:, i] = np.array([i - windowUP, i]).astype(np.int64)
-        p[:, i] = np.polyfit((np.arange(x[0][i], (x[1][i]+1))), (b[x[0][i]:(x[1][i]+1)]), 1)
-        #    p(:,i) = polyfit(x(:,i),a(x(:,i)),1)';
-        lPos[:, i] = np.polyval(p[:, i], x[:, i])
+    l_pos = np.zeros((2, len(open)))
+    for i in range(window_up, len(open)):
+        x[:, i] = np.array([i - window_up, i]).astype(np.int64)
+        p[:, i] = np.polyfit((np.arange(x[0][i], (x[1][i]+1))), (bottom[x[0][i]:(x[1][i] + 1)]), 1)
+        #    p(:,i) = polyfit(x(:,i),top(x(:,i)),1)';
+        l_pos[:, i] = np.polyval(p[:, i], x[:, i])
 
-    sPosIdx = np.nonzero(p[0, :] > alpha * np.mean(p[0, p[0, :] > 0]))[0]
-    posLine = p[:, p[0, :] > alpha * np.mean(p[0, p[0, :] > 0])]
+    s_pos_idx = np.nonzero(p[0, :] > alpha * np.mean(p[0, p[0, :] > 0]))[0]
+    pos_line = p[:, p[0, :] > alpha * np.mean(p[0, p[0, :] > 0])]
 
     # ---- Negative trend
     x = np.zeros((2, len(open))).astype(np.int64)
     y = np.zeros((2, len(open)))
     p = np.zeros((2, len(open)))
-    lNeg = np.zeros((2, len(open)))
-    for i in range(windowDown, len(open)):
-        x[:, i] = np.array([i - windowDown, i]).astype(np.int64)
-        p[:, i] = (np.polyfit((np.arange(x[0][i], (x[1][i]+1))), a[x[0][i]:(x[1][i]+1)], 1))
-        lNeg[:, i] = np.polyval(p[:, i], x[:, i])
+    l_neg = np.zeros((2, len(open)))
+    for i in range(window_down, len(open)):
+        x[:, i] = np.array([i - window_down, i]).astype(np.int64)
+        p[:, i] = (np.polyfit((np.arange(x[0][i], (x[1][i]+1))), top[x[0][i]:(x[1][i] + 1)], 1))
+        l_neg[:, i] = np.polyval(p[:, i], x[:, i])
 
-    sNegIdx = np.nonzero(p[0, :] < beta * np.mean(p[0, p[0, :] < 0]))[0]
-    negLine = p[:, p[0, :] < beta * np.mean(p[0, p[0, :] < 0])]
+    s_neg_idx = np.nonzero(p[0, :] < beta * np.mean(p[0, p[0, :] < 0]))[0]
+    neg_line = p[:, p[0, :] < beta * np.mean(p[0, p[0, :] < 0])]
 
     # find crossing points
-    lCrossPosIdx = np.zeros((2, len(posLine[0, :])))
-    lCrossPos = np.zeros((2, len(posLine[0, :])))
+    l_cross_pos_idx = np.zeros((2, len(pos_line[0, :])))
+    l_cross_pos = np.zeros((2, len(pos_line[0, :])))
 
-    for i in range(len(sPosIdx)):
-        x = np.arange(sPosIdx[i], len(open))
-        l = np.polyval(np.transpose(posLine[:, i]), x)
+    for i in range(len(s_pos_idx)):
+        x = np.arange(s_pos_idx[i], len(open))
+        l = np.polyval(np.transpose(pos_line[:, i]), x)
         c = np.nonzero(np.logical_and(np.transpose(l) > open[x], close[x] < open[x]))[0]
         if len(c) != 0:
-            lCrossPosIdx[:, i] = [x[0], x[c[0]]]
-            lCrossPos[:, i] = [l[0], l[c[0]]]
+            l_cross_pos_idx[:, i] = [x[0], x[c[0]]]
+            l_cross_pos[:, i] = [l[0], l[c[0]]]
         else:
-            lCrossPosIdx[:, i] = [x[0], float('nan')]
-            lCrossPos[:, i] = [l[0], l[-1]]
+            l_cross_pos_idx[:, i] = [x[0], float('nan')]
+            l_cross_pos[:, i] = [l[0], l[-1]]
 
     # down trend
-    lCrossNegIdx = np.zeros((2, len(negLine[0, :])))
-    lCrossNeg = np.zeros((2, len(negLine[0, :])))
+    l_cross_neg_idx = np.zeros((2, len(neg_line[0, :])))
+    l_cross_neg = np.zeros((2, len(neg_line[0, :])))
 
-    for i in range(len(sNegIdx)):
-        x = np.arange(sNegIdx[i], len(open))
-        l = np.polyval(np.transpose(negLine[:, i]), x)
+    for i in range(len(s_neg_idx)):
+        x = np.arange(s_neg_idx[i], len(open))
+        l = np.polyval(np.transpose(neg_line[:, i]), x)
         c = np.nonzero(np.logical_and(np.transpose(l) < open[x], close[x] > open[x]))[0]
         if len(c) != 0:
-            lCrossNegIdx[:, i] = [x[0], x[c[0]]]
-            lCrossNeg[:, i] = [l[0], l[c[0]]]
+            l_cross_neg_idx[:, i] = [x[0], x[c[0]]]
+            l_cross_neg[:, i] = [l[0], l[c[0]]]
         else:
-            lCrossNegIdx[:, i] = [x[0], float('nan')]
-            lCrossNeg[:, i] = [l[0], l[-1]]
+            l_cross_neg_idx[:, i] = [x[0], float('nan')]
+            l_cross_neg[:, i] = [l[0], l[-1]]
 
-    xUp = [sPosIdx - windowUP, sPosIdx]
-    yUp = lPos[:, sPosIdx]
-    xExtUp = lCrossPosIdx.copy()
-    np.nan_to_num(xExtUp[1], nan=np.sum(np.isnan(xExtUp[1])))
-    yExtUp = lCrossPos.copy()
-    xSell = lCrossPosIdx[1, ~np.isnan(lCrossPosIdx[1, :])].astype(np.int64)
-    ySell = close[xSell]
+    x_up = [s_pos_idx - window_up, s_pos_idx]
+    y_up = l_pos[:, s_pos_idx]
+    x_ext_up = l_cross_pos_idx.copy()
+    np.nan_to_num(x_ext_up[1], nan=np.sum(np.isnan(x_ext_up[1])))
+    y_ext_up = l_cross_pos.copy()
+    x_sell = l_cross_pos_idx[1, ~np.isnan(l_cross_pos_idx[1, :])].astype(np.int64)
+    y_sell = close[x_sell]
 
-    xDown = [sNegIdx - windowDown, sNegIdx]
-    yDown = lNeg[:, sNegIdx]
-    xExtDown = lCrossNegIdx.copy()
-    np.nan_to_num(xExtDown[1], nan=np.sum(np.isnan(xExtDown[1])))
-    yExtDown = lCrossNeg.copy()
-    xBuy = lCrossNegIdx[1, ~np.isnan(lCrossNegIdx[1, :])].astype(np.int64)
-    yBuy = close[xBuy]
-
-    return xUp, yUp, xExtUp, yExtUp, xBuy, yBuy, xDown, yDown, xExtDown, yExtDown, xSell, ySell
+    x_down = [s_neg_idx - window_down, s_neg_idx]
+    y_down = l_neg[:, s_neg_idx]
+    x_ext_down = l_cross_neg_idx.copy()
+    np.nan_to_num(x_ext_down[1], nan=np.sum(np.isnan(x_ext_down[1])))
+    y_ext_down = l_cross_neg.copy()
+    x_buy = l_cross_neg_idx[1, ~np.isnan(l_cross_neg_idx[1, :])].astype(np.int64)
+    y_buy = close[x_buy]
+    if is_visual:
+        return x_up, y_up, x_ext_up, y_ext_up, x_buy, y_buy, x_down, y_down, x_ext_down, y_ext_down, x_sell, y_sell
+    else:
+        predict = 0
+        curIdx = len(open) - 1
+        if len(x_buy) != 0 and x_buy[len(x_buy) - 1] == curIdx:
+            predict = 1
+        if len(x_sell) != 0 and x_sell[len(x_sell) - 1] == curIdx:
+            predict = -1
+        return predict

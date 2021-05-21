@@ -124,7 +124,6 @@ def min_max_trend_detect(open, high, low, close, top, bottom, local_min, local_m
                         line = np.polyval(p[cnt], local_max[A])
                         if np.sum(line + alpha >= high[local_max[A]]) == int(np.size(A)):
                             x_better_down_trend.append([p[cnt][0], int(k), int(j)])
-            print(x_better_down_trend)
             if mode == 'Mean':
                 if len(x_better_down_trend) != 0:
                     tmp = copy.copy(x_better_down_trend)
@@ -149,7 +148,7 @@ def min_max_trend_detect(open, high, low, close, top, bottom, local_min, local_m
                     tmp = copy.copy(x_better_down_trend)
                     if len(tmp) != 0:
                         x_best_down_trend[i] = (x_better_down_trend[-1])
-            print(x_best_down_trend)
+
 
     x_best_down_trend = np.array(list(filter(lambda num: num != 0,x_best_down_trend)))
     if len(x_best_down_trend) != 0:
@@ -194,11 +193,11 @@ def min_max_trend_detect(open, high, low, close, top, bottom, local_min, local_m
         cur_idx = len(open) - 1
         i = len(buy_idx) - 1
         while i >= 0 and buy_idx[i] == cur_idx:
-            predict += 1
+            predict = 1
             i -= 1
         i = len(sell_idx) - 1
         while i >= 0 and sell_idx[i] == cur_idx:
-            predict -= 1
+            predict = -1
             i -= 1
 
         return predict
