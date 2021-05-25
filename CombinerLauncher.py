@@ -3,13 +3,16 @@ from Combiners.EnterPositionCombiner import EnterPositionCombiner
 
 
 # Main Parameters
-combiner = 'Backtest'
-new_time_frame = "H1"
-backtests = [["H4", "H4", "M1", "SuperStrongSupportResistance", "GBPUSD"]]
+combiner = 'EnterPosition'
+
+# BackTest Parameters
+new_time_frame = "D"
+backtests = [["D", "D", "M1", "SimpleIdea", "EURUSD"],
+             ["D", "D", "M1", "SimpleIdeaRefinement", "EURUSD"]]
 
 # Enter Position Parameters
-colors = ['#1254bb', '#62ba21']
-width = 8
+colors = ['#1254bb', '#f2ba21']
+arrow_size = 12
 
 # Backtest Parameter
 balance = 10000
@@ -17,6 +20,6 @@ balance = 10000
 if combiner == 'Backtest':
     combiner = BacktestCombiner(backtests, balance, new_time_frame)
 elif combiner == 'EnterPosition':
-    combiner = EnterPositionCombiner(backtests, new_time_frame, colors, width)
+    combiner = EnterPositionCombiner(backtests, new_time_frame, colors, arrow_size)
 
 combiner.get_output()

@@ -12,7 +12,6 @@ from Simulation.Config import Config
 register_matplotlib_converters()
 
 
-
 def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends, extends):
     # Select the datetime format for the x axis depending on the timeframe
     df = df.reset_index()
@@ -137,17 +136,21 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
                                color=SELL_LINE_COLOR, line_width=positions_line_width, line_dash="dotted")
 
     open_buy_arrow = Arrow(x_start='x7', y_start='price7', x_end=0, y_end='price7', source=buy_line_source,
-                           start=VeeHead(size=arrow_size, fill_color=BUY_COLOR, line_color=BUY_COLOR), end=VeeHead(size=0), line_width=0)
+                           start=VeeHead(size=arrow_size, fill_color=BUY_COLOR, line_color=BUY_COLOR),
+                           end=VeeHead(size=0), line_width=0)
     close_buy_arrow = Arrow(x_start='x8', y_start='price8', x_end=10000000, y_end='price8', source=buy_line_source,
-                            start=VeeHead(size=arrow_size, fill_color=BUY_CLOSE_COLOR, line_color=BUY_CLOSE_COLOR), line_width=0)
+                            start=VeeHead(size=arrow_size, fill_color=BUY_CLOSE_COLOR, line_color=BUY_CLOSE_COLOR),
+                            line_width=0)
 
     fig.add_layout(open_buy_arrow)
     fig.add_layout(close_buy_arrow)
 
     open_sell_arrow = Arrow(x_start='x9', y_start='price9', x_end=0, y_end='price9', source=sell_line_source,
-                           start=VeeHead(size=arrow_size, fill_color=SELL_COLOR, line_color=SELL_COLOR), end=VeeHead(size=0), line_width=0)
+                            start=VeeHead(size=arrow_size, fill_color=SELL_COLOR, line_color=SELL_COLOR),
+                            end=VeeHead(size=0), line_width=0)
     close_sell_arrow = Arrow(x_start='x10', y_start='price10', x_end=10000000, y_end='price10', source=sell_line_source,
-                            start=VeeHead(size=arrow_size, fill_color=SELL_CLOSE_COLOR, line_color=SELL_CLOSE_COLOR), line_width=0)
+                             start=VeeHead(size=arrow_size, fill_color=SELL_CLOSE_COLOR, line_color=SELL_CLOSE_COLOR),
+                             line_width=0)
 
     fig.add_layout(open_sell_arrow)
     fig.add_layout(close_sell_arrow)

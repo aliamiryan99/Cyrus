@@ -1,5 +1,5 @@
 
-import pandas as pd
+import numpy as np
 from bokeh.io import output_file
 import os
 
@@ -11,11 +11,11 @@ from Visualization.BaseChart import *
 
 class EnterPositionCombiner:
 
-    def __init__(self, backtests, new_time_frame, colors, width):
+    def __init__(self, backtests, new_time_frame, colors, arrow_size):
         self.backtests = backtests
         self.new_time_frame = new_time_frame
         self.colors = colors
-        self.width = width
+        self.arrow_size = arrow_size
         self.histories = {}
         self.algorithms = []
         self.symbols = []
@@ -92,9 +92,31 @@ class EnterPositionCombiner:
                 elif position['Type'] == 'sell':
                     sell_x[position['Symbol']].append(position['Index'])
                     sell_y[position['Symbol']].append(position['OpenPrice'])
+
             for symbol in symbols:
-                self.base_figs[symbol].circle(buy_x[symbol], buy_y[symbol], size=self.width, color=self.colors[i])
-                self.base_figs[symbol].square(sell_x[symbol], sell_y[symbol], size=self.width, color=self.colors[i])
+                buy_x[symbol], buy_y[symbol] = np.array(buy_x[symbol]), np.array(buy_y[symbol])
+                sell_x[symbol], sell_y[symbol] = np.array(sell_x[symbol]), np.array(sell_y[symbol])
+                buy_source = ColumnDataSource(data=dict(
+                    x=buy_x[symbol],
+                    y=buy_y[symbol],
+                    y2=buy_y[symbol] - 10
+                ))
+                open_buy_arrow = Arrow(x_start='x', y_start='y', x_end=0, y_end='y2', source=buy_source,
+                                       start=VeeHead(size=self.arrow_size, fill_color=self.colors[i],
+                                                     line_color=self.colors[i]), end=VeeHead(size=0), line_width=0)
+                self.base_figs[symbol].add_layout(open_buy_arrow)
+                sell_source = ColumnDataSource(data=dict(
+                    x=sell_x[symbol],
+                    y=sell_y[symbol],
+                    y2=sell_y[symbol] + 10
+                ))
+                open_sell_arrow = Arrow(x_start='x', y_start='y', x_end=0, y_end='y2', source=sell_source,
+                                        start=VeeHead(size=self.arrow_size, fill_color=self.colors[i],
+                                                      line_color=self.colors[i]), end=VeeHead(size=0), line_width=0)
+                self.base_figs[symbol].add_layout(open_sell_arrow)
+                #
+                # self.base_figs[symbol].circle(buy_x[symbol], buy_y[symbol], size=self.width, color=self.colors[i])
+                # self.base_figs[symbol].square(sell_x[symbol], sell_y[symbol], size=self.width, color=self.colors[i])
 
         for symbol in self.symbols:
             show(self.base_figs[symbol])

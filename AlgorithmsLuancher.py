@@ -98,7 +98,7 @@ class BackTestLauncher:
         Variables.config = Config
         global data
         symbols = InstanceConfig.symbols
-        symbols_ratio = InstanceConfig.symbols_ratio
+        symbols_ratio = InstanceConfig.management_ratio
         algorithm_time_frame = InstanceConfig.algorithm_time_frame
         trailing_time_frame = InstanceConfig.trailing_time_frame
         Config.time_frame_show = algorithm_time_frame

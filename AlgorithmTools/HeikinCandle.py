@@ -1,5 +1,6 @@
 import copy
 
+
 class HeikinConverter:
 
     def __init__(self, first_candle):

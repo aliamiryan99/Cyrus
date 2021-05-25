@@ -18,11 +18,11 @@ class HighLowBreak:
 
     def on_tick(self):
         if self.signal_triggered_buy == 1 and not self.candle_buy_submitted:
-            if self.data_window[-1]['Close'] > self.data_window[-self.pivot - 1]['High']:
+            if self.data_window[-1]['High'] > self.data_window[-self.pivot - 1]['High']:
                 self.candle_buy_submitted = True
                 return 1, self.data_window[-1]['Close']
         if self.signal_triggered_sell == -1 and not self.candle_sell_submitted:
-            if self.data_window[-1]['Close'] < self.data_window[-self.pivot - 1]['Low']:
+            if self.data_window[-1]['Low'] < self.data_window[-self.pivot - 1]['Low']:
                 self.candle_sell_submitted = True
                 return -1, self.data_window[-1]['Close']
         return 0, 0

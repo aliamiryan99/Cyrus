@@ -18,8 +18,8 @@ class Divergence:
 
         self.open, self.high, self.low, self.close = get_ohlc(data_history[:-1])
 
-        self.a = np.c_[self.Open, self.Close].max(1)
-        self.b = np.c_[self.Open, self.Close].min(1)
+        self.a = np.c_[self.open, self.close].max(1)
+        self.b = np.c_[self.open, self.close].min(1)
 
         body_avg = np.mean(self.a - self.b)
 

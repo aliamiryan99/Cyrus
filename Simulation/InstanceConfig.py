@@ -6,29 +6,30 @@ algorithm_list = ['SimpleIdea', 'SimpleIdeaRefinement', 'SimpleIdeaModified', 'D
                   'MovingAverageCross', 'SuperStrongSupportResistance', 'MonotoneExtremum', 'ExtremumTrendBreak',
                   'RefinementLearning', 'ShadowConfirmation', 'ConditionalDivergence', 'Stochastic',
                   'StrongSimpleIdea', 'HighLowSimpleIdea', 'MinMax', 'Regression', 'SharpPointDetection']
+
 repairment_list = ['ReEntrance']
 recovery_list = ['Basic', 'Signal', 'Candle']
 close_mode_list = ['tp_sl', 'trailing', 'both']
 tp_sl_list = ['Fix', 'Body', 'Extremum', 'Wave']
-trailing_list = ['Simple', 'Candle', 'HugeCandle', 'LocalExtremum', 'Stochastic']
+trailing_list = ['Basic', 'Candle', 'HugeCandle', 'LocalExtremum', 'Stochastic']
 account_management_list = ['Balance', 'Risk']
 
 
 class InstanceConfig:
     # Hyper Parameters
     symbols = ["EURUSD"]
-    symbols_ratio = [3, 3, 3]
-    history_size = 400
+    management_ratio = [2]
+    history_size = 600
     algorithm_time_frame = "D"
     trailing_time_frame = "D"
     tag = "EURUSD"
 
-    algorithm_name = 'Regression'
+    algorithm_name = 'SimpleIdeaRefinement'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
-    close_mode = 'tp_sl'
+    close_mode = 'trailing'
     tp_sl_name = 'Wave'
-    trailing_name = 'Simple'
+    trailing_name = 'Basic'
     account_management_name = 'Risk'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
@@ -52,7 +53,7 @@ class InstanceConfig:
             si_win_dec = 2
             si_shadow_threshold = 10
             si_body_threshold = 0
-            si_mode = 3  # mode 1 : Simlpe , mode 2 : average condition , mode 3 : impulse condition
+            si_mode = 1  # mode 1 : Simlpe , mode 2 : average condition , mode 3 : impulse condition
             si_mean_window = 20
             si_extremum_window = 1
             si_extremum_mode = 2
@@ -110,7 +111,7 @@ class InstanceConfig:
         elif algorithm_name == 'HighLowBreak':
             from Algorithms.HLB import HighLowBreak
             window = 1
-            pivot = 2
+            pivot = 1
 
             self.algorithm = HighLowBreak(symbol, data, window, pivot)
         elif algorithm_name == 'SimpleIdeaAndDoji':
@@ -266,11 +267,13 @@ class InstanceConfig:
         if recovery_name == 'Basic':
             from AlgorithmsOfRecovery.RecoveryAlgorithm import Recovery
             window_size = 20
+            # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha
+            # volume mode : 1 : const alpha , 2 : base on pre candle, 3 : base on summation, 4 : base on pre open price
             price_alpha = 2
-            tp_mode = 1     # 1 : alpha mode, 2 : fix tp mode
+            tp_mode = 1
             tp_alpha = 0.66  # 0 < x < 1
             fix_tp = 200    # in point
-            volume_mode = 3     # 1 : const alpha , 2 : base on pre candle, 3 : base on summation
+            volume_mode = 3
             volume_alpha = 1.7
             fib_enable = False
 
@@ -279,10 +282,12 @@ class InstanceConfig:
         elif recovery_name == 'Candle':
             from AlgorithmsOfRecovery.CandleRecoveryAlgorithm import CandleRecovery
             window_size = 20
+            # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha
+            # volume mode : 1 : const alpha , 2 : base on pre candle, 3 : base on summation, 4 : base on pre open price
             tp_mode = 2     # 1 : alpha mode, 2 : fix tp mode
             tp_alpha = 0.7  # 0 < x < 1
             fix_tp = 0  # in point
-            volume_mode = 3  # 1 : const alpha , 2 : base on pre candle, 3 : base on summation
+            volume_mode = 3
             volume_alpha = 2
 
             self.recovery_algorithm = CandleRecovery(symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode,
@@ -291,24 +296,29 @@ class InstanceConfig:
             from AlgorithmsOfRecovery.SignalRecoveryAlgorithm import SignalRecovery
             from Algorithms.HLB import HighLowBreak
             window = 1
-            pivot = 2
+            pivot = 1
+
             s_r_algorithm = HighLowBreak(symbol, data, window, pivot)
-            # tp mode : 1 : const TP, 2 : dynamic tp(candle) , 3 : dynamic tp(extremum), 4 : profit tp
+            # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha
+            # volume mode : 1 : const alpha , 2 : base on pre candle, 3 : base on summation, 4 : base on pre open price,
+            # 5 : base on pre open price wiht len open positions
             window_size = 50
+            tp_mode = 2
+            fix_tp = 100
+            tp_alpha = 0.6
+            volume_mode = 4
             volume_alpha = 4
-            tp_mode = 1
-            const_tp = 450
             price_th = 200
 
-            self.recovery_algorithm = SignalRecovery(symbol, data, window_size, volume_alpha, const_tp,
-                                                     price_th, s_r_algorithm, tp_mode)
+            self.recovery_algorithm = SignalRecovery(symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode,
+                                                     volume_alpha, price_th, s_r_algorithm)
 
         # Algorithm Of Exit Section
         data = copy.deepcopy(data)
         self.close_mode = close_mode  # 'tp_sl', 'trailing', 'both'
         if tp_sl_name == 'Fix':
             from AlgorithmsOfExit.TpSl.Fix import Fix
-            fix_tp = 450  # it can be disable if value equal to 0 (in point)
+            fix_tp = 100  # it can be disable if value equal to 0 (in point)
             fix_sl = 0  # it can be disable if value equal to 0 (int point)
 
             self.tp_sl_tool = Fix(symbol, fix_tp, fix_sl)
@@ -339,7 +349,7 @@ class InstanceConfig:
             self.tp_sl_tool = Wave(data, extremum_window, extremum_mode, alpha, beta)
 
         data = copy.deepcopy(data)
-        if trailing_name == 'Simple':
+        if trailing_name == 'Basic':
             from AlgorithmsOfExit.Trailings.SimpTr import SimpleTrailing
             mode = 3
             window = 10

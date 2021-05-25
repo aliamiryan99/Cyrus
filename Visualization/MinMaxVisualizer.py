@@ -1,7 +1,5 @@
 
 from AlgorithmTools.LocalExtermums import *
-from AlgorithmTools.HeikinCandle import HeikinConverter
-from AlgorithmPackages.Divergence.DivergencePkg import divergence_calculation
 
 from AlgorithmPackages.MinMaxTrend import MinMaxTrend
 
@@ -49,8 +47,4 @@ class MinMaxVisualizer:
                 fig.line([x_ext[0], x_ext[-1]], [y_ext[0], y_ext[-1]], color='red', width=1, line_dash="dotted")
 
         show(fig)
-
-
-
-
 

@@ -163,7 +163,7 @@ def get_secondary_fig(title, fig, height, df, indicators, min_indicator, max_ind
 
     if indicators is not None and len(indicators) != 0:
         indicators_list = []
-        number_format = '%0.2f'
+        number_format = '%0.3f'
         for indicator in indicators:
             df_indicator = indicator['df']
             indicators_list.append(df_indicator.to_dict('Records'))
@@ -171,7 +171,8 @@ def get_secondary_fig(title, fig, height, df, indicators, min_indicator, max_ind
                 index1=df_indicator.index,
                 value1=df_indicator.value
             ))
-            indicator_line = secondary_fig.line(x='index1', y='value1', source=source, line_width=indicator['width'], line_color=indicator['color'])
+            indicator_line = secondary_fig.line(x='index1', y='value1', source=source, line_width=indicator['width'],
+                                                line_color=indicator['color'])
 
             secondary_fig.add_tools(HoverTool(
                 renderers=[indicator_line],
@@ -185,7 +186,8 @@ def get_secondary_fig(title, fig, height, df, indicators, min_indicator, max_ind
         # JavaScript callback function to automatically zoom the Y axis to
         # view the Data properly
         source = ColumnDataSource({'Index': df.index, 'High': df.High, 'Low': df.Low,
-                                   'Index_Indicator': max_indicator.index, 'Max_Value_Indicator': max_indicator.value, 'Min_Value_Indicator': min_indicator.value})
+                                   'Index_Indicator': max_indicator.index, 'Max_Value_Indicator': max_indicator.value,
+                                   'Min_Value_Indicator': min_indicator.value})
         callback = CustomJS(args={'y_range_candle': fig.y_range, 'y_range_indicator': secondary_fig.y_range,
                                   'source': source}, code='''
                            clearTimeout(window._autoscale_timeout);
