@@ -15,6 +15,7 @@ class RiskManagement:
             volume /= stop_loss_price
         return volume
 
+
 class BalanceManagement:
     def __init__(self, ratio):
         self.balance_ratio = ratio

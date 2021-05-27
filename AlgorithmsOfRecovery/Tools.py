@@ -29,4 +29,10 @@ def calc_tp(open_positions, price, mode, tp_alpha, fix_tp):
     elif mode == 3:
         tp = abs(open_positions[-1]['OpenPrice'] * tp_alpha +
                  price * (1 - tp_alpha) - price)
+    elif mode == 4:
+        vp_sum, v_sum = 0, 0
+        for i in range(open_positions):
+            vp_sum += open_positions[i]['OpenPrice'] * open_positions[i]['Volume']
+            v_sum += open_positions[i]['Volume']
+        tp = abs((vp_sum/v_sum) - price)
     return tp

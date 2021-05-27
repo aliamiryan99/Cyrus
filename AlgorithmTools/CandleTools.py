@@ -17,6 +17,14 @@ def get_bottom_top(data):
     return bottom_candle, top_candle
 
 
+def get_middle(data):
+    middle = []
+    for i in range(len(data)):
+        middle.append((data[i]['Open'] + data[i]['Close']) / 2)
+    middle = np.array(middle)
+    return middle
+
+
 def get_body_total_length(data):
     body_length = []
     total_length = []
@@ -46,6 +54,12 @@ def update_top_bottom(top, bottom, candle):
     top = np.append(top, max(candle['Open'], candle['Close']))
     bottom = np.append(bottom, min(candle['Open'], candle['Close']))
     return top, bottom
+
+
+def update_middle(middle, candle):
+    middle = middle[1:]
+    middle = np.append(middle, (candle['Open'] + candle['Close']) / 2)
+    return middle
 
 
 def update_ohlc(open, high, low, close, candle):

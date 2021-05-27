@@ -5,7 +5,7 @@ algorithm_list = ['SimpleIdea', 'SimpleIdeaRefinement', 'SimpleIdeaModified', 'D
                   'NSoldier', 'Doji', 'HighLowBreak', 'SimpleIdeaAndDoji', 'SmiHammer', 'SimpleTrendLineBreak',
                   'MovingAverageCross', 'SuperStrongSupportResistance', 'MonotoneExtremum', 'ExtremumTrendBreak',
                   'RefinementLearning', 'ShadowConfirmation', 'ConditionalDivergence', 'Stochastic',
-                  'StrongSimpleIdea', 'HighLowSimpleIdea', 'MinMax', 'Regression', 'SharpPointDetection']
+                  'StrongSimpleIdea', 'HighLowSimpleIdea', 'MinMax', 'Regression', 'SharpPointDetection', 'Harmonic']
 
 repairment_list = ['ReEntrance']
 recovery_list = ['Basic', 'Signal', 'Candle']
@@ -19,24 +19,24 @@ class InstanceConfig:
     # Hyper Parameters
     symbols = ["EURUSD"]
     management_ratio = [2]
-    history_size = 600
+    history_size = 200
     algorithm_time_frame = "D"
     trailing_time_frame = "D"
     tag = "EURUSD"
 
-    algorithm_name = 'SimpleIdeaRefinement'
+    algorithm_name = 'Harmonic'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
-    close_mode = 'trailing'
+    close_mode = 'tp_sl'
     tp_sl_name = 'Wave'
     trailing_name = 'Basic'
-    account_management_name = 'Risk'
+    account_management_name = 'Balance'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = False  # re entrance strategy
+        self.re_entrance_enable = True  # re entrance strategy
         self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
@@ -250,6 +250,16 @@ class InstanceConfig:
             candle_bound = 4
 
             self.algorithm = SharpPointDetection(data, mean_alpha, candle_bound)
+        elif algorithm_name == 'Harmonic':
+            from Algorithms.HarPat import Harmonic
+            harmonic_name = "Gartley"
+            extremum_window = 6
+            extremum_mode = 1
+            time_range = 5
+            price_time_range_alpha = 1
+
+            self.algorithm = Harmonic(data, harmonic_name, extremum_window, extremum_mode, time_range,
+                                      price_time_range_alpha)
 
         # ReEntrance Section
         if repairment_name == 'ReEntrance':

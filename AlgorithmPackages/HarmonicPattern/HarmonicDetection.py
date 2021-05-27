@@ -5,8 +5,7 @@ from tqdm import tqdm
 
 
 # find Harmonic Patterns function
-def harmonic_pattern(open, high, low, close, top, bottom, middle, local_min, local_max, symbol, time_frame,
-                     harmonic_name, trend_direction, is_visual):
+def harmonic_pattern(high, low, middle, local_min, local_max, harmonic_name, trend_direction, is_visual):
 
     # define Fib Ratios
     # f_r_norm = np.array([.382, .50, .618, .786, 1, 1.272, 1.618])  # Most Important FibRatio
@@ -77,13 +76,12 @@ def harmonic_pattern(open, high, low, close, top, bottom, middle, local_min, loc
         a_c_ratio = [1 / alpha]
         b_d_ratio = [alpha]
         x_d_ratio = [0.000, 10.00]
-    results = harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max,  symbol,
-                                         time_frame, harmonic_name, trend_direction, x_b_ratio, a_c_ratio, b_d_ratio,
-                                         x_d_ratio, is_visual)
+    results = harmonic_patterns_detector(high, low, middle, local_min, local_max, harmonic_name, trend_direction,
+                                         x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, is_visual)
     return results
 
 
-def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, local_min, local_max, symbol, time_frame,
+def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                                harmonic_name, trend_direction, x_b_ratio_target, a_c_ratio_target, b_d_ratio_target,
                                x_d_ratio_target, is_visual):
 
@@ -177,8 +175,8 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
                     else:
                         cond_len_ab = False
                     # check the XB wave ratio
-                    if ((x_b_ratio_target[0] <= x_b_ratio) and (x_b_ratio_target[-1] >= x_b_ratio)) and is_regression_cond and (
-                            rng[1] - rng[0] > min_candle_diff) and cond_len_ab:
+                    if ((x_b_ratio_target[0] <= x_b_ratio) and (x_b_ratio_target[-1] >= x_b_ratio)) and\
+                            is_regression_cond and (rng[1] - rng[0] > min_candle_diff) and cond_len_ab:
                         # find for the C point
                         while local_max[tmp_c] <= local_min[k]:
                             tmp_c += 1
@@ -209,13 +207,16 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
                             else:
                                 cond_len_bc = False
 
-                            if (a_c_ratio_target[0] <= a_c_ratio) and (a_c_ratio_target[-1] >= a_c_ratio) and cond_len_bc:
+                            if (a_c_ratio_target[0] <= a_c_ratio) and (a_c_ratio_target[-1] >= a_c_ratio) and\
+                                    cond_len_bc:
                                 # find for the d point
                                 tmp_d = local_max[p] + 1
                                 if tmp_d >= len(high):
                                     break
                                 for l in range(tmp_d, len(high)):
                                     # Check the Patterns Trend
+                                    if not is_visual and l != len(high) - 1:
+                                        continue
                                     if bc > 0 and trend_direction == 'Bearish':
                                         break
                                     elif bc < 0 and trend_direction == 'Bullish':
@@ -238,7 +239,11 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
                                     is_regression_cond = regression_check(middle, rng, reg_tol)
 
                                     # check the AC wave ratio
-                                    if is_regression_cond and ((b_d_ratio_target[0] <= b_d_ratio) and (b_d_ratio_target[-1] >= b_d_ratio)) and ((x_d_ratio_target[0] <= x_d_ratio) and (x_d_ratio_target[-1] >= x_d_ratio)) and (rng[1] - rng[0] > min_candle_diff):
+                                    if is_regression_cond and ((b_d_ratio_target[0] <= b_d_ratio) and
+                                                               (b_d_ratio_target[-1] >= b_d_ratio)) and\
+                                            ((x_d_ratio_target[0] <= x_d_ratio) and
+                                             (x_d_ratio_target[-1] >= x_d_ratio)) and\
+                                            (rng[1] - rng[0] > min_candle_diff):
 
                                         # check the length of wings with times or (candle Numbers)
                                         ac2bd_cond = True
@@ -259,7 +264,13 @@ def harmonic_patterns_detector(open, high, low, close, top, bottom, middle, loca
                                             res.append([local_min[i], local_max[j], local_min[k], local_max[p], l, x, a, b, c, d, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd])
     if is_visual:
         p_bar.close()
-    return res
+    if is_visual:
+        return res
+    else:
+        if len(res) > 0:
+            return 1
+        else:
+            return 0
 
 
 # check Regression Condition function
@@ -269,14 +280,14 @@ def regression_check(middle, rng, reg_tol):
     c = middle[rng[0]:rng[1]+1]
 
     # ----- regression Line of harmonic pattern
-    S = (c[-1] - c[0]) / (rng[-1] - rng[0]) # slope
-    I = c[0] - S * rng[0] # intersect
+    S = (c[-1] - c[0]) / (rng[-1] - rng[0])     # slope
+    I = c[0] - S * rng[0]   # intersect
     p2 = np.array([S, I])
 
     # -----  regression Line of candles on
     p = regression_fit(rng, c)
 
-    #comperasion between the Line of Harmonic and candle line
+    #   comperasion between the Line of Harmonic and candle line
     return np.sum(np.abs(p2 - p) < abs(p * reg_tol)) == len(p)
 
     # evaluate Slope and intersect with regression

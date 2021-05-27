@@ -252,7 +252,7 @@ class BackTestLauncher:
         if history_time != algorithm_time:
             # New Candle Open Section
             last_candle = {"Time": history[-1]['Time'], "Open": history[-1]['Open'], "High": history[-1]['High'],
-                           "Low": history[-1]['Low'], "Close": history[-1]['Close'],"Volume": history[-1]['Volume']}
+                           "Low": history[-1]['Low'], "Close": history[-1]['Close'], "Volume": history[-1]['Volume']}
             self.algorithm_histories[symbol].append(last_candle)
             self.algorithm_histories[symbol].pop(0)
             signal, price = self.algorithms[symbol].on_data(self.algorithm_histories[symbol][-1], self.market.equity)
@@ -347,7 +347,8 @@ class BackTestLauncher:
                         if not config.algorithm_force_price and not history[-1]['Low'] <= price <= history[-1]['High']:
                             price = history[-1]['Open']
                         if not config.algorithm_virtual_signal:
-                            trade = self.market.sell(data_time, price, symbol, take_profit_sell, stop_loss_sell, volume, self.last_ticket)
+                            trade = self.market.sell(data_time, price, symbol, take_profit_sell, stop_loss_sell, volume,
+                                                     self.last_ticket)
                             if trade is not None:
                                 self.recovery_trades[symbol].append([trade])
                                 self.last_algorithm_signal_ticket[symbol] = self.last_ticket
