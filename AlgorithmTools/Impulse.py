@@ -36,7 +36,7 @@ def get_impulses(data, local_min, local_max, num_th):
     start_index = 1
     while local_min[start_index] < local_max[0]:
         start_index += 1
-    for i in range(1, len(local_min)):
+    for i in range(start_index, len(local_min)):
         while local_max[j] < local_min[i]:
             j += 1
             if j >= len(local_max):

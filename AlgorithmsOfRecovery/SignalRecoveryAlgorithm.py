@@ -36,10 +36,11 @@ class SignalRecovery:
             if self.signal == 1 or self.tick_signal == 1:
                 price = candle['Close']
                 self.signal, self.tick_signal = 0, 0
-                tp = Tools.calc_tp(open_positions, price, self.tp_mode, self.tp_alpha, self.fix_tp)
-
                 volume = Tools.calc_volume(open_positions, self.volume_mode, self.volume_alpha, self.fix_tp,
                                            self.history)
+
+                tp = Tools.calc_tp(open_positions, price, volume, self.tp_mode, self.tp_alpha, self.fix_tp)
+
                 modify_array = []
                 for position in open_positions:
                     modify_array.append({'Ticket': position['Ticket'], 'TP': tp})
@@ -51,10 +52,11 @@ class SignalRecovery:
                 price = candle['Close']
                 if price > open_positions[-1]['OpenPrice'] + self.price_th:
                     self.signal, self.tick_signal = 0, 0
-                    tp = -Tools.calc_tp(open_positions, price, self.tp_mode, self.tp_alpha, self.fix_tp)
-
                     volume = Tools.calc_volume(open_positions, self.volume_mode, self.volume_alpha, self.fix_tp,
                                                self.history)
+
+                    tp = -Tools.calc_tp(open_positions, price, volume, self.tp_mode, self.tp_alpha, self.fix_tp)
+
                     modify_array = []
                     for position in open_positions:
                         modify_array.append({'Ticket': position['Ticket'], 'TP': tp})

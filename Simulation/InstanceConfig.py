@@ -17,18 +17,18 @@ account_management_list = ['Balance', 'Risk']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ["EURUSD"]
-    management_ratio = [2]
+    symbols = ["EURUSD", "GBPUSD", "AUDUSD", "XAUUSD"]
+    management_ratio = [20, 10, 10, 10]
     history_size = 200
-    algorithm_time_frame = "D"
-    trailing_time_frame = "D"
-    tag = "EURUSD"
+    algorithm_time_frame = "H4"
+    trailing_time_frame = "H4"
+    tag = "Multi Symbol"
 
-    algorithm_name = 'Harmonic'
+    algorithm_name = 'MonotoneExtremum'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'tp_sl'
-    tp_sl_name = 'Wave'
+    tp_sl_name = 'Body'
     trailing_name = 'Basic'
     account_management_name = 'Balance'
 
@@ -36,8 +36,8 @@ class InstanceConfig:
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = True  # re entrance strategy
-        self.recovery_enable = False  # recovery strategy
+        self.re_entrance_enable = False  # re entrance strategy
+        self.recovery_enable = True  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
@@ -309,15 +309,15 @@ class InstanceConfig:
             pivot = 1
 
             s_r_algorithm = HighLowBreak(symbol, data, window, pivot)
-            # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha
+            # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha, 4 : base on volume*price
             # volume mode : 1 : const alpha , 2 : base on pre candle, 3 : base on summation, 4 : base on pre open price,
-            # 5 : base on pre open price wiht len open positions
+            # 5 : base on pre open price with len open positions , 6 : base on len positions and first volume
             window_size = 50
-            tp_mode = 2
+            tp_mode = 4
             fix_tp = 100
             tp_alpha = 0.6
-            volume_mode = 4
-            volume_alpha = 4
+            volume_mode = 6
+            volume_alpha = 3
             price_th = 200
 
             self.recovery_algorithm = SignalRecovery(symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode,
@@ -335,7 +335,7 @@ class InstanceConfig:
         elif tp_sl_name == 'Body':
             from AlgorithmsOfExit.TpSl.Body import Body
             window = 30
-            alpha = 1
+            alpha = 2
             mode = 1  # 1: body candle, 2: total candle
             tp_disable = False
             sl_disable = True

@@ -154,7 +154,7 @@ class DWX_ZeroMQ_Connector():
                     print(f"{value}\t\t:\t{name}")
                     self._MONITOR_EVENT_MAP[value] = name
 
-            print("\n[KERNEL] Socket Monitoring Config -> DONE!\n")
+            print("\n[KERNEL] Socket Monitoring ChartConfig -> DONE!\n")
 
             # Disable PUSH/PULL sockets and let MONITOR events control them.
             self._PUSH_SOCKET_STATUS['state'] = False

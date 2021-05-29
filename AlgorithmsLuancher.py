@@ -200,7 +200,7 @@ class BackTestLauncher:
         for symbol in self.symbols:
             account_managements[symbol] = self.configs[symbol].account_management
 
-        # Market Config
+        # Market ChartConfig
         start_time = datetime.strptime(Config.start_date, Config.date_format)
         end_time = datetime.strptime(Config.end_date, Config.date_format)
         market = Simulation.Simulation(Config.leverage, Config.balance, start_time, end_time)

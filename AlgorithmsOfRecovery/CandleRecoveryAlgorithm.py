@@ -58,7 +58,7 @@ class CandleRecovery:
         volume = Tools.calc_volume(open_positions, self.volume_mode, self.alpha_volume, self.fix_tp,
                                    self.history)
 
-        tp = Tools.calc_tp(open_positions, price, self.tp_mode, self.alpha_tp, self.fix_tp)
+        tp = Tools.calc_tp(open_positions, price, volume, self.tp_mode, self.alpha_tp, self.fix_tp)
         if open_positions[0]['Type'] == 'Sell':
             tp *= -1
 

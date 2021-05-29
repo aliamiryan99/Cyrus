@@ -139,6 +139,7 @@ class Simulation:
         self.equity = balance
         self.margin = 0
         self.profit = 0
+        self.call_margin = False
         global initial_balance
         initial_balance = balance
         self.closed_buy_positions = []
@@ -543,8 +544,9 @@ class Simulation:
     def check_zero_equity(self):
         if self.get_equity() <= initial_balance * 0.05:
             self.close_all("zero equity")
-            print('CALL MARGIN')
-            self.exit()
+            if not self.call_margin:
+                self.call_margin = True
+                print('CALL MARGIN')
 
     def get_position(self, ticket):
         for position in self.open_buy_positions:

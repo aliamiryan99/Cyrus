@@ -1,16 +1,16 @@
 
 
-class Config:
+class ChartConfig:
 
-    symbol = "GBPUSD"
-    time_frame = "D"
+    symbol = "EURUSD"
+    time_frame = "H4"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.02.2017 00:00:00.000"
     end_date = "01.01.2021 00:00:00.000"
     holidays_show = False
-    secondary_fig_height = 100
+    secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression']
-    visualizer = 'Divergence'
+    visualizer = 'Indicator'
 
     def __init__(self, data, visualizer):
 
@@ -33,13 +33,13 @@ class Config:
             time_range = 5
             price_range_alpha = 1
 
-            self.visualizer = HarmonicVisualizer(Config.symbol, Config.time_frame, data, extremum_window, time_range,
+            self.visualizer = HarmonicVisualizer(ChartConfig.symbol, ChartConfig.time_frame, data, extremum_window, time_range,
                                                  price_range_alpha, name)
         elif visualizer == 'Impulse':
             from Visualization.ImpulseVisualizer import ImpulseVisualizer
             extremum_mode = 2  # 1 : High Low, 2 : Top Bottom
             extremum_window = 1
-            candle_num_th = 1
+            candle_num_th = 3
             fib_enable = True
 
             self.visualizer = ImpulseVisualizer(data, extremum_mode, extremum_window, candle_num_th, fib_enable)
@@ -52,7 +52,7 @@ class Config:
             self.visualizer = SupportResistanceVisualizer(data, extremum_mode, extremum_window, num_sections)
         elif visualizer == 'Indicator':
             from Visualization.IndicatorVisualizer import IndicatorVisualizer
-            indicator_names = ['macd', 'rsi']
+            indicator_names = ['macd']
             heikin_data_level = 0
             extremum_enable = False
             extremum_window = 2

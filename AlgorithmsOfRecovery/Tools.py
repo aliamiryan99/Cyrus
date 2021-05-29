@@ -1,4 +1,6 @@
 
+from Shared.Variables import Variables
+
 
 def calc_volume(open_positions, mode, volume_alpha, fix_tp, history):
     volume = 0
@@ -17,10 +19,12 @@ def calc_volume(open_positions, mode, volume_alpha, fix_tp, history):
     elif mode == 5:
         volume = open_positions[-1]['Volume'] * (abs(open_positions[-1]['OpenPrice'] - history[-1]['Close']) / fix_tp)\
                  * (len(open_positions) + 1)
+    elif mode == 6:
+        volume = open_positions[0]['Volume'] * (len(open_positions) + 1)
     return volume
 
 
-def calc_tp(open_positions, price, mode, tp_alpha, fix_tp):
+def calc_tp(open_positions, price, volume, mode, tp_alpha, fix_tp):
     tp = 0
     if mode == 1:
         tp = fix_tp
@@ -31,8 +35,11 @@ def calc_tp(open_positions, price, mode, tp_alpha, fix_tp):
                  price * (1 - tp_alpha) - price)
     elif mode == 4:
         vp_sum, v_sum = 0, 0
-        for i in range(open_positions):
+        for i in range(len(open_positions)):
             vp_sum += open_positions[i]['OpenPrice'] * open_positions[i]['Volume']
             v_sum += open_positions[i]['Volume']
-        tp = abs((vp_sum/v_sum) - price)
+        vp_sum += price * volume
+        v_sum += volume
+        symbol = open_positions[0]['Symbol']
+        tp = abs((vp_sum/v_sum) - price) + Variables.config.spreads[symbol] * 2
     return tp

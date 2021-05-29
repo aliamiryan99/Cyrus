@@ -78,11 +78,11 @@ class Recovery:
     def get_tp_volume(self, open_positions, ticket):
         price = self.history[-1]['Close']
 
-        tp = Tools.calc_tp(open_positions, price, self.tp_mode, self.tp_alpha, self.fix_tp)
+        volume = Tools.calc_volume(open_positions, self.volume_mode, self.volume_alpha, self.fix_tp, self.history)
+
+        tp = Tools.calc_tp(open_positions, price, volume, self.tp_mode, self.tp_alpha, self.fix_tp)
         if self.position_type[ticket] == 'Sell':
             tp *= -1
-
-        volume = Tools.calc_volume(open_positions, self.volume_mode, self.volume_alpha, self.fix_tp, self.history)
 
         if self.fib_enable:
             tmp = self.fib1[ticket]
