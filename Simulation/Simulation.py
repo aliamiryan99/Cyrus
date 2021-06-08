@@ -296,7 +296,7 @@ class Simulation:
     def check_order(self, type, start_time, start_price, symbol, take_profit, stop_loss, volume):
         time = self.adjust_time(start_time, time_frame_input)
         index = Outputs.index_date_v2(data[Config.symbols_dict[symbol]], time)
-        volume = min(max(round(volume, Config.volume_digit), 10 ** -Config.volume_digit), 200)
+        volume = min(max(round(volume, Config.volume_digit), 10 ** -Config.volume_digit), Config.max_volume)
         row = data[symbols_dict[symbol]][index]
         if type == 'Buy':
             if (take_profit < start_price and take_profit != 0) or (stop_loss > start_price and stop_loss != 0):

@@ -38,6 +38,7 @@ def calc_tp(open_positions, price, volume, mode, tp_alpha, fix_tp):
         for i in range(len(open_positions)):
             vp_sum += open_positions[i]['OpenPrice'] * open_positions[i]['Volume']
             v_sum += open_positions[i]['Volume']
+        volume = min(volume, Variables.config.max_volume)
         vp_sum += price * volume
         v_sum += volume
         symbol = open_positions[0]['Symbol']

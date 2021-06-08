@@ -4,7 +4,14 @@ class Config:
     date_order_format = '%Y.%m.%d %H:%M:%S'
     tick_date_format = '%Y.%m.%d %H:%M:%S'
 
+    # in point
+    spreads = {'EURUSD': 20, 'GBPUSD': 30, 'NZDUSD': 40, 'USDCAD': 40, 'USDCHF': 30, 'USDJPY': 30,
+               'AUDUSD': 30, 'GOLD': 50, 'SILVER': 50, 'US30.MAY1': 60, 'EURUSD.I': 20, 'GBPUSD.I': 30,
+               'NZDUSD.I': 40, 'USDCAD.I': 40, 'USDCHF.I': 30, 'USDJPY.I': 30, 'AUDUSD.I': 30,
+               'XAUUSD.I': 50, 'XAGUSD.I': 50 }
+
     volume_digit = 2        # 2 -> at least 0.01 lot
+    max_volume = 200
 
     timeframes_dic = {'M1': 1, 'M5': 5, 'M15': 15, 'M30': 30, 'H1': 60, 'H4': 240, 'D1': 1440,
                       'W1': 10080, 'MN1': 43200}

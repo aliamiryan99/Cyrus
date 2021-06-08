@@ -5,7 +5,7 @@ import copy
 class InstanceConfig:
     # Hyper Parameters
     symbols = ["EURUSD.I", "GBPUSD.I", "XAUUSD.I"]
-    management_ratio = [2, 2, 2]
+    management_ratio = [1, 1, 1]
     history_size = 100
     algorithm_time_frame = "M1"
     trailing_time_frame = "M1"
@@ -31,6 +31,8 @@ class InstanceConfig:
         self.algorithm_virtual_signal = False  # if true algorithm positions don't executed (only re_entrance)
         self.enable_max_trade_per_candle = True  # if true only max_trade_per_candle can be placed on one candle
         self.max_trade_per_candle = 2  # if 1 only 1 trade can be placed for each candle
+        self.max_volume_enable = True  # if True then max allowed lot size for algorithm trade is max volume value
+        self.max_volume_value = 100
 
         # Select Algorithm
         data = copy.deepcopy(data)
@@ -38,9 +40,9 @@ class InstanceConfig:
             from Algorithms.SI import SimpleIdea
             si_win_inc = 2
             si_win_dec = 2
-            si_shadow_threshold = 0
+            si_shadow_threshold = 10
             si_body_threshold = 0
-            si_mode = 1  # mode 1 : Simple , mode 2 : average condition , mode 3 : impulse condition
+            si_mode = 1  # mode 1 : Simlpe , mode 2 : average condition , mode 3 : impulse condition
             si_mean_window = 20
             si_extremum_window = 1
             si_extremum_mode = 2
@@ -98,7 +100,7 @@ class InstanceConfig:
         elif algorithm_name == 'HighLowBreak':
             from Algorithms.HLB import HighLowBreak
             window = 1
-            pivot = 2
+            pivot = 1
 
             self.algorithm = HighLowBreak(symbol, data, window, pivot)
         elif algorithm_name == 'SimpleIdeaAndDoji':
@@ -118,8 +120,8 @@ class InstanceConfig:
             from Algorithms.SH import SemiHammer
             window = 20
             detect_mode = 1
-            alpha = 1.5
-            trigger_threshold = 2
+            alpha = 2
+            trigger_threshold = 1
 
             self.algorithm = SemiHammer(data, window, alpha, detect_mode, trigger_threshold)
         elif algorithm_name == 'SimpleTrendLineBreak':
@@ -130,7 +132,7 @@ class InstanceConfig:
         elif algorithm_name == 'MovingAverageCross':
             from Algorithms.MACros import MovingAverageCross
             total_data_size = 100
-            window_size = 12
+            window_size = 14
             price_type = 'Close'
             ma_type = "EMA"
             extremum_window = 2
@@ -142,7 +144,7 @@ class InstanceConfig:
         elif algorithm_name == 'SuperStrongSupportResistance':
             from Algorithms.SSSR import SuperStrongSupportResistance
             window_size = 150
-            extremum_window = 5
+            extremum_window = 6
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
 
             self.algorithm = SuperStrongSupportResistance(symbol, data, window_size, extremum_window, extremum_mode)
@@ -215,24 +217,38 @@ class InstanceConfig:
                                               alpha, gap_threshold)
         elif algorithm_name == 'HighLowSimpleIdea':
             from Algorithms.HLSI import HighLowSimpleIdea
-            window = 1
-            mode = 1  # mode 1 : On Open , mode 2 : On Open With Shadow Condition
+            window = 3
+            mode = 2  # mode 1 : On Open , mode 2 : On Open With Shadow Condition
 
             self.algorithm = HighLowSimpleIdea(symbol, data, window, mode)
         elif algorithm_name == 'MinMax':
             from Algorithms.MinMax import MinMax
-            window_exteremum = 1
-            window_trend = 1
-            mode_trend = 'Last'
+            extremum_window = 1
+            extremum_mode = 1
 
-            self.algorithm = MinMax(symbol, data, window_exteremum, window_trend, mode_trend)
+            self.algorithm = MinMax(symbol, data, extremum_window, extremum_mode)
         elif algorithm_name == 'Regression':
             from Algorithms.Reg import Regression
-            alpha = 1
-            beta = 1
-            window_extremum = 3
+            extremum_window = 3
+            extremum_mode = 1
 
-            self.algorithm = Regression(symbol, data, alpha, beta, window_extremum)
+            self.algorithm = Regression(data, extremum_window, extremum_mode)
+        elif algorithm_name == 'SharpPointDetection':
+            from Algorithms.SPD import SharpPointDetection
+            mean_alpha = 0.05
+            candle_bound = 4
+
+            self.algorithm = SharpPointDetection(data, mean_alpha, candle_bound)
+        elif algorithm_name == 'Harmonic':
+            from Algorithms.HarPat import Harmonic
+            harmonic_name = "Gartley"
+            extremum_window = 6
+            extremum_mode = 1
+            time_range = 5
+            price_time_range_alpha = 1
+
+            self.algorithm = Harmonic(data, harmonic_name, extremum_window, extremum_mode, time_range,
+                                      price_time_range_alpha)
 
         # ReEntrance Section
         if repairment_name == 'ReEntrance':
@@ -250,11 +266,13 @@ class InstanceConfig:
         if recovery_name == 'Basic':
             from AlgorithmsOfRecovery.RecoveryAlgorithm import Recovery
             window_size = 20
-            price_alpha = 1.5
-            tp_mode = 1     # 1 : alpha mode, 2 : fix tp mode
+            # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha
+            # volume mode : 1 : const alpha , 2 : base on pre candle, 3 : base on summation, 4 : base on pre open price
+            price_alpha = 2
+            tp_mode = 1
             tp_alpha = 0.66  # 0 < x < 1
-            fix_tp = 200    # in point
-            volume_mode = 3     # 1 : const alpha , 2 : base on pre candle, 3 : base on summation
+            fix_tp = 200  # in point
+            volume_mode = 3
             volume_alpha = 1.7
             fib_enable = False
 
@@ -263,42 +281,50 @@ class InstanceConfig:
         elif recovery_name == 'Candle':
             from AlgorithmsOfRecovery.CandleRecoveryAlgorithm import CandleRecovery
             window_size = 20
-            tp_mode = 2     # 1 : alpha mode, 2 : fix tp mode
+            # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha
+            # volume mode : 1 : const alpha , 2 : base on pre candle, 3 : base on summation, 4 : base on pre open price
+            tp_mode = 2  # 1 : alpha mode, 2 : fix tp mode
             tp_alpha = 0.7  # 0 < x < 1
             fix_tp = 0  # in point
-            volume_mode = 3  # 1 : const alpha , 2 : base on pre candle, 3 : base on summation
+            volume_mode = 3
             volume_alpha = 2
 
             self.recovery_algorithm = CandleRecovery(symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode,
                                                      volume_alpha)
         elif recovery_name == 'Signal':
             from AlgorithmsOfRecovery.SignalRecoveryAlgorithm import SignalRecovery
-            from Algorithms.HLSI import HighLowSimpleIdea
+            from Algorithms.HLB import HighLowBreak
             window = 1
-            mode = 1  # mode 1 : On Open , mode 2 : On Open With Shadow Condition
-            s_r_algorithm = HighLowSimpleIdea(symbol, data, window, mode)
-            # tp mode : 1 : const TP, 2 : dynamic tp(candle) , 3 : dynamic tp(extremum), 4 : profit tp
+            pivot = 1
+
+            s_r_algorithm = HighLowBreak(symbol, data, window, pivot)
+            # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha, 4 : base on volume*price
+            # volume mode : 1 : const alpha , 2 : base on pre candle, 3 : base on summation, 4 : base on pre open price,
+            # 5 : base on pre open price with len open positions , 6 : base on len positions and first volume
             window_size = 50
-            alpha_volume = 8
-            tp_mode = 1
-            const_tp = 100
+            tp_mode = 4
+            fix_tp = 100
+            tp_alpha = 0.6
+            volume_mode = 6
+            volume_alpha = 3
             price_th = 200
-            self.recovery_algorithm = SignalRecovery(symbol, data, window_size, alpha_volume, const_tp,
-                                                     price_th, s_r_algorithm, tp_mode)
+
+            self.recovery_algorithm = SignalRecovery(symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode,
+                                                     volume_alpha, price_th, s_r_algorithm)
 
         # Algorithm Of Exit Section
         data = copy.deepcopy(data)
         self.close_mode = close_mode  # 'tp_sl', 'trailing', 'both'
         if tp_sl_name == 'Fix':
             from AlgorithmsOfExit.TpSl.Fix import Fix
-            fix_tp = 200  # it can be disable if value equal to 0 (in point)
-            fix_sl = 200  # it can be disable if value equal to 0 (int point)
+            fix_tp = 100  # it can be disable if value equal to 0 (in point)
+            fix_sl = 100  # it can be disable if value equal to 0 (int point)
 
             self.tp_sl_tool = Fix(symbol, fix_tp, fix_sl)
         elif tp_sl_name == 'Body':
             from AlgorithmsOfExit.TpSl.Body import Body
             window = 30
-            alpha = 1
+            alpha = 2
             mode = 1  # 1: body candle, 2: total candle
             tp_disable = False
             sl_disable = True
@@ -316,8 +342,8 @@ class InstanceConfig:
             from AlgorithmsOfExit.TpSl.Wave import Wave
             extremum_window = 3
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
-            alpha = 2
-            beta = 2
+            alpha = 0.4
+            beta = 0.4
 
             self.tp_sl_tool = Wave(data, extremum_window, extremum_mode, alpha, beta)
 

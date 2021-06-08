@@ -8,7 +8,7 @@ class ChartConfig:
     start_date = "01.02.2017 00:00:00.000"
     end_date = "01.01.2021 00:00:00.000"
     holidays_show = False
-    secondary_fig_height = 300
+    secondary_fig_height = 200
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression']
     visualizer = 'Indicator'
 
@@ -52,7 +52,7 @@ class ChartConfig:
             self.visualizer = SupportResistanceVisualizer(data, extremum_mode, extremum_window, num_sections)
         elif visualizer == 'Indicator':
             from Visualization.IndicatorVisualizer import IndicatorVisualizer
-            indicator_names = ['macd']
+            indicator_names = ['macd', 'rsi']
             heikin_data_level = 0
             extremum_enable = False
             extremum_window = 2

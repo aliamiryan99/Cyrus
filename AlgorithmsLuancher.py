@@ -311,6 +311,8 @@ class BackTestLauncher:
     def algorithm_execute(self, history, signal, price, data_time, symbol, take_profit_buy, stop_loss_buy,
                           take_profit_sell, stop_loss_sell, volume):
         config = self.configs[symbol]
+        if config.max_volume_enable:
+            volume = min(volume, config.max_volume_value)
         if signal == 1:  # buy signal
             if config.multi_position or \
                     (not config.multi_position and self.market.get_open_buy_positions_count(symbol) == 0):

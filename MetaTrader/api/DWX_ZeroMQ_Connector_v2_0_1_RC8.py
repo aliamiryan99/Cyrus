@@ -522,30 +522,30 @@ class DWX_ZeroMQ_Connector():
 
                         # If Data is returned, store as pandas Series
                         if msg != '' and msg != None:
-                            try:
-                                _data = eval(msg)
-                                if '_action' in _data and _data['_action'] == 'HIST':
-                                    _symbol = _data['_symbol']
-                                    if '_data' in _data.keys():
-                                        if _symbol not in self._History_DB.keys():
-                                            self._History_DB[_symbol] = {}
-                                        self._History_DB[_symbol] = _data['_data']
-                                    else:
-                                        print('No Data found. MT4 often needs multiple requests when accessing Data of symbols without open charts.')
-                                        print('message: ' + msg)
+                            # try:
+                            _data = eval(msg)
+                            if '_action' in _data and _data['_action'] == 'HIST':
+                                _symbol = _data['_symbol']
+                                if '_data' in _data.keys():
+                                    if _symbol not in self._History_DB.keys():
+                                        self._History_DB[_symbol] = {}
+                                    self._History_DB[_symbol] = _data['_data']
+                                else:
+                                    print('No Data found. MT4 often needs multiple requests when accessing Data of symbols without open charts.')
+                                    print('message: ' + msg)
 
-                                # invokes Data handlers on pull port
-                                for hnd in self._pulldata_handlers:
-                                    hnd.onPullData(_data)
+                            # invokes Data handlers on pull port
+                            for hnd in self._pulldata_handlers:
+                                hnd.onPullData(_data)
 
-                                self._thread_data_output = _data
-                                if self._verbose:
-                                    print(_data) # default logic
+                            self._thread_data_output = _data
+                            if self._verbose:
+                                print(_data)  # default logic
 
-                            except Exception as ex:
-                                _exstr = "Exception Type {0}. Args:\n{1!r}"
-                                _msg = _exstr.format(type(ex).__name__, ex.args)
-                                print(_msg)
+                            # except Exception as ex:
+                            #     _exstr = "Exception Type {0}. Args:\n{1!r}"
+                            #     _msg = _exstr.format(type(ex).__name__, ex.args)
+                            #     print(_msg)
 
                 else:
                     print('\r[KERNEL] NO HANDSHAKE on PULL SOCKET.. Cannot READ Data.', end='', flush=True)

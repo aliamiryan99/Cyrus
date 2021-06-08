@@ -17,7 +17,7 @@ account_management_list = ['Balance', 'Risk']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ["EURUSD", "GBPUSD", "AUDUSD", "XAUUSD"]
+    symbols = ['EURUSD', 'AUDUSD', 'GBPUSD', 'XAUUSD']
     management_ratio = [20, 10, 10, 10]
     history_size = 200
     algorithm_time_frame = "H4"
@@ -44,6 +44,8 @@ class InstanceConfig:
         self.algorithm_virtual_signal = False  # if true algorithm positions don't executed (only re_entrance)
         self.enable_max_trade_per_candle = True  # if true only max_trade_per_candle can be placed on one candle
         self.max_trade_per_candle = 2  # if 1 only 1 trade can be placed for each candle
+        self.max_volume_enable = True   # if True then max allowed lot size for algorithm trade is max volume value
+        self.max_volume_value = 100
 
         # Select Algorithm
         data = copy.deepcopy(data)

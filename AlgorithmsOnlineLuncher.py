@@ -54,6 +54,10 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         # Shared Variables
         Variables.config = Config
 
+        # Symbols Spread Convert To Price Value
+        for key in Config.spreads.keys():
+            Config.spreads[key] *= 10 ** -Config.symbols_pip[key]
+
         # Get Historical Data
         self.management_ratio = InstanceConfig.management_ratio
         self.algorithm_time_frame = InstanceConfig.algorithm_time_frame
@@ -157,9 +161,10 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             for item in self._trailing_histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
             if trailing_time_frame != self.trailing_time_frame:
-                self._trailing_histories[symbol] = self.aggregate_data(self._trailing_histories[symbol], self.trailing_time_frame)
-            self._trailing_time_identifiers[symbol] = Functions.get_time_id(self._trailing_histories[symbol][-1]['Time'],
+                self._trailing_histories[symbol] = self.aggregate_data(self._trailing_histories[symbol],
                                                                        self.trailing_time_frame)
+            self._trailing_time_identifiers[symbol] = Functions.get_time_id(self._trailing_histories[symbol][-1]['Time'],
+                                                                            self.trailing_time_frame)
 
         self._zmq._DWX_MTX_CLOSE_ALL_TRADES_()
         self.balance = self._reporting._get_balance()
@@ -167,8 +172,6 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         for symbol in self._symbols:
             print(symbol)
             print(pd.DataFrame(self._histories[symbol][-10:]))
-            print("Trailing")
-            print(pd.DataFrame(self._trailing_histories[symbol][-10:]))
         print("_________________________________________________________________________")
 
         # lock for acquire/release of ZeroMQ connector
@@ -184,60 +187,67 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         """
         Callback to process new Data received through the PULL port
         """
-        if data['_action'] == 'GET_BALANCE':
-            self.balance = list(data['_balance'])[0]
-        if data['_action'] == 'GET_EQUITY':
-            self.equity = list(data['_equity'])[0]
-        if data['_action'] == 'EXECUTION':
-            data['_open_time'] = datetime.strptime(data['_open_time'], Config.date_order_format)
-            symbol = data['_symbol']
-            self.re_entrance_sent[symbol] = False
-            if data['_type'] == 0:  # buy
-                data['_type'] = 'Buy'
-                data = self.convert_open_position(data)
-                self.open_buy_trades[symbol].append(data)
-                self.trade_buy_in_candle_counts[symbol] += 1
-                self.take_recovery_signal(symbol, data, 'Buy')
-            elif data['_type'] == 1:  # sell
-                data['_type'] = 'Sell'
-                data = self.convert_open_position(data)
-                self.open_sell_trades[data['Symbol']].append(data)
-                self.trade_sell_in_candle_counts[data['Symbol']] += 1
-                self.take_recovery_signal(symbol, data, 'Sell')
-            if self.is_algorithm_signal[data['Symbol']]:
-                self.last_algorithm_signal_ticket[data['Symbol']] = data['Ticket']
-            self.is_algorithm_signal[data['Symbol']] = False
-            print("Order Executed : ")
+        if '_action' in list(data.keys()):
+            if data['_action'] == 'GET_BALANCE':
+                self.balance = list(data['_balance'])[0]
+            elif data['_action'] == 'GET_EQUITY':
+                self.equity = list(data['_equity'])[0]
+            elif data['_action'] == 'EXECUTION':
+                data['_open_time'] = datetime.strptime(data['_open_time'], Config.date_order_format)
+                symbol = data['_symbol']
+                self.re_entrance_sent[symbol] = False
+                if data['_type'] == 0:  # buy
+                    data['_type'] = 'Buy'
+                    data = self.convert_open_position(data)
+                    self.open_buy_trades[symbol].append(data)
+                    self.trade_buy_in_candle_counts[symbol] += 1
+                    self.take_recovery_signal(symbol, data, 'Buy')
+                elif data['_type'] == 1:  # sell
+                    data['_type'] = 'Sell'
+                    data = self.convert_open_position(data)
+                    self.open_sell_trades[data['Symbol']].append(data)
+                    self.trade_sell_in_candle_counts[data['Symbol']] += 1
+                    self.take_recovery_signal(symbol, data, 'Sell')
+                if self.is_algorithm_signal[data['Symbol']]:
+                    self.last_algorithm_signal_ticket[data['Symbol']] = data['Ticket']
+                self.is_algorithm_signal[data['Symbol']] = False
+                print("Order Executed : ")
+                print(data)
+                print("________________________________________________________________________________")
+            elif data['_action'] == 'CLOSE':
+                found = False
+                if data['_response'] != 'NOT_FOUND':
+                    for trade in self.open_buy_trades[data['_symbol']]:
+                        if data['_ticket'] == trade['Ticket']:
+                            self.open_buy_trades[data['_symbol']].remove(trade)
+                            self.is_buy_closed[data['_symbol']] = True
+                            data['_open_time'] = trade['OpenTime']
+                            data['_open_price'] = trade['OpenPrice']
+                            data = self.convert_close_position(data)
+                            self.last_buy_closed[data['Symbol']] = data
+                            self.close_sent_cnt[data['Symbol']] = 0
+                            for recovery_trade in self.recovery_trades[data['Symbol']]:
+                                if recovery_trade[0]['Ticket'] == data['Ticket']:
+                                    self.recovery_trades[data['Symbol']].remove(recovery_trade)
+                            found = True
+                    if not found:
+                        for trade in self.open_sell_trades[data['_symbol']]:
+                            if data['_ticket'] == trade['Ticket']:
+                                self.open_sell_trades[data['_symbol']].remove(trade)
+                                self.is_sell_closed[data['_symbol']] = True
+                                data['_open_time'] = trade['OpenTime']
+                                data['_open_price'] = trade['OpenPrice']
+                                data = self.convert_close_position(data)
+                                self.last_sell_closed[data['Symbol']] = data
+                                self.close_sent_cnt[data['Symbol']] = 0
+                                for recovery_trade in self.recovery_trades[data['Symbol']]:
+                                    if recovery_trade[0]['Ticket'] == data['Ticket']:
+                                        self.recovery_trades[data['Symbol']].remove(recovery_trade)
+                    print("Close Order Executed : ")
+                    print(data)
+                    print("________________________________________________________________________________")
+        else:
             print(data)
-            print("________________________________________________________________________________")
-        if data['_action'] == 'CLOSE':
-            for trade in self.open_buy_trades[data['_symbol']]:
-                if data['_ticket'] == trade['Ticket']:
-                    self.open_buy_trades[data['_symbol']].remove(trade)
-                    self.is_buy_closed[data['_symbol']] = True
-                    data['_open_time'] = trade['_open_time']
-                    data['_open_price'] = trade['_open_price']
-                    data = self.convert_close_position(data)
-                    self.last_buy_closed[data['Symbol']] = data
-                    self.close_sent_cnt[data['Symbol']] = 0
-                    for recovery_trade in self.recovery_trades[data['Symbol']]:
-                        if recovery_trade[0]['Ticket'] == data['Ticket']:
-                            self.recovery_trades[data['Symbol']].remove(recovery_trade)
-            for trade in self.open_sell_trades[data['_symbol']]:
-                if data['_ticket'] == trade['_ticket']:
-                    self.open_sell_trades[data['_symbol']].remove(trade)
-                    self.is_sell_closed[data['_symbol']] = True
-                    data['_open_time'] = trade['_open_time']
-                    data['_open_price'] = trade['_open_price']
-                    data = self.convert_close_position(data)
-                    self.last_sell_closed[data['Symbol']] = data
-                    self.close_sent_cnt[data['Symbol']] = 0
-                    for recovery_trade in self.recovery_trades[data['Symbol']]:
-                        if recovery_trade[0]['Ticket'] == data['Ticket']:
-                            self.recovery_trades[data['Symbol']].remove(recovery_trade)
-            print("Close Order Executed : ")
-            print(data)
-            print("________________________________________________________________________________")
 
     ##########################################################################
     def onSubData(self, data):
@@ -261,6 +271,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         # TP_SL Section
         stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell = \
             self.tp_sl(symbol, signal, ask - bid)
+
+        # Check TP_SL
+        self.check_tp_sl(symbol, bid, ask)
 
         # Account Management Section
         volume = 0
@@ -327,6 +340,28 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
 
         return signal, price
 
+    def check_tp_sl(self, symbol, bid, ask):
+        open_buy_trades_copy = copy.copy(self.open_buy_trades[symbol])
+        for open_buy_trade in open_buy_trades_copy:
+            if open_buy_trade['TP'] != 0 and bid >= open_buy_trade['TP']:
+                print(f"TP Hit \n Buy Order : {open_buy_trade}")
+                print("________________________________________________________________________________")
+                self.open_buy_trades[symbol].remove(open_buy_trade)
+            elif open_buy_trade['SL'] != 0 and bid <= open_buy_trade['SL']:
+                print(f"SL Hit \n Buy Order : {open_buy_trade}")
+                print("________________________________________________________________________________")
+                self.open_buy_trades[symbol].remove(open_buy_trade)
+        open_sell_trades_copy = copy.copy(self.open_sell_trades[symbol])
+        for open_sell_trade in open_sell_trades_copy:
+            if open_sell_trade['TP'] != 0 and ask <= open_sell_trade['TP']:
+                print(f"TP Hit \n Sell Order : {open_sell_trade}")
+                print("________________________________________________________________________________")
+                self.open_sell_trades[symbol].remove(open_sell_trade)
+            if open_sell_trade['SL'] != 0 and ask >= open_sell_trade['SL']:
+                print(f"SL Hit \n Sell Order : {open_sell_trade}")
+                print("________________________________________________________________________________")
+                self.open_sell_trades[symbol].remove(open_sell_trade)
+
     def tp_sl(self, symbol, signal, spread):
         stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell = 0, 0, 0, 0, 0
         if signal == 1 or signal == -1:
@@ -342,6 +377,8 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
 
     def algorithm_execute(self, signal, price, time, symbol, volume, take_profit_buy, stop_loss_buy, take_profit_sell,
                           stop_loss_sell, bid):
+        if self.configs[symbol].max_volume_enable:
+            volume = min(volume, self.configs[symbol].max_volume_value)
         if signal == 1:  # buy signal
             if self.configs[symbol].multi_position or\
                     (not self.configs[symbol].multi_position and len(self.open_buy_trades[symbol]) == 0):
@@ -372,7 +409,8 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                             symbol] < self.configs[symbol].max_trade_per_candle):
                     region_price = self.configs[symbol].force_region * 10 ** -Config.symbols_pip[symbol]
                     if not self.configs[symbol].algorithm_force_price or \
-                            (self.configs[symbol].algorithm_force_price and price - region_price <= bid <= price + region_price):
+                            (self.configs[symbol].algorithm_force_price and price - region_price <= bid <= price +
+                             region_price):
                         if not self.configs[symbol].algorithm_virtual_signal:
                             print(f"Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
                             print("________________________________________________________________________________")
@@ -402,7 +440,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                                 print(
                                     "________________________________________________________________________________")
                                 self.close_sent_cnt[symbol] += 1
-                                self.close(position['_ticket'])
+                                self.close(position['Ticket'])
                                 if self.close_sent_cnt[symbol] > 15:
                                     self.open_buy_trades[symbol].remove(position)
                                     self.close_sent_cnt[symbol] = 0
@@ -490,7 +528,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
 
             volume = 0
             if signal_re_entrance == 1 or signal_re_entrance == -1:
-                volume = max(round(self._account_managements[symbol].calculate(self.balance, symbol), 2), 0.01)
+                volume = max(round(self._account_managements[symbol].calculate(self.balance, symbol, price_re_entrance,
+                                                                               stop_loss),
+                                   Config.volume_digit), 10 ** -Config.volume_digit)
 
             if signal_re_entrance == 1:  # re entrance buy signal
                 if self.configs[symbol].multi_position or\
@@ -584,17 +624,33 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
 
     @staticmethod
     def convert_open_position(mt_position):
-        return {'Symbol': mt_position['_symbol'], 'OpenTime': mt_position['_open_time'],
-                'OpenPrice': mt_position['_open_price'], 'TP': mt_position['_tp'],
-                'SL': mt_position['_sl'], 'Volume': mt_position['_volume'],
-                'Ticket': mt_position['_ticket'], 'Type': mt_position['_type']}
+        position = {'Symbol': mt_position['_symbol'], 'OpenTime': mt_position['_open_time'],
+                    'OpenPrice': mt_position['_open_price'], 'Volume': mt_position['_volume'],
+                    'Ticket': mt_position['_ticket'], 'Type': mt_position['_type']}
+        if '_tp' in list(mt_position.keys()):
+            position['TP'] = mt_position['_tp']
+        else:
+            position['TP'] = 0
+        if '_sl' in list(mt_position.keys()):
+            position['SL'] = mt_position['_sl']
+        else:
+            position['SL'] = 0
+        return position
 
     @staticmethod
     def convert_close_position(mt_position):
-        return {'Symbol': mt_position['_symbol'], 'OpenTime': mt_position['_open_time'],
-                'OpenPrice': mt_position['_open_price'], 'CloseTime': mt_position['_close_time'],
-                'ClosePrice': mt_position['_close_price'], 'TP': mt_position['_take_profit'],
-                'SL': mt_position['_stop_loss'], 'Volume': mt_position['_volume'], 'Ticket': mt_position['_ticket']}
+        position = {'Symbol': mt_position['_symbol'], 'OpenTime': mt_position['_open_time'],
+                    'OpenPrice': mt_position['_open_price'], 'CloseTime': mt_position['_close_time'],
+                    'ClosePrice': mt_position['_close_price'], 'Volume': mt_position['_close_lots'], 'Ticket': mt_position['_ticket']}
+        if '_take_profit' in list(mt_position.keys()):
+            position['TP'] = mt_position['_take_profit']
+        else:
+            position['TP'] = 0
+        if '_stop_loss' in list(mt_position.keys()):
+            position['SL'] = mt_position['_stop_loss']
+        else:
+            position['SL'] = 0
+        return position
 
     @staticmethod
     def update_candle_with_candle(candle, sub_candle):

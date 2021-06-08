@@ -4,7 +4,7 @@ class Config:
     DEBUG = False
     time_frame = "M1"
     time_frame_show = "D"
-    balance = 100000
+    balance = 10000
     leverage = 100
 
     # in point
@@ -12,8 +12,9 @@ class Config:
                'AUDUSD': 30, 'XAUUSD': 50, 'XAGUSD': 50, 'US30USD': 60, 'USATECHUSD': 100, 'US500USD': 100}
 
     volume_digit = 2    # for example 2 -> at least 0.01 lot
+    max_volume = 200
     start_date = "01.02.2017 00:00:00.000"
-    end_date = "01.01.2021 00:00:00.000"
+    end_date = "01.03.2021 00:00:00.000"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
 
     symbols_dict = {'EURUSD': 0, 'GBPUSD': 1, 'NZDUSD': 2, 'USDCAD': 3, 'USDCHF': 4, 'USDJPY': 5, 'AUDUSD': 6,
