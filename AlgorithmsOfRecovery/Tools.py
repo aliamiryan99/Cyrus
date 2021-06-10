@@ -1,6 +1,9 @@
 
 from Shared.Variables import Variables
 
+import operator as op
+from functools import reduce
+
 
 def calc_volume(open_positions, mode, volume_alpha, fix_tp, history):
     volume = 0
@@ -21,6 +24,8 @@ def calc_volume(open_positions, mode, volume_alpha, fix_tp, history):
                  * (len(open_positions) + 1)
     elif mode == 6:
         volume = open_positions[0]['Volume'] * (len(open_positions) + 1)
+    elif mode == 7:
+        volume = open_positions[0]['Volume'] * ncr(3, len(open_positions))
     return volume
 
 
@@ -44,3 +49,11 @@ def calc_tp(open_positions, price, volume, mode, tp_alpha, fix_tp):
         symbol = open_positions[0]['Symbol']
         tp = abs((vp_sum/v_sum) - price) + Variables.config.spreads[symbol] * 2
     return tp
+
+
+def ncr(n, r):
+    r = min(r, n-r)
+    numer = reduce(op.mul, range(n, n-r, -1), 1)
+    denom = reduce(op.mul, range(1, r+1), 1)
+    return numer // denom  # or / in Python 2
+

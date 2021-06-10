@@ -3,14 +3,14 @@
 class ChartConfig:
 
     symbol = "EURUSD"
-    time_frame = "H4"
+    time_frame = "D"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.02.2017 00:00:00.000"
     end_date = "01.01.2021 00:00:00.000"
     holidays_show = False
     secondary_fig_height = 200
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression']
-    visualizer = 'Indicator'
+    visualizer = 'SupportResistance'
 
     def __init__(self, data, visualizer):
 

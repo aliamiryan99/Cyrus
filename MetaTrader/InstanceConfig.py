@@ -12,9 +12,9 @@ class InstanceConfig:
 
     algorithm_name = 'SimpleIdea'
     repairment_name = 'ReEntrance'
-    recovery_name = 'Basic'
-    close_mode = 'trailing'
-    tp_sl_name = 'Fix'
+    recovery_name = 'Signal'
+    close_mode = 'tp_sl'
+    tp_sl_name = 'Body'
     trailing_name = 'Basic'
     account_management_name = 'Balance'
 
@@ -22,8 +22,8 @@ class InstanceConfig:
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = True  # re entrance strategy
-        self.recovery_enable = False  # recovery strategy
+        self.re_entrance_enable = False  # re entrance strategy
+        self.recovery_enable = True  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
@@ -307,7 +307,7 @@ class InstanceConfig:
             tp_alpha = 0.6
             volume_mode = 6
             volume_alpha = 3
-            price_th = 200
+            price_th = 20
 
             self.recovery_algorithm = SignalRecovery(symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode,
                                                      volume_alpha, price_th, s_r_algorithm)
@@ -324,7 +324,7 @@ class InstanceConfig:
         elif tp_sl_name == 'Body':
             from AlgorithmsOfExit.TpSl.Body import Body
             window = 30
-            alpha = 2
+            alpha = 3
             mode = 1  # 1: body candle, 2: total candle
             tp_disable = False
             sl_disable = True

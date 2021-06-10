@@ -1,4 +1,6 @@
-from Simulation.Config import Config
+
+
+from Shared.Variables import Variables
 from AlgorithmsOfRecovery import Tools
 
 
@@ -13,12 +15,12 @@ class SignalRecovery:
         self.algorithm = algorithm
         self.tp_mode = tp_mode
         self.tp_alpha = tp_alpha
-        self.fix_tp = fix_tp * 10 ** -Config.symbols_pip[self.symbol]
+        self.fix_tp = fix_tp * 10 ** -Variables.config.symbols_pip[self.symbol]
         self.signal = 0
         self.price = 0
         self.tick_signal = 0
         self.tick_price = 0
-        self.price_th = price_th * 10 ** -Config.symbols_pip[symbol]
+        self.price_th = price_th * 10 ** -Variables.config.symbols_pip[symbol]
         self.history = data[-window_size:]
         self.position_type = {}
         self.limit_price = {}

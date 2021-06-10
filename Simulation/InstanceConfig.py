@@ -17,18 +17,18 @@ account_management_list = ['Balance', 'Risk']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['EURUSD', 'AUDUSD', 'GBPUSD', 'XAUUSD']
-    management_ratio = [20, 10, 10, 10]
+    symbols = ['US30USD']
+    management_ratio = [2]
     history_size = 200
-    algorithm_time_frame = "H4"
-    trailing_time_frame = "H4"
-    tag = "Multi Symbol"
+    algorithm_time_frame = "D"
+    trailing_time_frame = "D"
+    tag = "US30USD"
 
-    algorithm_name = 'MonotoneExtremum'
+    algorithm_name = 'SimpleIdea'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
-    close_mode = 'tp_sl'
-    tp_sl_name = 'Body'
+    close_mode = 'trailing'
+    tp_sl_name = 'Extremum'
     trailing_name = 'Basic'
     account_management_name = 'Balance'
 
@@ -36,8 +36,8 @@ class InstanceConfig:
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = False  # re entrance strategy
-        self.recovery_enable = True  # recovery strategy
+        self.re_entrance_enable = True  # re entrance strategy
+        self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
@@ -45,7 +45,7 @@ class InstanceConfig:
         self.enable_max_trade_per_candle = True  # if true only max_trade_per_candle can be placed on one candle
         self.max_trade_per_candle = 2  # if 1 only 1 trade can be placed for each candle
         self.max_volume_enable = True   # if True then max allowed lot size for algorithm trade is max volume value
-        self.max_volume_value = 100
+        self.max_volume_value = 50
 
         # Select Algorithm
         data = copy.deepcopy(data)
@@ -55,7 +55,7 @@ class InstanceConfig:
             si_win_dec = 2
             si_shadow_threshold = 10
             si_body_threshold = 0
-            si_mode = 1  # mode 1 : Simlpe , mode 2 : average condition , mode 3 : impulse condition
+            si_mode = 1  # mode 1 : simple , mode 2 : average condition , mode 3 : impulse condition
             si_mean_window = 20
             si_extremum_window = 1
             si_extremum_mode = 2
@@ -313,12 +313,13 @@ class InstanceConfig:
             s_r_algorithm = HighLowBreak(symbol, data, window, pivot)
             # tp mode : 1 : fix TP, 2 : fix tp * len positions , 3 : base on tp alpha, 4 : base on volume*price
             # volume mode : 1 : const alpha , 2 : base on pre candle, 3 : base on summation, 4 : base on pre open price,
-            # 5 : base on pre open price with len open positions , 6 : base on len positions and first volume
+            # 5 : base on pre open price with len open positions , 6 : base on len positions and first volume,
+            # 7 : combination numbers
             window_size = 50
             tp_mode = 4
             fix_tp = 100
             tp_alpha = 0.6
-            volume_mode = 6
+            volume_mode = 7
             volume_alpha = 3
             price_th = 200
 
@@ -340,7 +341,7 @@ class InstanceConfig:
             alpha = 2
             mode = 1  # 1: body candle, 2: total candle
             tp_disable = False
-            sl_disable = True
+            sl_disable = False
 
             self.tp_sl_tool = Body(window, alpha, mode, tp_disable, sl_disable)
         elif tp_sl_name == 'Extremum':

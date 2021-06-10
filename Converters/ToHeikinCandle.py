@@ -2,6 +2,7 @@ from Simulation.Config import Config
 from Converters.Tools import *
 from AlgorithmTools.HeikinCandle import HeikinConverter
 
+
 def convert_to_heiking(data):
     heikin_converter = HeikinConverter(data[0])
 

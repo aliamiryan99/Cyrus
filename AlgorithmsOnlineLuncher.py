@@ -105,6 +105,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         self.recovery_signal_sent = {}
         self.recovery_trades_index = {}
         self.recovery_modify_list = {}
+        self.ask, self.bid = {}, {}
         for i in range(len(_symbols)):
             symbol =_symbols[i]
             self._zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
@@ -150,6 +151,8 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             self.recovery_trades_index[symbol] = -1
             self.recovery_modify_list[symbol] = []
             self.configs[symbol] = instance_config
+            self.ask[symbol] = 0
+            self.bid[symbol] = 0
 
         for i in range(len(_symbols)):
             symbol = _symbols[i]
@@ -260,6 +263,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         time, bid, ask = msg.split(';')
         bid = float(bid)
         ask = float(ask)
+        self.ask[symbol], self.bid[symbol] = ask, bid
         max_bid_tick_price = max(bid, self.pre_bid_tick_price[symbol])
         min_bid_tick_price = min(bid, self.pre_bid_tick_price[symbol])
         self.pre_bid_tick_price[symbol] = bid
@@ -565,6 +569,8 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                 if recovery_signal['Signal'] == 1:
                     if recovery_signal['TP'] != 0:
                         recovery_signal['TP'] *= 10 ** Config.symbols_pip[symbol]
+                    print(f"Recovery Buy Order Sent [{symbol}], [{recovery_signal['Volume']}], [{recovery_signal['TP']}], 0")
+                    print("________________________________________________________________________________")
                     self.buy(symbol, recovery_signal['Volume'], recovery_signal['TP'], 0)
                     self.recovery_signal_sent[symbol] = True
                     self.recovery_trades_index[symbol] = i
@@ -573,6 +579,8 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                 elif recovery_signal['Signal'] == -1:
                     if recovery_signal['TP'] != 0:
                         recovery_signal['TP'] *= -10 ** Config.symbols_pip[symbol]
+                    print(f"Recovery Sell Order Sent [{symbol}], [{recovery_signal['Volume']}], [{recovery_signal['TP']}], 0")
+                    print("________________________________________________________________________________")
                     self.sell(symbol, recovery_signal['Volume'], recovery_signal['TP'], 0)
                     self.recovery_signal_sent[symbol] = True
                     self.recovery_trades_index[symbol] = i
@@ -590,12 +598,21 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
     def take_recovery_signal(self, symbol, data, type):
         if self.recovery_signal_sent[symbol]:
             self.recovery_trades[symbol][self.recovery_trades_index[symbol]].append(data)
+            recovery_trades = self.recovery_trades[symbol][self.recovery_trades_index[symbol]]
+            print("Modifying ...")
             for modify_signal in self.recovery_modify_list[symbol]:
                 if modify_signal['TP'] != 0:
+                    open_price = 0
+                    for trade in recovery_trades:
+                        if modify_signal['Ticket'] == trade['Ticket']:
+                            open_price = trade['OpenPrice']
+                    modify_signal['TP'] -= open_price - data['OpenPrice']
                     modify_signal['TP'] *= 10 ** Config.symbols_pip[symbol]
                     if type == 'Sell':
                         modify_signal['TP'] *= -1
+                print(f"Modify [{modify_signal['Ticket']}], [{modify_signal['TP']}]")
                 self.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
+            self.recovery_signal_sent[symbol] = False
         elif self.configs[symbol].recovery_enable:
             self.recovery_trades[symbol].append([data])
 
