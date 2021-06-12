@@ -589,8 +589,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             recovery_trades_copy = copy.copy(self.recovery_trades[symbol])
             for i in range(len(recovery_trades_copy)):
                 if (recovery_trades_copy[i][0]['Type'] == 'Buy' and
-                    bid > recovery_trades_copy[i][0]['TP'] != 0) or \
-                        (recovery_trades_copy[i][0]['Type'] == 'Sell' and ask < recovery_trades_copy[i][0]['TP'] != 0):
+                    bid >= recovery_trades_copy[i][-1]['TP'] != 0) or \
+                        (recovery_trades_copy[i][0]['Type'] == 'Sell' and ask <= recovery_trades_copy[i][-1]['TP'] != 0):
+                    print(f"Recovery Trade TP Touched {recovery_trades_copy[i][0]}")
                     self._recovery_algorithms[symbol].tp_touched(recovery_trades_copy[i][0]['Ticket'])
                     self.recovery_trades[symbol].remove(recovery_trades_copy[i])
             self._recovery_algorithms[symbol].on_tick_end()

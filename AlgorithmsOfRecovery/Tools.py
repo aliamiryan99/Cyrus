@@ -47,7 +47,7 @@ def calc_tp(open_positions, price, volume, mode, tp_alpha, fix_tp):
         vp_sum += price * volume
         v_sum += volume
         symbol = open_positions[0]['Symbol']
-        tp = abs((vp_sum/v_sum) - price) + Variables.config.spreads[symbol] * 2
+        tp = abs((vp_sum/v_sum) - price) + Variables.config.spreads[symbol] * tp_alpha
     return tp
 
 

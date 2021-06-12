@@ -318,13 +318,17 @@ class InstanceConfig:
             window_size = 50
             tp_mode = 4
             fix_tp = 100
-            tp_alpha = 0.6
-            volume_mode = 7
+            tp_alpha = 1
+            volume_mode = 6
             volume_alpha = 3
-            price_th = 200
+            price_th_mode = 2  # 1 : const price, 2: body candle, 3 : total candle
+            price_th = 20
+            price_th_window = 20
+            price_th_alpha = 1
 
             self.recovery_algorithm = SignalRecovery(symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode,
-                                                     volume_alpha, price_th, s_r_algorithm)
+                                                     volume_alpha, price_th_mode, price_th, price_th_window,
+                                                     price_th_alpha, s_r_algorithm)
 
         # Algorithm Of Exit Section
         data = copy.deepcopy(data)

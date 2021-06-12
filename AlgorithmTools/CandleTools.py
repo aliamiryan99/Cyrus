@@ -49,6 +49,13 @@ def get_body_mean(data, window):
     return body_mean
 
 
+def get_total_mean(data, window):
+    body_mean = 0
+    for i in range(1, window+1):
+        body_mean += abs(data[-i]['High'] - data[-1]['Low']) / window
+    return body_mean
+
+
 def update_top_bottom(top, bottom, candle):
     top, bottom = top[1:], bottom[1:]
     top = np.append(top, max(candle['Open'], candle['Close']))

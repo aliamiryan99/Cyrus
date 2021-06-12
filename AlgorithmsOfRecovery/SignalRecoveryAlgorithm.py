@@ -2,13 +2,13 @@
 
 from Shared.Variables import Variables
 from AlgorithmsOfRecovery import Tools
-
+from AlgorithmTools.CandleTools import *
 
 class SignalRecovery:
 
     # tp mode : 1 : const TP, 2 : dynamic tp(candle) , 3 : dynamic tp(extremum), 4 : profit tp
-    def __init__(self, symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode, volume_alpha, price_th,
-                 algorithm):
+    def __init__(self, symbol, data, window_size, tp_mode, fix_tp, tp_alpha, volume_mode, volume_alpha,
+                 price_th_mode, price_th, price_th_window, price_th_alpha, algorithm):
         self.symbol = symbol
         self.volume_alpha = volume_alpha
         self.volume_mode = volume_mode
@@ -20,12 +20,19 @@ class SignalRecovery:
         self.price = 0
         self.tick_signal = 0
         self.tick_price = 0
+        self.price_th_mode = price_th_mode
         self.price_th = price_th * 10 ** -Variables.config.symbols_pip[symbol]
+        self.price_th_window = price_th_window
+        self.price_th_alpha = price_th_alpha
         self.history = data[-window_size:]
         self.position_type = {}
         self.limit_price = {}
 
     def on_data(self, candle):
+        if self.price_th_mode == 2:
+            self.price_th = get_body_mean(self.history, self.price_th_window) * self.price_th_alpha
+        elif self.price_th_mode == 3:
+            self.price_th = get_total_mean(self.history, self.price_th_window) * self.price_th_alpha
         self.history.pop(0)
         self.history.append(candle)
         self.signal, self.price = self.algorithm.on_data(candle, 0)
