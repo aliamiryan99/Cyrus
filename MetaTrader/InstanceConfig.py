@@ -4,8 +4,8 @@ import copy
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ["EURUSD.I", "GBPUSD.I", "AUDUSD.I", "NZDUSD.I", "USDCAD.I", "USDCHF.I", "USDJPY.I", "XAUUSD.I"]
-    management_ratio = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    symbols = ["EURUSD.I", "GBPUSD.I", "XAUUSD.I", "XAGUSD.I"]
+    management_ratio = [0.6, 0.6, 0.6, 0.6]
     history_size = 100
     algorithm_time_frame = "M1"
     trailing_time_frame = "M1"

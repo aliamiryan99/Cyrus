@@ -249,6 +249,23 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                     print("Close Order Executed : ")
                     print(data)
                     print("________________________________________________________________________________")
+            elif data['_action'] == 'MODIFY':
+                if data['_response'] == 'FOUND':
+                    found = False
+                    for trade in self.open_buy_trades[data['_symbol']]:
+                        if data['_ticket'] == trade['Ticket']:
+                            trade['TP'] = data['_tp']
+                            trade['SL'] = data['_sl']
+                            found = True
+                            print(f"Order Modified : {trade}")
+                            print("________________________________________________________________________________")
+                    if not found:
+                        for trade in self.open_sell_trades[data['_symbol']]:
+                            if data['_ticket'] == trade['Ticket']:
+                                trade['TP'] = data['_tp']
+                                trade['SL'] = data['_sl']
+                                print(f"Order Modified : {trade}")
+                                print("________________________________________________________________________________")
         else:
             print(data)
 
@@ -591,7 +608,6 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                 if (recovery_trades_copy[i][0]['Type'] == 'Buy' and
                     bid >= recovery_trades_copy[i][-1]['TP'] != 0) or \
                         (recovery_trades_copy[i][0]['Type'] == 'Sell' and ask <= recovery_trades_copy[i][-1]['TP'] != 0):
-                    print(f"Recovery Trade TP Touched {recovery_trades_copy[i][0]}")
                     self._recovery_algorithms[symbol].tp_touched(recovery_trades_copy[i][0]['Ticket'])
                     self.recovery_trades[symbol].remove(recovery_trades_copy[i])
             self._recovery_algorithms[symbol].on_tick_end()
