@@ -1,4 +1,5 @@
 
+
 def index_date(data, date):
     start = 0
     end = len(data) - 1

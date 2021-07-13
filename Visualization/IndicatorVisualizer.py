@@ -7,6 +7,8 @@ from Indicators.RSI import RSI
 from Indicators.MA import MovingAverage
 from Indicators.Stochastic import Stochastic
 from Indicators.MACD import MACD
+from Indicators.AMA import AMA
+
 from Visualization.Tools import *
 from Visualization.BaseChart import *
 
@@ -32,23 +34,25 @@ class IndicatorVisualizer:
         self.min_indicators, self.max_indicators = [], []
         self.local_min_indicator_list, self.local_max_indicator_list = [], []
 
+        price = [d['Close'] for d in data]
+
         for indicator_name in indicator_names:
             indicators = []
-            if indicator_name == 'rsi':
-                rsi_ind = RSI(data, 14)
+            if indicator_name == 'RSI':
+                rsi_ind = RSI(price, 14)
                 self.indicators_list.append([{'df': pd.DataFrame(rsi_ind.values).rename(columns={0: 'value'}),
                                              'color': "#3362b2", 'width': 2}])
                 indicators.append(rsi_ind.values)
             elif indicator_name == 'stochastic':
-                stochastic_k = Stochastic(data, 14, 3, 3, 'K')
-                stochastic_d = Stochastic(data, 14, 3, 3, 'D')
+                stochastic_k = Stochastic(price, 14, 3, 3, 'K')
+                stochastic_d = Stochastic(price, 14, 3, 3, 'D')
                 indicators.append(stochastic_k.values)
                 indicators.append(stochastic_d.values)
                 self.indicators_list.append([{'df': pd.DataFrame(stochastic_k.values).rename(columns={0: 'value'}),
                                              'color': "#3362b2", 'width': 2},
                                              {'df': pd.DataFrame(stochastic_d.values).rename(columns={0: 'value'}),
                                              'color': "#a36232", 'width': 2}])
-            elif indicator_name == 'kdj':
+            elif indicator_name == 'KDJ':
                 kdj = KDJ(data, 13, 3)
                 k_value, d_value, j_value = kdj.get_values()
                 indicators += [k_value, d_value, j_value]
@@ -58,14 +62,20 @@ class IndicatorVisualizer:
                                               'color': "#a36232", 'width': 2},
                                              {'df': pd.DataFrame(j_value).rename(columns={0: 'value'}),
                                               'color': "#33c232", 'width': 2}])
-            elif indicator_name == 'macd':
-                macd_indicator = MACD(data, 26, 12)
+            elif indicator_name == 'MACD':
+                macd_indicator = MACD(price, 26, 12)
                 macd_value, signal_value = macd_indicator.macd_values, macd_indicator.signal_values
                 indicators += [macd_value, signal_value]
                 self.indicators_list.append([{'df': pd.DataFrame(macd_value).rename(columns={0: 'value'}),
                                               'color': "#3362b2", 'width': 2},
                                              {'df': pd.DataFrame(signal_value).rename(columns={0: 'value'}),
                                               'color': "#a36232", 'width': 2}])
+            elif indicator_name == 'AMA':
+                indicator = AMA(price, 14, 6).get_values()
+                indicators.append(indicator)
+                self.indicators_list.append([{'df': pd.DataFrame(indicator).rename(columns={0: 'value'}),
+                                              'color': '#3362b2', 'width': 2}])
+
             min_indicator, max_indicator = get_min_max_indicator(indicators)
             self.min_indicators.append(pd.DataFrame(min_indicator).rename(columns={0: 'value'}))
             self.max_indicators.append(pd.DataFrame(max_indicator).rename(columns={0: 'value'}))
@@ -107,8 +117,6 @@ class IndicatorVisualizer:
         figs = [fig]
         figs += indicator_fig_list
         show(column(figs, sizing_mode='stretch_both'))
-
-
 
 
 

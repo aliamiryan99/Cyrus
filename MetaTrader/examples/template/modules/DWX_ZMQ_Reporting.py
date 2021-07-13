@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    DWX_ZMQ_Reporting.py
+    MQTT_Reporting.py
     --
     @author: Darwinex Labs (www.darwinex.com)
     

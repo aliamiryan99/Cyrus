@@ -1,7 +1,7 @@
 
-from MetaTrader.api.DWX_ZeroMQ_Connector_v2_0_1_RC8 import DWX_ZeroMQ_Connector
-from MetaTrader.modules.DWX_ZMQ_Reporting import DWX_ZMQ_Reporting
-from MetaTrader.modules.DWX_ZMQ_Execution import DWX_ZMQ_Execution
+from MetaTrader.api.MQTT import DWX_ZeroMQ_Connector
+from MetaTrader.modules.MQTT_Reporting import DWX_ZMQ_Reporting
+from MetaTrader.modules.MQTT_Execution import DWX_ZMQ_Execution
 from MetaTrader.Config import Config
 from datetime import datetime
 
@@ -12,6 +12,7 @@ _zmq = DWX_ZeroMQ_Connector()
 _reporting = DWX_ZMQ_Reporting(_zmq)
 _executor = DWX_ZMQ_Execution(_zmq)
 
+
 def get_data(symbol, time_frame, history_size):
     _zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
                                           _timeframe=Config.timeframes_dic[time_frame],
@@ -21,6 +22,7 @@ def get_data(symbol, time_frame, history_size):
     for item in _histories:
         item['Time'] = datetime.strptime(item['Time'], Config.date_format)
     return _histories
+
 
 def get_identifier(time, time_frame):
     identifier = time.day
@@ -39,6 +41,7 @@ def get_identifier(time, time_frame):
     if time_frame == "M1":
         identifier = time.minute
     return identifier
+
 
 def aggregate_data(histories, time_frame):
     old_id = get_identifier(histories[0]['Time'], time_frame)
@@ -65,17 +68,22 @@ def take_order(type, symbol, volume, tp, sl):
     order['_SL'] = sl
     return _executor._execute_(order)
 
+
 def buy(symbol, volume, tp, sl):
     return take_order(0, symbol, volume, tp, sl)
+
 
 def sell(symbol, volume, tp, sl):
     return take_order(1, symbol, volume, tp, sl)
 
+
 def close(ticket):
     _zmq._DWX_MTX_CLOSE_TRADE_BY_TICKET_(ticket)
 
+
 def get_open_orders():
     return _reporting._get_open_trades_()
+
 
 def get_balance():
     return _reporting._get_balance()

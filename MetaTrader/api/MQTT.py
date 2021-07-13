@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    DWX_ZeroMQ_Connector_v2_0_1_RC8.py
+    MQTT.py
     --
     @author: Darwinex Labs (www.darwinex.com)
 

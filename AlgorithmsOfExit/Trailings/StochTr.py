@@ -3,13 +3,14 @@ from Indicators.Stochastic import Stochastic
 
 
 class StochasticTrailing:
-    def __init__(self, data_window,upper_band, lower_band, stoch_window):
+    def __init__(self, data_window, upper_band, lower_band, stoch_window):
         self.data_window = data_window
         self.upper_band = upper_band
         self.lower_band = lower_band
         self.stoch_window = stoch_window
 
-        self.indicator = Stochastic(data_window[:-1], stoch_window, 'K')
+        price = [d['Close'] for d in data_window[:-1]]
+        self.indicator = Stochastic(price, stoch_window, 3, 3, 'K')
 
         self.is_huge_buy = False
         self.is_huge_sell = False

@@ -23,3 +23,6 @@ class Stochastic:
             new_value = list(Series(stochrsi_k(Series([item['Close'] for item in data]), self.window)))[-1]
         self.values = np.append(self.values[1:], new_value)
 
+    def get_values(self):
+        return self.values
+

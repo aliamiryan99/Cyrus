@@ -17,18 +17,18 @@ account_management_list = ['Balance', 'Risk']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['US30USD']
-    management_ratio = [2]
-    history_size = 200
-    algorithm_time_frame = "D"
-    trailing_time_frame = "D"
-    tag = "US30USD"
+    symbols = ['EURUSD']
+    management_ratio = [10]
+    history_size = 300
+    algorithm_time_frame = "H1"
+    trailing_time_frame = "H1"
+    tag = "EURUSD"
 
-    algorithm_name = 'SimpleIdea'
+    algorithm_name = 'Divergence'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
-    close_mode = 'trailing'
-    tp_sl_name = 'Extremum'
+    close_mode = 'tp_sl'
+    tp_sl_name = 'Wave'
     trailing_name = 'Basic'
     account_management_name = 'Balance'
 
@@ -36,7 +36,7 @@ class InstanceConfig:
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = True  # re entrance strategy
+        self.re_entrance_enable = False  # re entrance strategy
         self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
@@ -89,15 +89,29 @@ class InstanceConfig:
                                                 body_threshold, mode, mean_window)
         elif algorithm_name == 'Divergence':
             from Algorithms.Div import Divergence
+            heikin_level = 0
             big_window = 5
             small_window = 3
             hidden_divergence_check_window = 15
             upper_line_tr = 0.90
             alpha = 20
             extremum_mode = 1
+            # ('RSI: Window'), ('Stochastic: Window, Smooth1, Smooth2'), ('KDJ: WindowK, WindowD'),
+            # ('MACD: WindowSlow, WindowFast'), ('AMA: Window, WindowSF')
+            indicator_params = {'Name': 'AMA', 'Window': 8, 'WindowSF': 6}
+            params_list = []
+            for i in range(6, 40):
+                params_list.append({'Name': 'AMA', 'Window': i, 'WindowSF': 6})
+            open_mode = 2       # 1 : Execute Immediately , 2 : Execute With Candle Conditions
+            optimize_enable = True
+            look_forward = 14
+            score_tr = 0.6
 
-            self.algorithm = Divergence(symbol, data, big_window, small_window, hidden_divergence_check_window,
-                                        upper_line_tr, alpha, extremum_mode)
+
+            self.algorithm = Divergence(symbol, data, params_list, indicator_params, heikin_level, big_window, small_window,
+                                        hidden_divergence_check_window, upper_line_tr, alpha, extremum_mode, open_mode,
+                                        optimize_enable, look_forward, score_tr)
+
         elif algorithm_name == 'NSoldier':
             from Algorithms.NSld import NSoldier
             window = 3
@@ -318,11 +332,11 @@ class InstanceConfig:
             window_size = 50
             tp_mode = 4
             fix_tp = 100
-            tp_alpha = 1
+            tp_alpha = 2
             volume_mode = 6
             volume_alpha = 3
-            price_th_mode = 2  # 1 : const price, 2: body candle, 3 : total candle
-            price_th = 20
+            price_th_mode = 1  # 1 : const price, 2: body candle, 3 : total candle
+            price_th = 200
             price_th_window = 20
             price_th_alpha = 1
 
@@ -345,7 +359,7 @@ class InstanceConfig:
             alpha = 2
             mode = 1  # 1: body candle, 2: total candle
             tp_disable = False
-            sl_disable = False
+            sl_disable = True
 
             self.tp_sl_tool = Body(window, alpha, mode, tp_disable, sl_disable)
         elif tp_sl_name == 'Extremum':

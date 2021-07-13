@@ -1,54 +1,10 @@
 import numpy as np
 
 
-def divergence_predict(a, b, low, high, max_indicator, min_indicator, local_min_price_left, local_min_price_right, local_max_price_left, local_max_price_right,
-                       local_min_indicator_left, local_min_indicator_right, local_max_indicator_left, local_max_indicator_right, hidden_divergence_check_window,
-                        pip_difference, upper_line_tr):
-    real_time = True
-    # --- bullish divergence
-    trend_direction = 1
-    down_direction = 0
-    [idx1, val1] = divergence_calculation(b, low, min_indicator, local_min_price_left, local_min_price_right, local_min_indicator_left,
-                              local_min_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
-                              pip_difference, upper_line_tr, real_time)
-
-    trend_direction = 1
-    down_direction = 1
-    [idx2, val2] = divergence_calculation(b, low, min_indicator, local_min_price_left, local_min_price_right, local_min_indicator_left,
-                              local_min_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
-                              pip_difference, upper_line_tr, real_time)
-
-    # --- bearish divergence
-    trend_direction = 0
-    down_direction = 0
-    [idx3, val3] = divergence_calculation(a, high, max_indicator, local_max_price_left, local_max_price_right, local_max_indicator_left,
-                              local_max_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
-                              pip_difference, upper_line_tr, real_time)
-
-    trend_direction = 0
-    down_direction = 1
-    [idx4, val4] = divergence_calculation(a, high, max_indicator, local_max_price_left, local_max_price_right, local_max_indicator_left,
-                              local_max_indicator_right, hidden_divergence_check_window, down_direction, trend_direction,
-                              pip_difference, upper_line_tr, real_time)
-    if len(idx1) != 0:
-        if idx1[-1][0][1] >= len(a) - 2 or idx1[-1][1][1] >= len(a) - 2:
-            return 1
-    if len(idx2) != 0:
-        if idx2[-1][0][1] >= len(a) - 2 or idx2[-1][1][1] >= len(a) - 2:
-            return 1
-    if len(idx3) != 0:
-        if idx3[-1][0][1] >= len(a) - 2 or idx3[-1][1][1] >= len(a) - 2:
-            return -1
-    if len(idx4) != 0:
-        if idx4[-1][0][1] >= len(a) - 2 or idx4[-1][1][1] >= len(a) - 2:
-            return -1
-    return 0
-
-
 def divergence_calculation(ab, price, indicator, local_extremum_price_left, local_extremum_price_right,
-                       local_extremum_indicator_left, local_extremum_indicator_right, hidden_divergence_check_window,
-                       down_direction, trend_direction, pip_difference, upper_line_tr, real_time):
-
+                           local_extremum_indicator_left, local_extremum_indicator_right,
+                           hidden_divergence_check_window,
+                           down_direction, trend_direction, pip_difference, upper_line_tr, real_time):
     idx = []
     val = []
     localExtremumRng = range(0)
@@ -72,28 +28,31 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
             if trend_direction:
                 # the Bullish Divergence
                 if down_direction:
-                    if isCondToSerach and (price[local_extremum_price_left[i]] - price[local_extremum_price_right[j]]) > pip_difference:
+                    if isCondToSerach and (price[local_extremum_price_left[i]] - price[
+                        local_extremum_price_right[j]]) > pip_difference:
                         isPriceHasDiff = True
                     else:
                         isPriceHasDiff = False
                 else:
-                    if isCondToSerach and (price[local_extremum_price_right[j]] - price[local_extremum_price_left[i]]) > pip_difference:
+                    if isCondToSerach and (price[local_extremum_price_right[j]] - price[
+                        local_extremum_price_left[i]]) > pip_difference:
                         isPriceHasDiff = True
                     else:
                         isPriceHasDiff = False
             else:
                 # the Bearish Divergence
                 if down_direction:
-                    if isCondToSerach and (price[local_extremum_price_left[i]] - price[local_extremum_price_right[j]]) > pip_difference:
+                    if isCondToSerach and (price[local_extremum_price_left[i]] - price[
+                        local_extremum_price_right[j]]) > pip_difference:
                         isPriceHasDiff = True
                     else:
                         isPriceHasDiff = False
                 else:
-                    if isCondToSerach and (price[local_extremum_price_right[j]] - price[local_extremum_price_left[i]]) > pip_difference:
+                    if isCondToSerach and (price[local_extremum_price_right[j]] - price[
+                        local_extremum_price_left[i]]) > pip_difference:
                         isPriceHasDiff = True
                     else:
                         isPriceHasDiff = False
-
 
             # draw the line between two local min to see all of candles are above the line
             if isPriceHasDiff:
@@ -166,12 +125,14 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
                 # the Bullish Divergence
                 if trend_direction:
                     if down_direction:
-                        if sum(indicator[Xindc[0]: Xindc[1]] > l) > upper_line_tr * l.size and indicator[Xindc[0]] < indicator[Xindc[1]]:
+                        if sum(indicator[Xindc[0]: Xindc[1]] > l) > upper_line_tr * l.size and indicator[Xindc[0]] < \
+                                indicator[Xindc[1]]:
                             isIndicatorHasALLCond = True
                         else:
                             isIndicatorHasALLCond = False
                     else:
-                        if sum(indicator[Xindc[0]: Xindc[1]] > l) > upper_line_tr * l.size and indicator[Xindc[0]] > indicator[Xindc[1]]:
+                        if sum(indicator[Xindc[0]: Xindc[1]] > l) > upper_line_tr * l.size and indicator[Xindc[0]] > \
+                                indicator[Xindc[1]]:
                             isIndicatorHasALLCond = True
                         else:
                             isIndicatorHasALLCond = False
@@ -179,12 +140,14 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
                 # the Bearish Divergence
                 else:
                     if down_direction:
-                        if sum(indicator[Xindc[0]: Xindc[1]] < l) > upper_line_tr * l.size and indicator[Xindc[0]] < indicator[Xindc[1]]:
+                        if sum(indicator[Xindc[0]: Xindc[1]] < l) > upper_line_tr * l.size and indicator[Xindc[0]] < \
+                                indicator[Xindc[1]]:
                             isIndicatorHasALLCond = True
                         else:
                             isIndicatorHasALLCond = False
                     else:
-                        if sum(indicator[Xindc[0]: Xindc[1]] < l) > upper_line_tr * l.size and indicator[Xindc[0]] > indicator[Xindc[1]]:
+                        if sum(indicator[Xindc[0]: Xindc[1]] < l) > upper_line_tr * l.size and indicator[Xindc[0]] > \
+                                indicator[Xindc[1]]:
                             isIndicatorHasALLCond = True
                         else:
                             isIndicatorHasALLCond = False
@@ -195,5 +158,100 @@ def divergence_calculation(ab, price, indicator, local_extremum_price_left, loca
                 idx.append(np.array([x, Xindc]))
                 val.append(np.array([price[x], indicator[Xindc]]))
 
+    # lines = []
+
+    # end_indexes = []
+    # for i in range(len(idx)):
+    #     end_indexes.append(idx[i][0][1])
+    # end_indexes = np.array(end_indexes)
+    # sort_idx = np.argsort(end_indexes)
+    # end_indexes = list(end_indexes[sort_idx])
+    # idx = list(np.array(idx)[sort_idx])
+    # val = list(np.array(val)[sort_idx])
+    #
+    # for i in range(len(idx)):
+    #     index = idx[i]
+    #     value = val[i]
+    #     lines.append([index[0][0], index[0][1], value[0][0], value[0][1]])
+    #
+    # scores = []
+    # for line in lines:
+    #     score = calculate_score(high, low, close, middle, line, 14)
+    #     scores.append(score)
+    #
+    # end_indexes, scores = remove_neighbors(end_indexes, scores, 4)
+    #
+    # new_scores, new_idx, new_val = [], [], []
+    # for i in range(len(scores)):
+    #     if scores[i] is not None:
+    #         new_scores.append(scores[i])
+    #         new_idx.append(idx[i])
+    #         new_val.append(val[i])
+    # scores, idx, val = new_scores, new_idx, new_val
+
     return idx, val
 
+
+def calculate_score(high, low, close, middle, line, look_forward):
+    if line[1] + look_forward <= len(close):
+        look_forward = line[1] + look_forward
+    else:
+        return 0
+
+    # evaluation of score 1 and 2
+
+    max_idx = np.argmax(high[line[1] + 1:look_forward + 1]) + line[1] + 1
+    max_price = high[max_idx]
+    min_idx = np.argmin(low[line[1] + 1:look_forward + 1]) + line[1] + 1
+    min_price = low[min_idx]
+
+    in_range_min_price = min(low[line[1] + 1:max_idx + 2])
+    in_range_max_price = max(high[line[1] + 1:min_idx + 2])
+
+    if in_range_max_price < close[line[1]]:
+        in_range_max_price = close[line[1]]
+    if in_range_min_price > close[line[1]]:
+        in_range_min_price = close[line[1]]
+
+    a = max_price - close[line[1]]
+    b = close[line[1]] - in_range_min_price
+
+    score_max = (a - b) / (a + b)
+
+    a = in_range_max_price - close[line[1]]
+    b = close[line[1]] - min_price
+
+    score_min = (a - b) / (a + b)
+
+    score1 = (max_price - close[line[1]]) * score_max / (max_price - min_price)
+    score2 = (close[line[1]] - min_price) * score_min / (max_price - min_price)
+
+    # --- sloppe approach score method
+    slope = np.diff(middle[line[1]: look_forward])
+    slope = slope / (max(slope) + 1)
+
+    n = slope.size
+    coeff = exp_coff(n) * slope
+    score3 = np.mean(coeff)
+
+    # --- drawdown vs profit
+    neg = np.min(low[line[1]: look_forward]) - close[line[1]]
+    pos = np.max(high[line[1]: look_forward]) - close[line[1]]
+    if abs(neg) > abs(pos) * 2:
+        score4 = -0.5
+    elif abs(neg) > abs(pos) * 1.5:
+        score4 = -0.25
+    elif 2 * abs(neg) < abs(pos):
+        score4 = 0.5
+    elif 1.5 * abs(neg) < abs(pos):
+        score4 = 0.25
+    else:
+        score4 = 0
+
+    # summations of scores
+    return score1 + score2 + score3 + score4
+
+
+def exp_coff(num):
+    x = np.arange(1, num + 1)
+    return 1 / x ** 0.5

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    DWX_ZMQ_Strategy.py
+    MQTT_Strategy.py
     --
     @author: Darwinex Labs (www.darwinex.com)
     

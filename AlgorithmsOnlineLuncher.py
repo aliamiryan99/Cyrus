@@ -5,7 +5,7 @@ import sys
 sys.path.append('../../..')
 
 # Import ZMQ-Strategy from relative path
-from MetaTrader.DWX_ZMQ_Strategy import DWX_ZMQ_Strategy
+from MetaTrader.MQTT_Strategy import DWX_ZMQ_Strategy
 from MetaTrader.Config import Config
 from MetaTrader.InstanceConfig import InstanceConfig
 from MetaTrader.Utility import *

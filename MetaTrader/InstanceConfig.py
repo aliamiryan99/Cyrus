@@ -4,8 +4,8 @@ import copy
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ["EURUSD.I", "GBPUSD.I", "XAUUSD.I", "XAGUSD.I"]
-    management_ratio = [0.6, 0.6, 0.6, 0.6]
+    symbols = ["EURUSD.I"]
+    management_ratio = [1, 1, 1]
     history_size = 100
     algorithm_time_frame = "M1"
     trailing_time_frame = "M1"
@@ -42,7 +42,7 @@ class InstanceConfig:
             si_win_dec = 2
             si_shadow_threshold = 10
             si_body_threshold = 0
-            si_mode = 1  # mode 1 : Simlpe , mode 2 : average condition , mode 3 : impulse condition
+            si_mode = 1  # mode 1 : Simple , mode 2 : average condition , mode 3 : impulse condition
             si_mean_window = 20
             si_extremum_window = 1
             si_extremum_mode = 2

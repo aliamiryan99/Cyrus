@@ -20,6 +20,9 @@ class MovingAverage:
         new_value = self.get_ma(price, self.ma_type, self.window)[-1]
         self.values = np.append(self.values[1:], new_value)
 
+    def get_values(self):
+        return self.values
+
     @staticmethod
     def get_price(data, price_type):
         open, high, low, close = get_ohlc(data)

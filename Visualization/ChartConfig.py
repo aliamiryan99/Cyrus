@@ -5,12 +5,12 @@ class ChartConfig:
     symbol = "EURUSD"
     time_frame = "D"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
-    start_date = "01.02.2017 00:00:00.000"
-    end_date = "01.01.2021 00:00:00.000"
+    start_date = "01.01.2019 00:00:00.000"
+    end_date = "01.03.2021 00:00:00.000"
     holidays_show = False
-    secondary_fig_height = 200
+    secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression']
-    visualizer = 'SupportResistance'
+    visualizer = 'Divergence'
 
     def __init__(self, data, visualizer):
 
@@ -20,10 +20,15 @@ class ChartConfig:
             extremum_window = 5
             asymmetric_extremum_window = 3
             asymmetric_alpha = 20
-            indicator_name = 'rsi'  # 'rsi', 'stochastic', 'kdj', 'macd'
+            hidden_divergence_check_window = 15
+            upper_line_tr = 0.90
+            # ('RSI: Window'), ('Stochastic: Window, Smooth1, Smooth2'), ('KDJ: WindowK, WindowD'),
+            # ('MACD: WindowSlow, WindowFast'), ('AMA: Window, WindowSF')
+            indicator_params = {'Name': 'AMA', 'Window': 30, 'WindowSF': 6}
 
-            self.visualizer = DivergenceVisualizer(data, heikin_data_level, indicator_name, extremum_window,
-                                                   asymmetric_extremum_window, asymmetric_alpha)
+            self.visualizer = DivergenceVisualizer(data, heikin_data_level, indicator_params, extremum_window,
+                                                   asymmetric_extremum_window, asymmetric_alpha,
+                                                   hidden_divergence_check_window, upper_line_tr)
         elif visualizer == 'Harmonic':
             from Visualization.HarmonicsVisualizer import HarmonicVisualizer
             harmonic_list = ['Gartley', 'Butterfly', 'Bat', 'Crab', 'Shark', 'Cypher', 'FiveZero', 'ThreeDrives',
@@ -52,20 +57,19 @@ class ChartConfig:
             self.visualizer = SupportResistanceVisualizer(data, extremum_mode, extremum_window, num_sections)
         elif visualizer == 'Indicator':
             from Visualization.IndicatorVisualizer import IndicatorVisualizer
-            indicator_names = ['macd', 'rsi']
+            indicator_names = ['RSI']
             heikin_data_level = 0
             extremum_enable = False
             extremum_window = 2
             extremum_mode = 1
             ma_enable = True
-            ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 10, 'color': '#2364d1', 'width': 1},
-                       {'ma_type': 'EMA', 'price_type': 'Close', 'window': 20, 'color': '#f36461', 'width': 1}]
+            ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 14, 'color': '#2364d1', 'width': 1}]
 
             self.visualizer = IndicatorVisualizer(data, indicator_names, heikin_data_level, extremum_enable,
                                                   extremum_window, extremum_mode, ma_enable, ma_list)
         elif visualizer == 'MinMax':
             from Visualization.MinMaxVisualizer import MinMaxVisualizer
-            extremum_window = 10
+            extremum_window = 1
             extremum_mode = 1
 
             self.visualizer = MinMaxVisualizer(data, extremum_window, extremum_mode)

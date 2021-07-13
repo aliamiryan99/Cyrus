@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    DWX_ZMQ_Strategy.py
+    MQTT_Strategy.py
     --
     @author: Darwinex Labs (www.darwinex.com)
     
@@ -13,9 +13,10 @@
     https://opensource.org/licenses/BSD-3-Clause
 """
 
-from MetaTrader.api.DWX_ZeroMQ_Connector_v2_0_1_RC8 import DWX_ZeroMQ_Connector
-from MetaTrader.modules.DWX_ZMQ_Execution import DWX_ZMQ_Execution
-from MetaTrader.modules.DWX_ZMQ_Reporting import DWX_ZMQ_Reporting
+from MetaTrader.api.MQTT import DWX_ZeroMQ_Connector
+from MetaTrader.modules.MQTT_Execution import DWX_ZMQ_Execution
+from MetaTrader.modules.MQTT_Reporting import DWX_ZMQ_Reporting
+
 
 class DWX_ZMQ_Strategy(object):
     
