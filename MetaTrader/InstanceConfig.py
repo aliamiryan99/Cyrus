@@ -5,12 +5,12 @@ import copy
 class InstanceConfig:
     # Hyper Parameters
     symbols = ["EURUSD.I"]
-    management_ratio = [1, 1, 1]
-    history_size = 100
+    management_ratio = [3]
+    history_size = 200
     algorithm_time_frame = "M1"
     trailing_time_frame = "M1"
 
-    algorithm_name = 'SimpleIdea'
+    algorithm_name = 'MonotoneExtremum'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'tp_sl'
@@ -129,7 +129,7 @@ class InstanceConfig:
             window = 100
 
             self.algorithm = SimpleTrendLineBreak(data, window)
-        elif algorithm_name == 'MovingAverageCross':
+        elif algorithm_name == 'CrossMovingAverage':
             from Algorithms.MACros import MovingAverageCross
             total_data_size = 100
             window_size = 14

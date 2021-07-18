@@ -54,7 +54,7 @@ class DivergenceVisualizer:
         real_time = False
         # Extract Pip Difference
         body_avg = np.mean(self.a - self.b)
-        pip_difference = body_avg * .2
+        pip_difference = body_avg * 1.5
 
         # --- bullish divergence
         trend_direction = 1

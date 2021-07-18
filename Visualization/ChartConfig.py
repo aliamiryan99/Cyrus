@@ -3,28 +3,28 @@
 class ChartConfig:
 
     symbol = "EURUSD"
-    time_frame = "D"
+    time_frame = "H4"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
-    start_date = "01.01.2019 00:00:00.000"
-    end_date = "01.03.2021 00:00:00.000"
+    start_date = "01.02.2017 00:00:00.000"
+    end_date = "30.04.2017 08:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression']
-    visualizer = 'Divergence'
+    visualizer = 'Impulse'
 
     def __init__(self, data, visualizer):
 
         if visualizer == 'Divergence':
             from Visualization.DivergenceVisualizer import DivergenceVisualizer
             heikin_data_level = 0
-            extremum_window = 5
+            extremum_window = 12
             asymmetric_extremum_window = 3
             asymmetric_alpha = 20
-            hidden_divergence_check_window = 15
+            hidden_divergence_check_window = 30
             upper_line_tr = 0.90
             # ('RSI: Window'), ('Stochastic: Window, Smooth1, Smooth2'), ('KDJ: WindowK, WindowD'),
             # ('MACD: WindowSlow, WindowFast'), ('AMA: Window, WindowSF')
-            indicator_params = {'Name': 'AMA', 'Window': 30, 'WindowSF': 6}
+            indicator_params = {'Name': 'AMA', 'Window': 6, 'WindowSF': 6}
 
             self.visualizer = DivergenceVisualizer(data, heikin_data_level, indicator_params, extremum_window,
                                                    asymmetric_extremum_window, asymmetric_alpha,

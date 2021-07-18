@@ -3,7 +3,7 @@ import copy
 
 algorithm_list = ['SimpleIdea', 'SimpleIdeaRefinement', 'SimpleIdeaModified', 'Divergence',
                   'NSoldier', 'Doji', 'HighLowBreak', 'SimpleIdeaAndDoji', 'SmiHammer', 'SimpleTrendLineBreak',
-                  'MovingAverageCross', 'SuperStrongSupportResistance', 'MonotoneExtremum', 'ExtremumTrendBreak',
+                  'CrossMovingAverage', 'SuperStrongSupportResistance', 'MonotoneExtremum', 'ExtremumTrendBreak',
                   'RefinementLearning', 'ShadowConfirmation', 'ConditionalDivergence', 'Stochastic',
                   'StrongSimpleIdea', 'HighLowSimpleIdea', 'MinMax', 'Regression', 'SharpPointDetection', 'Harmonic']
 
@@ -18,17 +18,17 @@ account_management_list = ['Balance', 'Risk']
 class InstanceConfig:
     # Hyper Parameters
     symbols = ['EURUSD']
-    management_ratio = [10]
-    history_size = 300
-    algorithm_time_frame = "H1"
-    trailing_time_frame = "H1"
+    management_ratio = [0.5]
+    history_size = 200
+    algorithm_time_frame = "M30"
+    trailing_time_frame = "M30"
     tag = "EURUSD"
 
-    algorithm_name = 'Divergence'
+    algorithm_name = 'MonotoneExtremum'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'tp_sl'
-    tp_sl_name = 'Wave'
+    tp_sl_name = 'Body'
     trailing_name = 'Basic'
     account_management_name = 'Balance'
 
@@ -37,7 +37,7 @@ class InstanceConfig:
 
         # Options
         self.re_entrance_enable = False  # re entrance strategy
-        self.recovery_enable = False  # recovery strategy
+        self.recovery_enable = True  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
@@ -90,7 +90,7 @@ class InstanceConfig:
         elif algorithm_name == 'Divergence':
             from Algorithms.Div import Divergence
             heikin_level = 0
-            big_window = 5
+            big_window = 12
             small_window = 3
             hidden_divergence_check_window = 15
             upper_line_tr = 0.90
@@ -156,7 +156,7 @@ class InstanceConfig:
             window = 100
 
             self.algorithm = SimpleTrendLineBreak(data, window)
-        elif algorithm_name == 'MovingAverageCross':
+        elif algorithm_name == 'CrossMovingAverage':
             from Algorithms.MACros import MovingAverageCross
             total_data_size = 100
             window_size = 14

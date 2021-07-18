@@ -40,14 +40,6 @@ class SimpleIdea:
             elif signal == -1:
                 if self.data_window[-1]['Close'] - self.data_window[self.local_min_price[-1]]['Low'] < self.impulse_threshold:
                     signal = 0
-            # if signal == 1:
-            #     body_mean = get_body_mean(self.data_window, len(self.data_window) - self.local_max_price[-1])
-            #     if self.data_window[self.local_max_price[-1]]['High'] - self.data_window[-1]['Close'] < self.alpha * body_mean:
-            #         signal = 0
-            # elif signal == -1:
-            #     body_mean = get_body_mean(self.data_window, len(self.data_window) - self.local_min_price[-1])
-            #     if self.data_window[-1]['Close'] - self.data_window[self.local_min_price[-1]]['Low'] < self.alpha * body_mean:
-            #         signal = 0
 
         self.data_window.pop(0)
         self.data_window.append(candle)

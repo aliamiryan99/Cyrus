@@ -94,16 +94,18 @@ class Divergence:
         self.update_indicator()
         self.update_local_extremums()
         signal = self.divergence_predict(self.a, self.b, self.low, self.high, self.max_indicator,
-                                                  self.min_indicator,
-                                                  self.local_min_price_left, self.local_min_price_right,
-                                                  self.local_max_price_left, self.local_max_price_right,
-                                                  self.local_min_indicator_left, self.local_min_indicator_right,
-                                                  self.local_max_indicator_left, self.local_max_indicator_right,
-                                                  self.hidden_divergence_check_window,
-                                                  self.pip_difference, self.upper_line_tr, self.data, self.heikin_level, self.big_win,
-                                                   self.small_win,
-                                                   self.alpha, self.params_list, self.look_forward, self.score_tr, self.big_win, self.small_win, self.alpha, self.price,
-                                                   self.optimize_enable)
+                                         self.min_indicator,
+                                         self.local_min_price_left, self.local_min_price_right,
+                                         self.local_max_price_left, self.local_max_price_right,
+                                         self.local_min_indicator_left, self.local_min_indicator_right,
+                                         self.local_max_indicator_left, self.local_max_indicator_right,
+                                         self.hidden_divergence_check_window,
+                                         self.pip_difference, self.upper_line_tr, self.data, self.heikin_level,
+                                         self.big_win,
+                                         self.small_win,
+                                         self.alpha, self.params_list, self.look_forward, self.score_tr, self.big_win,
+                                         self.small_win, self.alpha, self.price,
+                                         self.optimize_enable)
         if signal == 1:
             self.buy_trigger = True
             self.buy_limit_price = self.data[-1]['High']
@@ -189,22 +191,25 @@ class Divergence:
                                asymmetric_alpha,
                                hidden_divergence_check_window, upper_line_tr, trend_direction, down_direction,
                                params_list,
-                               look_forward, score_tr, price, big_win, small_win, alpha):
+                               look_forward, score_tr, price, big_win, small_win, alpha, min_indicator, max_indicator,
+                               local_min_indicator_left, local_max_indicator_left, local_min_indicator_right,
+                               local_max_indicator_right):
         optimizer = DivergenceOptimizer(data, heikin_data_level, extremum_window, asymmetric_extremum_window,
                                         asymmetric_alpha,
                                         hidden_divergence_check_window, upper_line_tr, trend_direction,
                                         down_direction)
         scores, best, detail_scores = optimizer.find_optimum_param(params_list, look_forward, score_tr)
 
-        indicator_params = params_list[best]
-        min_indicator, max_indicator = get_indicator(indicator_params, price)
+        if best != -1:
+            indicator_params = params_list[best]
+            min_indicator, max_indicator = get_indicator(indicator_params, price)
 
-        local_min_indicator_left, local_max_indicator_left = LocalExtermums.get_indicator_local_extermums(
-            max_indicator, min_indicator, big_win)
-        local_min_indicator_right, local_max_indicator_right = LocalExtermums.get_indicator_local_extermums_asymetric(
-            max_indicator, min_indicator, small_win, alpha)
+            local_min_indicator_left, local_max_indicator_left = LocalExtermums.get_indicator_local_extermums(
+                max_indicator, min_indicator, big_win)
+            local_min_indicator_right, local_max_indicator_right = LocalExtermums.get_indicator_local_extermums_asymetric(
+                max_indicator, min_indicator, small_win, alpha)
 
-        return min_indicator, max_indicator, local_min_indicator_left, local_max_indicator_left, local_min_indicator_right, local_max_indicator_right
+        return min_indicator, max_indicator, local_min_indicator_left, local_max_indicator_left, local_min_indicator_right, local_max_indicator_right, best
 
     def divergence_predict(self, a, b, low, high, max_indicator, min_indicator, local_min_price_left,
                            local_min_price_right,
@@ -223,74 +228,145 @@ class Divergence:
 
         if optimize_enable:
             min_indicator, max_indicator, local_min_indicator_left, local_max_indicator_left, local_min_indicator_right, \
-            local_max_indicator_right = self.get_optimize_indicator(data, heikin_data_level, extremum_window,
-                                                               asymmetric_extremum_window, asymmetric_alpha,
-                                                               hidden_divergence_check_window, upper_line_tr,
-                                                               trend_direction, down_direction, params_list,
-                                                               look_forward, score_tr, price, big_win, small_win,
-                                                               alpha)
-
-        [idx1, val1] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left, local_min_price_right,
-                                              local_min_indicator_left,
-                                              local_min_indicator_right, hidden_divergence_check_window,
-                                              down_direction,
-                                              trend_direction,
-                                              pip_difference, upper_line_tr, real_time)
+            local_max_indicator_right, best1 = self.get_optimize_indicator(data, heikin_data_level, extremum_window,
+                                                                          asymmetric_extremum_window, asymmetric_alpha,
+                                                                          hidden_divergence_check_window, upper_line_tr,
+                                                                          trend_direction, down_direction, params_list,
+                                                                          look_forward, score_tr, price, big_win,
+                                                                          small_win,
+                                                                          alpha, min_indicator, max_indicator,
+                                                                          local_min_indicator_left,
+                                                                          local_max_indicator_left,
+                                                                          local_min_indicator_right,
+                                                                          local_max_indicator_right)
+            if best1 != -1:
+                [idx1, val1] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left,
+                                                                    local_min_price_right,
+                                                                    local_min_indicator_left,
+                                                                    local_min_indicator_right, hidden_divergence_check_window,
+                                                                    down_direction,
+                                                                    trend_direction,
+                                                                    pip_difference, upper_line_tr, real_time)
+            else:
+                idx1 = []
+        else:
+            [idx1, val1] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left,
+                                                                local_min_price_right,
+                                                                local_min_indicator_left,
+                                                                local_min_indicator_right,
+                                                                hidden_divergence_check_window,
+                                                                down_direction,
+                                                                trend_direction,
+                                                                pip_difference, upper_line_tr, real_time)
 
         trend_direction = 1
         down_direction = 1
         if optimize_enable:
             min_indicator, max_indicator, local_min_indicator_left, local_max_indicator_left, local_min_indicator_right, \
-            local_max_indicator_right = self.get_optimize_indicator(data, heikin_data_level, extremum_window,
-                                                               asymmetric_extremum_window, asymmetric_alpha,
-                                                               hidden_divergence_check_window, upper_line_tr,
-                                                               trend_direction, down_direction, params_list,
-                                                               look_forward, score_tr, price, big_win, small_win,
-                                                               alpha)
-
-        [idx2, val2] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left, local_min_price_right,
-                                              local_min_indicator_left,
-                                              local_min_indicator_right, hidden_divergence_check_window,
-                                              down_direction,
-                                              trend_direction,
-                                              pip_difference, upper_line_tr, real_time)
+            local_max_indicator_right, best2 = self.get_optimize_indicator(data, heikin_data_level, extremum_window,
+                                                                          asymmetric_extremum_window, asymmetric_alpha,
+                                                                          hidden_divergence_check_window, upper_line_tr,
+                                                                          trend_direction, down_direction, params_list,
+                                                                          look_forward, score_tr, price, big_win,
+                                                                          small_win,
+                                                                          alpha, min_indicator, max_indicator,
+                                                                          local_min_indicator_left,
+                                                                          local_max_indicator_left,
+                                                                          local_min_indicator_right,
+                                                                          local_max_indicator_right)
+            if best2 != -1:
+                [idx2, val2] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left,
+                                                                    local_min_price_right,
+                                                                    local_min_indicator_left,
+                                                                    local_min_indicator_right,
+                                                                    hidden_divergence_check_window,
+                                                                    down_direction,
+                                                                    trend_direction,
+                                                                    pip_difference, upper_line_tr, real_time)
+            else:
+                idx2 = []
+        else:
+            [idx2, val2] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left,
+                                                                local_min_price_right,
+                                                                local_min_indicator_left,
+                                                                local_min_indicator_right,
+                                                                hidden_divergence_check_window,
+                                                                down_direction,
+                                                                trend_direction,
+                                                                pip_difference, upper_line_tr, real_time)
 
         # --- bearish divergence
         trend_direction = 0
         down_direction = 0
         if optimize_enable:
             min_indicator, max_indicator, local_min_indicator_left, local_max_indicator_left, local_min_indicator_right, \
-            local_max_indicator_right = self.get_optimize_indicator(data, heikin_data_level, extremum_window,
-                                                               asymmetric_extremum_window, asymmetric_alpha,
-                                                               hidden_divergence_check_window, upper_line_tr,
-                                                               trend_direction, down_direction, params_list,
-                                                               look_forward, score_tr, price, big_win, small_win,
-                                                               alpha)
-
-        [idx3, val3] = DivergencePkg.divergence_calculation(a, high, max_indicator, local_max_price_left, local_max_price_right,
-                                              local_max_indicator_left,
-                                              local_max_indicator_right, hidden_divergence_check_window,
-                                              down_direction,
-                                              trend_direction,
-                                              pip_difference, upper_line_tr, real_time)
+            local_max_indicator_right, best3 = self.get_optimize_indicator(data, heikin_data_level, extremum_window,
+                                                                          asymmetric_extremum_window, asymmetric_alpha,
+                                                                          hidden_divergence_check_window, upper_line_tr,
+                                                                          trend_direction, down_direction, params_list,
+                                                                          look_forward, score_tr, price, big_win,
+                                                                          small_win,
+                                                                          alpha, min_indicator, max_indicator,
+                                                                          local_min_indicator_left,
+                                                                          local_max_indicator_left,
+                                                                          local_min_indicator_right,
+                                                                          local_max_indicator_right)
+            if best3 != -1:
+                [idx3, val3] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left,
+                                                                    local_min_price_right,
+                                                                    local_min_indicator_left,
+                                                                    local_min_indicator_right,
+                                                                    hidden_divergence_check_window,
+                                                                    down_direction,
+                                                                    trend_direction,
+                                                                    pip_difference, upper_line_tr, real_time)
+            else:
+                idx3 = []
+        else:
+            [idx3, val3] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left,
+                                                                local_min_price_right,
+                                                                local_min_indicator_left,
+                                                                local_min_indicator_right,
+                                                                hidden_divergence_check_window,
+                                                                down_direction,
+                                                                trend_direction,
+                                                                pip_difference, upper_line_tr, real_time)
 
         trend_direction = 0
         down_direction = 1
         if optimize_enable:
             min_indicator, max_indicator, local_min_indicator_left, local_max_indicator_left, local_min_indicator_right, \
-            local_max_indicator_right = self.get_optimize_indicator(data, heikin_data_level, extremum_window,
-                                                               asymmetric_extremum_window, asymmetric_alpha,
-                                                               hidden_divergence_check_window, upper_line_tr,
-                                                               trend_direction, down_direction, params_list,
-                                                               look_forward, score_tr, price, big_win, small_win,
-                                                               alpha)
-
-        [idx4, val4] = DivergencePkg.divergence_calculation(a, high, max_indicator, local_max_price_left, local_max_price_right,
-                                              local_max_indicator_left,
-                                              local_max_indicator_right, hidden_divergence_check_window,
-                                              down_direction,
-                                              trend_direction,
-                                              pip_difference, upper_line_tr, real_time)
+            local_max_indicator_right, best4 = self.get_optimize_indicator(data, heikin_data_level, extremum_window,
+                                                                          asymmetric_extremum_window, asymmetric_alpha,
+                                                                          hidden_divergence_check_window, upper_line_tr,
+                                                                          trend_direction, down_direction, params_list,
+                                                                          look_forward, score_tr, price, big_win,
+                                                                          small_win,
+                                                                          alpha, min_indicator, max_indicator,
+                                                                          local_min_indicator_left,
+                                                                          local_max_indicator_left,
+                                                                          local_min_indicator_right,
+                                                                          local_max_indicator_right)
+            if best4 != -1:
+                [idx4, val4] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left,
+                                                                    local_min_price_right,
+                                                                    local_min_indicator_left,
+                                                                    local_min_indicator_right,
+                                                                    hidden_divergence_check_window,
+                                                                    down_direction,
+                                                                    trend_direction,
+                                                                    pip_difference, upper_line_tr, real_time)
+            else:
+                idx4 = []
+        else:
+            [idx4, val4] = DivergencePkg.divergence_calculation(b, low, min_indicator, local_min_price_left,
+                                                                local_min_price_right,
+                                                                local_min_indicator_left,
+                                                                local_min_indicator_right,
+                                                                hidden_divergence_check_window,
+                                                                down_direction,
+                                                                trend_direction,
+                                                                pip_difference, upper_line_tr, real_time)
 
         if len(idx1) != 0:
             if idx1[-1][0][1] >= len(a) - 2 or idx1[-1][1][1] >= len(a) - 2:
