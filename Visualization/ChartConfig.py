@@ -2,15 +2,15 @@
 
 class ChartConfig:
 
-    symbol = "EURUSD"
+    symbol = "GBPUSD"
     time_frame = "H4"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.02.2017 00:00:00.000"
-    end_date = "30.04.2017 08:00:00.000"
+    end_date = "01.01.2021 08:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression']
-    visualizer = 'Impulse'
+    visualizer = 'Indicator'
 
     def __init__(self, data, visualizer):
 
@@ -24,7 +24,7 @@ class ChartConfig:
             upper_line_tr = 0.90
             # ('RSI: Window'), ('Stochastic: Window, Smooth1, Smooth2'), ('KDJ: WindowK, WindowD'),
             # ('MACD: WindowSlow, WindowFast'), ('AMA: Window, WindowSF')
-            indicator_params = {'Name': 'AMA', 'Window': 6, 'WindowSF': 6}
+            indicator_params = {'Name': 'AMA', 'Window': 14, 'WindowSF': 6}
 
             self.visualizer = DivergenceVisualizer(data, heikin_data_level, indicator_params, extremum_window,
                                                    asymmetric_extremum_window, asymmetric_alpha,

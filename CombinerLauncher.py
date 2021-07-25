@@ -3,12 +3,12 @@ from Combiners.EnterPositionCombiner import EnterPositionCombiner
 
 
 # Main Parameters
-combiner = 'Backtest'
+combiner = 'EnterPosition'
 
 # BackTest Parameters
-new_time_frame = "D"
-backtests = [["H12", "H12", "M1", "SimpleIdea", "EURUSD"],
-             ["H12", "H12", "M1", "SimpleIdeaRefinement", "EURUSD"]]
+new_time_frame = "H1"
+backtests = [["H1", "H1", "M1", "SimpleIdea", "EURUSD"],
+             ["H1", "H1", "M1", "SimpleIdeaModified", "EURUSD"]]
 
 # Enter Position Parameters
 colors = ['#1254bb', '#f2ba21']

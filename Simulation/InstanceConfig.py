@@ -18,17 +18,17 @@ account_management_list = ['Balance', 'Risk']
 class InstanceConfig:
     # Hyper Parameters
     symbols = ['EURUSD']
-    management_ratio = [0.5]
+    management_ratio = [1]
     history_size = 200
-    algorithm_time_frame = "M30"
-    trailing_time_frame = "M30"
+    algorithm_time_frame = "H1"
+    trailing_time_frame = "H1"
     tag = "EURUSD"
 
-    algorithm_name = 'MonotoneExtremum'
+    algorithm_name = 'HighLowBreak'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'tp_sl'
-    tp_sl_name = 'Body'
+    tp_sl_name = 'Wave'
     trailing_name = 'Basic'
     account_management_name = 'Balance'
 
@@ -37,7 +37,7 @@ class InstanceConfig:
 
         # Options
         self.re_entrance_enable = False  # re entrance strategy
-        self.recovery_enable = True  # recovery strategy
+        self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
@@ -374,8 +374,8 @@ class InstanceConfig:
             from AlgorithmsOfExit.TpSl.Wave import Wave
             extremum_window = 3
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
-            alpha = 0.4
-            beta = 0.4
+            alpha = 0.2
+            beta = 0.2
 
             self.tp_sl_tool = Wave(data, extremum_window, extremum_mode, alpha, beta)
 
