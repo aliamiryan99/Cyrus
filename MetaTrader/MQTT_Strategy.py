@@ -24,8 +24,8 @@ class DWX_ZMQ_Strategy(object):
                  _symbols=[('EURUSD',0.01),     # List of (Symbol,Lotsize) tuples
                            ('GBPUSD',0.01)],
                  _broker_gmt=3,                 # Darwinex GMT offset
-                 _pulldata_handlers = [],       # Handlers to process Data received through PULL port.
-                 _subdata_handlers = [],        # Handlers to process Data received through SUB port.
+                 _pulldata_handlers=[],       # Handlers to process Data received through PULL port.
+                 _subdata_handlers=[],        # Handlers to process Data received through SUB port.
                  _verbose=False):               # Print ZeroMQ messages
                  
         self._name = _name

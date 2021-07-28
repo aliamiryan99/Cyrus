@@ -8,7 +8,7 @@ class Config:
     spreads = {'EURUSD': 20, 'GBPUSD': 30, 'NZDUSD': 40, 'USDCAD': 40, 'USDCHF': 30, 'USDJPY': 30,
                'AUDUSD': 30, 'GOLD': 50, 'SILVER': 50, 'US30.MAY1': 60, 'EURUSD.I': 20, 'GBPUSD.I': 30,
                'NZDUSD.I': 40, 'USDCAD.I': 40, 'USDCHF.I': 30, 'USDJPY.I': 30, 'AUDUSD.I': 30,
-               'XAUUSD.I': 50, 'XAGUSD.I': 50 }
+               'XAUUSD.I': 50, 'XAGUSD.I': 50}
 
     volume_digit = 2        # 2 -> at least 0.01 lot
     max_volume = 200
