@@ -1,6 +1,7 @@
 from MetaTraderChartTool.Api.CyrusChartToolConnector import ChartToolConnector
 from MetaTraderChartTool.Modules.Execution import Execution
 from MetaTraderChartTool.Modules.Reporting import Reporting
+from AlgorithmTools.FiboTools import get_fib_levels
 
 
 class BasicChartTools(object):
@@ -352,6 +353,34 @@ class BasicChartTools(object):
                                                                                 hidden, z_order)
 
         self.execution.execute(params)
+
+    def fibonacci_retracement(self, names, times1, prices1, times2, prices2, chart_id=0, sub_window=0, color="255,255,255", style=0, width=1, back=0,
+                              selection=1, ray=0, hidden=1, z_order=0):
+        if not self._check_equal_lens(times1, names, "Times1 len should be equal to Names len") or \
+                not self._check_equal_lens(times1, times2, "Times1 len should be equal to Times2 len") or \
+                not self._check_equal_lens(prices1, prices2, "Prices1 len should be equal to Prices2 len") or \
+                not self._check_lens(times1, "TREND Error (Time len can't be zero") or \
+                not self._check_lens(times2, "TREND Error (Time len can't be zero") or \
+                not self._check_lens(prices1, "TREND Error (Price len can't be zero") or \
+                not self._check_lens(prices2, "TREND Error (Price len can't be zero"):
+            return
+
+        fib_names = []
+        fib_times1, fib_times2 = [], []
+        fib_prices1, fib_prices2 = [], []
+
+        for i in range(len(names)):
+            fib_levels = get_fib_levels(prices1[i], prices2[i])
+            for key in fib_levels.keys():
+                fib_names.append(f"{key}_{names[i]}")
+                fib_times1.append(times1[i])
+                fib_times2.append(times2[i])
+                fib_prices1.append(fib_levels[key])
+                fib_prices2.append(fib_levels[key])
+
+        self.trend_line(fib_names, fib_times1, fib_prices1, fib_times2, fib_prices2, chart_id, sub_window, color, style, width, back, selection, ray, hidden, z_order)
+
+
 
     def _check_lens(self, input_list, message):
         if len(input_list) == 0:

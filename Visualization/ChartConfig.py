@@ -10,7 +10,7 @@ class ChartConfig:
     holidays_show = False
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression']
-    visualizer = 'Indicator'
+    visualizer = 'Impulse'
 
     def __init__(self, data, visualizer):
 

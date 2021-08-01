@@ -28,7 +28,7 @@ class InstanceConfig:
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'tp_sl'
-    tp_sl_name = 'Wave'
+    tp_sl_name = 'Body'
     trailing_name = 'Basic'
     account_management_name = 'Balance'
 

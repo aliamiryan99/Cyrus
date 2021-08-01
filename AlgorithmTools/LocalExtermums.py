@@ -1,36 +1,21 @@
 import numpy as np
 
+from AlgorithmTools.CandleTools import *
+
 
 def get_local_extermums(data, window, mode):         # mode 1: High Low , mode 2 : Top Bottom
-    Open = np.array([d['Open'] for d in data])
-    High = np.array([d['High'] for d in data])
-    Low = np.array([d['Low'] for d in data])
 
-    top_candle = []
-    bottom_candle = []
+    open, high, low, close = get_ohlc(data)
+    bottom, top = get_bottom_top(data)
 
-    for i in range(0, len(data)):
-        # store the top/bottom value of all candles
-        if data[i]['Open'] > data[i]['Close']:
-            top_candle.append(data[i]['Open'])
-            bottom_candle.append(data[i]['Close'])
-        else:
-            top_candle.append(data[i]['Close'])
-            bottom_candle.append(data[i]['Open'])
-
-    top_candle = np.array(top_candle)
-    bottom_candle = np.array(bottom_candle)
-
-    price_up = High
-    price_down = Low
+    price_up, price_down = high, low
     if mode == 2:
-        price_up = top_candle
-        price_down = bottom_candle
+        price_up, price_down = top, bottom
 
     local_min = [0] * len(data)
     local_max = [0] * len(data)
 
-    for i in range(window, len(Open) - window):
+    for i in range(window, len(open) - window):
         if price_up[i] >= price_up[i - window:i + window+1].max() and local_max[i-1] == 0:
             local_max[i] = i
         if price_down[i] <= price_down[i - window:i + window+1].min() and local_min[i-1] == 0:

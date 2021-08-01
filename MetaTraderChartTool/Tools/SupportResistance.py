@@ -7,7 +7,7 @@ from AlgorithmTools import RSTools
 
 class SupportResistance:
 
-    def __init__(self, data, extremum_mode, extremum_window, sections, extremum_show):
+    def __init__(self, data, extremum_window, extremum_mode, sections, extremum_show):
         self.data = data
 
         self.extremum_mode = extremum_mode
