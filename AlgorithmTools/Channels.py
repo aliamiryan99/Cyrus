@@ -75,7 +75,7 @@ def get_up_convex_line(price, indexes):
             if price[index] > np.polyval(line, index) and i != j:
                 is_convex = False
         if is_convex:
-            return {'x': [indexes[i], indexes[-1]], 'y': [price[indexes[i]], price[indexes[-1]]]}, line[0]
+            return {'x': [indexes[i], indexes[-1]], 'y': [price[indexes[i]], price[indexes[-1]]], 'line': line}, line[0]
 
 
 def get_down_convex_line(price, indexes):
@@ -87,5 +87,5 @@ def get_down_convex_line(price, indexes):
             if price[index] < np.polyval(line, index) and i != j:
                 is_convex = False
         if is_convex:
-            return {'x': [indexes[i], indexes[-1]], 'y': [price[indexes[i]], price[indexes[-1]]]}, line[0]
+            return {'x': [indexes[i], indexes[-1]], 'y': [price[indexes[i]], price[indexes[-1]]], 'line': line}, line[0]
 

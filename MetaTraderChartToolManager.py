@@ -43,7 +43,7 @@ class MetaTraderChartToolsManager(BasicChartTools):
         self.connector.send_hist_request(_symbol=symbol,
                                           _timeframe=Config.timeframes_dic[time_frame],
                                           _count=ChartConfig.candles)
-        sleep(1)
+        sleep(2)
         self.history = self.connector._History_DB[symbol + '_' + time_frame]
         for item in self.history:
             item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
