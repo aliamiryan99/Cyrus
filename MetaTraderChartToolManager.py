@@ -38,6 +38,12 @@ class MetaTraderChartToolsManager(BasicChartTools):
         # Get Historical Data
 
         symbol = self.reporting.get_curr_symbol()
+
+        if symbol == 0:
+            self.connector.shutdown()
+            super().__init__([], [], _verbose)
+            symbol = self.reporting.get_curr_symbol()
+
         time_frame = ChartConfig.time_frame
 
         self.connector.send_hist_request(_symbol=symbol,

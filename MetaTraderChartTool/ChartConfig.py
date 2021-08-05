@@ -4,15 +4,15 @@ class ChartConfig:
 
     time_frame = "H4"
     date_format = '%Y.%m.%d %H:%M'
-    candles = 6000
-    tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels"]
-    tool_name = 'Channels'
+    candles = 1000
+    tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot"]
+    tool_name = 'Elliot'
 
     def __init__(self, data, tool_name):
 
         if tool_name == "PivotPoints":
             from MetaTraderChartTool.Tools.PivotPoints import PivotPoints
-            extremum_window = 10
+            extremum_window = 40
             extremum_mode = 1
 
             self.tool = PivotPoints(data, extremum_window, extremum_mode)
@@ -26,7 +26,7 @@ class ChartConfig:
             self.tool = SupportResistance(data, extremum_window, extremum_mode, sections, extremum_show)
         if tool_name == "Impulse":
             from MetaTraderChartTool.Tools.Impulse import Impulse
-            extremum_window = 5
+            extremum_window = 40
             extremum_mode = 1
             candles_tr = 2
             extremum_show = False
@@ -36,7 +36,7 @@ class ChartConfig:
             from MetaTraderChartTool.Tools.MinMax import MinMax
             extremum_window = 5
             extremum_mode = 1
-            extremum_show = True
+            extremum_show = False
 
             self.tool = MinMax(data, extremum_window, extremum_mode, extremum_show)
 
@@ -52,5 +52,10 @@ class ChartConfig:
 
             self.tool = Channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode,
                                  check_window, alpha, extend_number)
+
+        if tool_name == "Elliot":
+            from MetaTraderChartTool.Tools.Elliot import Elliot
+
+            self.tool = Elliot(data)
 
 
