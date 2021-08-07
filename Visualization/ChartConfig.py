@@ -9,8 +9,8 @@ class ChartConfig:
     end_date = "01.01.2021 08:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
-    visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression']
-    visualizer = 'Impulse'
+    visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression', 'Channel']
+    visualizer = 'Channel'
 
     def __init__(self, data, visualizer):
 
@@ -79,3 +79,15 @@ class ChartConfig:
             extremum_mode = 1
 
             self.visualizer = RegressionVisualizer(data, extremum_window, extremum_mode)
+        elif visualizer == "Channel":
+            from Visualization.ChannelsVisualizer import ChannelsVisualizer
+            extremum_window_start = 2
+            extremum_window_end = 20
+            extremum_window_step = 5
+            extremum_mode = 1
+            check_window = 4
+            alpha = 0.1
+            extend_number = 50
+
+            self.visualizer = ChannelsVisualizer(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode,
+                                 check_window, alpha, extend_number)

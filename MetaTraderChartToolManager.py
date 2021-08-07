@@ -49,11 +49,14 @@ class MetaTraderChartToolsManager(BasicChartTools):
         self.connector.send_hist_request(_symbol=symbol,
                                           _timeframe=Config.timeframes_dic[time_frame],
                                           _count=ChartConfig.candles)
-        sleep(2)
+        sleep(4)
         self.history = self.connector._History_DB[symbol + '_' + time_frame]
         for item in self.history:
             item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
         print(pd.DataFrame(self.history))
+
+        df = pd.DataFrame(self.history)
+        df.to_csv("BTC_H4.csv", index=False)
 
         chart_config = ChartConfig(self.history, ChartConfig.tool_name)
 

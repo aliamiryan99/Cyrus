@@ -11,8 +11,8 @@ class Elliot:
     def __init__(self, data):
         self.data = data
 
-        monowave_list, polywave_list = elliott.calculate(pd.DataFrame(data), price_type="neo", neo_wo_merge=True)
-
+        monowave_list, polywave_list = elliott.calculate(pd.DataFrame(data), price_type="neo", timeframe="H4", step=6)
+        # TODO : if neo_wo_merge was True Then polywave_lsit = []
         self.result_final = {}
         results = []
         times = [row['Time'] for row in self.data]

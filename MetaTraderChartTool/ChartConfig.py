@@ -4,7 +4,7 @@ class ChartConfig:
 
     time_frame = "H4"
     date_format = '%Y.%m.%d %H:%M'
-    candles = 1000
+    candles = 11000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot"]
     tool_name = 'Elliot'
 

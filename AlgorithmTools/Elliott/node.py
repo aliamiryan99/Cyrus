@@ -23,11 +23,11 @@ class Node:
                 max_idx = np.argmax(df.High[i:i + step])
                 min_idx = np.argmin(df.Low[i:i + step])
                 if max_idx < min_idx:
-                    signal[i + int(.25 * step)] = df.High[i + max_idx]
-                    signal[i + int(.75 * step)] = df.Low[i + min_idx]
+                    signal[i + int(.25 * step)] = df.High[max_idx]
+                    signal[i + int(.75 * step)] = df.Low[min_idx]
                 else:
-                    signal[i + int(.25 * step)] = df.Low[i + min_idx]
-                    signal[i + int(.75 * step)] = df.High[i + max_idx]
+                    signal[i + int(.25 * step)] = df.Low[min_idx]
+                    signal[i + int(.75 * step)] = df.High[max_idx]
 
                 mark.append(i + int(.25 * step))
                 mark.append(i + int(.75 * step))

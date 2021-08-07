@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 import copy
+import sys
+from tqdm import tqdm
 from AlgorithmTools.Elliott.utility import *
 from AlgorithmTools.Elliott.mw_utils import *
 
@@ -106,7 +107,7 @@ class MonoWave:
         for i in range(len(mark)):
             j = mark[i]
             price_range = abs(dataF_price_node[key][start] -
-                              dataF_price_node[key][j])
+                              dataF_price_node[key][j]) + sys.float_info.epsilon
             time = j - start
             sl = np.degrees(np.arctan(price_range / time))
             curr_direction = dataF_price_node[key][j] - dataF_price_node[key][start]
