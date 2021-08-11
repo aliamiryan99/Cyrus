@@ -1,6 +1,6 @@
-
-from AlgorithmTools.LocalExtermums import *
-from AlgorithmTools.HeikinCandle import HeikinConverter
+from Visualization.Visualizer import Visualizer
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
+from AlgorithmFactory.AlgorithmTools.HeikinCandle import HeikinConverter
 
 from Indicators.KDJ import KDJ
 from Indicators.RSI import RSI
@@ -13,7 +13,7 @@ from Visualization.Tools import *
 from Visualization.BaseChart import *
 
 
-class IndicatorVisualizer:
+class IndicatorVisualizer(Visualizer):
 
     def __init__(self, data, indicator_names, heikin_data_level, extremum_enable, extremum_window, extremum_mode,
                  ma_enable, ma_list):

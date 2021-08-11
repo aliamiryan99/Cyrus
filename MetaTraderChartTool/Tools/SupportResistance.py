@@ -1,8 +1,8 @@
 
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
-from AlgorithmTools.LocalExtermums import *
-from AlgorithmTools.CandleTools import *
-from AlgorithmTools import RSTools
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
+from AlgorithmFactory.AlgorithmTools.CandleTools import *
+from AlgorithmFactory.AlgorithmTools import RSTools
 
 
 class SupportResistance:

@@ -1,4 +1,4 @@
-from Simulation.Config import Config
+from Configuration.Trade.BackTestConfig import Config
 from Simulation import Utility as ut
 
 import pandas as pd

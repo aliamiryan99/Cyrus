@@ -1,7 +1,7 @@
 
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
-from AlgorithmTools.LocalExtermums import *
-from AlgorithmTools.Impulse import get_impulses
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
+from AlgorithmFactory.AlgorithmTools.Impulse import get_impulses
 
 
 class Impulse:
@@ -64,4 +64,3 @@ class Impulse:
 
         # chart_tool.rectangle_label(["RectLabel1"], [20], [40], [120], [40], back_color="113,105,105", color="200,199,199", border=chart_tool.EnumBorder.Sunken)
         # chart_tool.label(["Label1"], [40], [50], ["Pivot Points"], anchor=chart_tool.EnumAnchor.LeftUpper, color="230,230,230")
-

@@ -295,6 +295,34 @@ class ChartToolConnector:
         self.remote_send(self._PUSH_SOCKET, _msg)
 
     ##########################################################################
+    """
+    Function to construct messages for sending TRACK_PRICES commands to 
+    MetaTrader for real-time price updates
+    """
+
+    def send_track_price_request(self, _symbols=['EURUSD']):
+        _msg = 'TRACK_PRICES'
+        for s in _symbols:
+            _msg = _msg + ";{}".format(s)
+
+        # Send via PUSH Socket
+        self.remote_send(self._PUSH_SOCKET, _msg)
+
+    ##########################################################################
+    """
+    Function to construct messages for sending TRACK_RATES commands to 
+    MetaTrader for OHLC
+    """
+
+    def send_track_rates_request(self, _instruments=[('EURUSD_M1', 'EURUSD', 1)]):
+        _msg = 'TRACK_RATES'
+        for i in _instruments:
+            _msg = _msg + ";{};{}".format(i[1], i[2])
+
+        # Send via PUSH Socket
+        self.remote_send(self._PUSH_SOCKET, _msg)
+
+    ##########################################################################
 
     """
     Function to check Poller for new reponses (PULL) and market Data (SUB)
@@ -334,7 +362,7 @@ class ChartToolConnector:
 
                             # invokes Data handlers on pull port
                             for hnd in self._pulldata_handlers:
-                                hnd.onPullData(_data)
+                                hnd.on_pull_data(_data)
 
                             self._thread_data_output = _data
                             if self._verbose:
@@ -381,7 +409,7 @@ class ChartToolConnector:
 
                         # invokes Data handlers on sub port
                         for hnd in self._subdata_handlers:
-                            hnd.onSubData(msg)
+                            hnd.on_sub_data(msg)
 
                 except zmq.error.Again:
                     pass # resource temporarily unavailable, nothing to print
@@ -393,6 +421,36 @@ class ChartToolConnector:
         print("\n++ [KERNEL] _DWX_ZMQ_Poll_Data_() Signing Out ++")
 
     ##########################################################################
+
+    """
+        Function to subscribe to given Symbol's BID/ASK feed from MetaTrader
+    """
+
+    def subscribe_market_data(self, _symbol='EURUSD', string_delimiter=';'):
+
+        # Subscribe to SYMBOL first.
+        self._SUB_SOCKET.setsockopt_string(zmq.SUBSCRIBE, _symbol)
+
+        print("[KERNEL] Subscribed to {} BID/ASK updates. See self._Market_Data_DB.".format(_symbol))
+
+    """
+    Function to unsubscribe to given Symbol's BID/ASK feed from MetaTrader
+    """
+
+    def unsubscribe_market_data(self, _symbol):
+
+        self._SUB_SOCKET.setsockopt_string(zmq.UNSUBSCRIBE, _symbol)
+        print("\n**\n[KERNEL] Unsubscribing from " + _symbol + "\n**\n")
+
+    """
+    Function to unsubscribe from ALL MetaTrader Symbols
+    """
+
+    def unsubscribe_all_market_data_request(self):
+
+        # 31-07-2019 12:22 CEST
+        for _symbol in self._Market_Data_DB.keys():
+            self.unsubscribe_market_data(_symbol=_symbol)
 
     def event_monitor(self,
                                 socket_name,

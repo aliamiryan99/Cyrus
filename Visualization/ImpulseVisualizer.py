@@ -1,13 +1,12 @@
+from Visualization.Visualizer import Visualizer
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
-from AlgorithmTools.LocalExtermums import *
-
-from AlgorithmTools import Impulse
-from AlgorithmTools import FiboTools
+from AlgorithmFactory.AlgorithmTools import Impulse, FiboTools
 
 from Visualization.BaseChart import *
 
 
-class ImpulseVisualizer:
+class ImpulseVisualizer(Visualizer):
 
     def __init__(self, data, extremum_mode, extremum_window, num_th, fib_enable):
         self.data = data

@@ -8,7 +8,7 @@ from bokeh.io.state import curstate
 from bokeh.layouts import column
 from bokeh.plotting import figure
 from bokeh.models import CustomJS, ColumnDataSource, HoverTool, NumeralTickFormatter, Arrow, VeeHead, Range1d
-from Simulation.Config import Config
+from Configuration.Trade.BackTestConfig import Config
 register_matplotlib_converters()
 
 

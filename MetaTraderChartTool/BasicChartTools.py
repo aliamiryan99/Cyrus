@@ -1,10 +1,10 @@
 from MetaTraderChartTool.Api.CyrusChartToolConnector import ChartToolConnector
 from MetaTraderChartTool.Modules.Execution import Execution
 from MetaTraderChartTool.Modules.Reporting import Reporting
-from AlgorithmTools.FiboTools import get_fib_levels
+from AlgorithmFactory.AlgorithmTools.FiboTools import get_fib_levels
 
 
-class BasicChartTools(object):
+class BasicChartTools:
 
     class EnumStyle:
         Solid = 0

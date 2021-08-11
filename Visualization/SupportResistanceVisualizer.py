@@ -1,13 +1,12 @@
+from Visualization.Visualizer import Visualizer
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
-from AlgorithmTools.LocalExtermums import *
-
-from AlgorithmTools import RSTools
-from AlgorithmTools import CandleTools
+from AlgorithmFactory.AlgorithmTools import RSTools, CandleTools
 
 from Visualization.BaseChart import *
 
 
-class SupportResistanceVisualizer:
+class SupportResistanceVisualizer(Visualizer):
 
     def __init__(self, data, extremum_mode, extremum_window, num_section):
         self.data = data

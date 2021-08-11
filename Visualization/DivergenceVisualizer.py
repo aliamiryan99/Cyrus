@@ -1,8 +1,7 @@
-from AlgorithmTools.LocalExtermums import *
-from AlgorithmTools.HeikinCandle import HeikinConverter
-from AlgorithmPackages.Divergence.DivergencePkg import divergence_calculation
-from ta.momentum import *
-from pandas import Series
+from Visualization.Visualizer import Visualizer
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
+from AlgorithmFactory.AlgorithmTools.HeikinCandle import HeikinConverter
+from AlgorithmFactory.AlgorithmPackages.Divergence.DivergencePkg import divergence_calculation
 
 from Indicators.KDJ import KDJ
 from Indicators.RSI import RSI
@@ -12,13 +11,11 @@ from Indicators.AMA import AMA
 from Visualization.Tools import *
 from Visualization.BaseChart import *
 
-from AlgorithmTools.CandleTools import *
-from Visualization.ChartConfig import ChartConfig
-
-from datetime import datetime
+from AlgorithmFactory.AlgorithmTools.CandleTools import *
+from Configuration.Tools.LocalToolsConfig import ChartConfig
 
 
-class DivergenceVisualizer:
+class DivergenceVisualizer(Visualizer):
 
     def __init__(self, data, heikin_data_level, indicator_params, extremum_window, asymmetric_extremum_window,
                  asymmetric_alpha, hidden_divergence_check_window, upper_line_tr):

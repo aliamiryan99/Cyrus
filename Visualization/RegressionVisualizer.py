@@ -1,13 +1,13 @@
+from Visualization.Visualizer import Visualizer
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
-from AlgorithmTools.LocalExtermums import *
-
-from AlgorithmPackages.RegressionLine import RegressionLine
+from AlgorithmFactory.AlgorithmPackages.RegressionLine import RegressionLine
 
 from Visualization.Tools import *
 from Visualization.BaseChart import *
 
 
-class RegressionVisualizer:
+class RegressionVisualizer(Visualizer):
 
     def __init__(self, data, extremum_window, extremum_mode):
         self.data = data

@@ -1,13 +1,13 @@
+from Visualization.Visualizer import Visualizer
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
-from AlgorithmTools.LocalExtermums import *
-
-from AlgorithmPackages.MinMaxTrend import MinMaxTrend
+from AlgorithmFactory.AlgorithmPackages.MinMaxTrend import MinMaxTrend
 
 from Visualization.Tools import *
 from Visualization.BaseChart import *
 
 
-class MinMaxVisualizer:
+class MinMaxVisualizer(Visualizer):
 
     def __init__(self, data, extremum_window, extremum_mode):
         self.data = data

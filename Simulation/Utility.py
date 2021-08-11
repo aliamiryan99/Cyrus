@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-from Simulation.Config import Config
 
 
 def one_csv_to_h5(input_file, format='table'):
@@ -27,7 +26,6 @@ def csv_to_h5(input_path, output_file=None, format='table'):
                 print(file_name)
 
 
-
 def csv_to_df(csv_files: list, date_format='%d.%m.%Y %H:%M:%S.%f'):
     """
     Get a list of csv files, load them and parse date column(s)...
@@ -35,9 +33,6 @@ def csv_to_df(csv_files: list, date_format='%d.%m.%Y %H:%M:%S.%f'):
         a list of pandas Data-frames.
     """
     data_frames = []
-    parse_date = lambda x: pd.datetime.strptime(x, date_format)
-    if Config.DEBUG:
-        print('\nLoading csv Data:')
     for f in csv_files:
         try:
             df = pd.read_csv(f)
@@ -58,9 +53,4 @@ def csv_to_df(csv_files: list, date_format='%d.%m.%Y %H:%M:%S.%f'):
         df = df.sort_values(['Time'])
         df = df.reset_index()
         data_frames.append(df)
-        if Config.DEBUG:
-            print(f'  {f}')
-    if Config.DEBUG:
-        print()
-    #dv;ldffddfg
     return data_frames

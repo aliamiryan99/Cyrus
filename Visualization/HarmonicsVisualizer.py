@@ -1,13 +1,14 @@
-from AlgorithmTools.LocalExtermums import *
+from Visualization.Visualizer import Visualizer
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 from ta.momentum import *
 
-from AlgorithmPackages.HarmonicPattern.HarmonicDetection import harmonic_pattern
-from AlgorithmPackages.HarmonicPattern.HarmonicFilter import filter_results
+from AlgorithmFactory.AlgorithmPackages.HarmonicPattern.HarmonicDetection import harmonic_pattern
+from AlgorithmFactory.AlgorithmPackages.HarmonicPattern.HarmonicFilter import filter_results
 
 from Visualization.BaseChart import *
 
 
-class HarmonicVisualizer:
+class HarmonicVisualizer(Visualizer):
 
     def __init__(self, symbol, time_frame, data, extremum_window, time_range, price_range_alpha, harmonic_name):
         self.data = data
@@ -57,7 +58,6 @@ class HarmonicVisualizer:
         alpha = 0.1
         for result in self.bullish_result:
             if self.harmonic_name == 'ABCD':
-
                 fig.line([result[1], result[2]], [result[6], result[7]], color='blue', width=width)
                 fig.line([result[2], result[3]], [result[7], result[8]], color='blue', width=width)
                 fig.line([result[3], result[4]], [result[8], result[9]], color='blue', width=width)

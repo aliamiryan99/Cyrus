@@ -1,6 +1,6 @@
 import numpy as np
 from Indicators.LocalExtremum import localExtremum
-from AlgorithmPackages.SimpleIdea.SimpleIdeaPkg import simple_idea
+from AlgorithmFactory.AlgorithmPackages.SimpleIdea.SimpleIdeaPkg import simple_idea
 
 
 def Forecasting_Interval(symbol, data, winExtermum, winSimpleIdea):

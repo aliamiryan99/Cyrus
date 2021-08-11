@@ -1,11 +1,12 @@
 
-from AlgorithmTools.Channels import get_channels
+from Visualization.Visualizer import Visualizer
+from AlgorithmFactory.AlgorithmTools.Channels import get_channels
 
 from Visualization.Tools import *
 from Visualization.BaseChart import *
 
 
-class ChannelsVisualizer:
+class ChannelsVisualizer(Visualizer):
 
     def __init__(self, data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha, extend_number):
         self.data = data

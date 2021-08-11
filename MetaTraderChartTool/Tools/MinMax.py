@@ -1,10 +1,9 @@
 
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
-from AlgorithmTools.LocalExtermums import *
-from AlgorithmTools.Impulse import get_impulses
-from AlgorithmTools.CandleTools import *
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
+from AlgorithmFactory.AlgorithmTools.CandleTools import *
 
-from AlgorithmPackages.MinMaxTrend import MinMaxTrend
+from AlgorithmFactory.AlgorithmPackages.MinMaxTrend import MinMaxTrend
 
 
 class MinMax:

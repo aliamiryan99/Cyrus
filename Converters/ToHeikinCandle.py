@@ -1,6 +1,5 @@
-from Simulation.Config import Config
 from Converters.Tools import *
-from AlgorithmTools.HeikinCandle import HeikinConverter
+from AlgorithmFactory.AlgorithmTools import HeikinConverter
 
 
 def convert_to_heiking(data):

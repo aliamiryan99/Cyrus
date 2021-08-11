@@ -1,7 +1,7 @@
 import pandas as pd
 import copy
 from Simulation import Utility as ut
-from Simulation.Config import Config
+from Configuration.Trade.BackTestConfig import Config
 import datetime
 
 def getIdentifier(time_frame, time):

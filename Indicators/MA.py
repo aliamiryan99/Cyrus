@@ -3,7 +3,7 @@ from ta import trend
 from pandas import Series
 import numpy as np
 
-from AlgorithmTools.CandleTools import get_ohlc
+from AlgorithmFactory.AlgorithmTools.CandleTools import get_ohlc
 
 
 class MovingAverage:

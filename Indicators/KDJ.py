@@ -1,5 +1,5 @@
 
-from AlgorithmTools.CandleTools import get_ohlc
+from AlgorithmFactory.AlgorithmTools.CandleTools import get_ohlc
 
 
 class KDJ:

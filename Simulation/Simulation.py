@@ -89,8 +89,9 @@ from bokeh.io import output_file
 from Simulation import Candlestick
 from Simulation import Outputs
 import copy
-from Simulation.Config import Config
-from Simulation.InstanceConfig import InstanceConfig
+
+from Configuration.Trade.BackTestConfig import Config
+from Configuration.Trade.InstanceConfig import InstanceConfig
 
 DEBUG = Config.DEBUG
 

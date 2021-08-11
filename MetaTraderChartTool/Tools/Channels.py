@@ -1,8 +1,8 @@
 
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
-from AlgorithmTools.LocalExtermums import *
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
-from AlgorithmTools.Channels import get_channels
+from AlgorithmFactory.AlgorithmTools.Channels import get_channels
 
 
 class Channels:

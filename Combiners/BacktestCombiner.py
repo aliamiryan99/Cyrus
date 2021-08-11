@@ -3,7 +3,7 @@ import pandas as pd
 from bokeh.io import output_file
 import os
 
-from Simulation.Config import Config
+from Configuration.Trade.BackTestConfig import Config
 from Simulation import Utility
 from Simulation import Outputs
 from Simulation import Candlestick
