@@ -1,12 +1,13 @@
 
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
+from MetaTraderChartTool.Tools.Tool import Tool
 
 
-class PivotPoints:
+class PivotPoints(Tool):
 
     def __init__(self, data, extremum_window, extremum_mode):
-        self.data = data
+        super().__init__(data)
 
         self.local_min, self.local_max = get_local_extermums(data, extremum_window, extremum_mode)
 
@@ -27,7 +28,3 @@ class PivotPoints:
 
         chart_tool.text(names1, times1, prices1, texts1, anchor=chart_tool.EnumAnchor.Top, color="12,83,211")
         chart_tool.text(names2, times2, prices2, texts2, anchor=chart_tool.EnumAnchor.Bottom, color="211,83,12")
-
-        # chart_tool.rectangle_label(["RectLabel1"], [20], [40], [120], [40], back_color="113,105,105", color="200,199,199", border=chart_tool.EnumBorder.Sunken)
-        # chart_tool.label(["Label1"], [40], [50], ["Pivot Points"], anchor=chart_tool.EnumAnchor.LeftUpper, color="230,230,230")
-

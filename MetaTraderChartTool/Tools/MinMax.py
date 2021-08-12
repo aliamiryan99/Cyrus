@@ -9,7 +9,7 @@ from AlgorithmFactory.AlgorithmPackages.MinMaxTrend import MinMaxTrend
 class MinMax:
 
     def __init__(self, data, extremum_window, extremum_mode, extremum_show):
-        self.data = data
+        super().__init__(data)
 
         self.open, self.high, self.low, self.close = get_ohlc(data)
         self.bottom, self.top = get_bottom_top(data)

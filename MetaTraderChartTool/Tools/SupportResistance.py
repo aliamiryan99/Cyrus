@@ -3,12 +3,13 @@ from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 from AlgorithmFactory.AlgorithmTools.CandleTools import *
 from AlgorithmFactory.AlgorithmTools import RSTools
+from MetaTraderChartTool.Tools.Tool import Tool
 
 
-class SupportResistance:
+class SupportResistance(Tool):
 
     def __init__(self, data, extremum_window, extremum_mode, sections, extremum_show):
-        self.data = data
+        super().__init__(data)
 
         self.extremum_mode = extremum_mode
         self.extremum_window = extremum_window

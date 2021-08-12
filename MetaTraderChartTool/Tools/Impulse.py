@@ -2,12 +2,13 @@
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 from AlgorithmFactory.AlgorithmTools.Impulse import get_impulses
+from MetaTraderChartTool.Tools.Tool import Tool
 
 
-class Impulse:
+class Impulse(Tool):
 
     def __init__(self, data, extremum_window, extremum_mode, candles_tr, extremum_show):
-        self.data = data
+        super().__init__(data)
 
         self.extremum_mode = extremum_mode
         self.extremum_window = extremum_window

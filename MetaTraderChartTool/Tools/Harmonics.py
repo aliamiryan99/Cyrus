@@ -6,12 +6,13 @@ from ta.momentum import *
 
 from AlgorithmFactory.AlgorithmPackages.HarmonicPattern.HarmonicDetection import harmonic_pattern
 from AlgorithmFactory.AlgorithmPackages.HarmonicPattern.HarmonicFilter import filter_results
+from MetaTraderChartTool.Tools.Tool import Tool
 
 
-class Harmonics:
+class Harmonics(Tool):
 
     def __init__(self, data, extremum_window, time_range, price_range_alpha, harmonic_name):
-        self.data = data
+        super().__init__(data)
 
         self.extremum_window = extremum_window
         self.time_range = time_range

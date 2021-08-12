@@ -6,13 +6,13 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics"]
-    tool_name = 'Channels'
+    tool_name = 'PivotPoints'
 
     def __init__(self, data, tool_name):
 
         if tool_name == "PivotPoints":
             from MetaTraderChartTool.Tools.PivotPoints import PivotPoints
-            extremum_window = 40
+            extremum_window = 10
             extremum_mode = 1
 
             self.tool = PivotPoints(data, extremum_window, extremum_mode)

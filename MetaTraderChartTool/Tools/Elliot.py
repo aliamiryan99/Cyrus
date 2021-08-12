@@ -1,4 +1,5 @@
 
+from MetaTraderChartTool.Tools.Tool import Tool
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.Elliott import elliott
 
@@ -6,10 +7,10 @@ import pandas as pd
 import numpy as np
 
 
-class Elliot:
+class Elliot(Tool):
 
     def __init__(self, data):
-        self.data = data
+        super().__init__(data)
 
         monowave_list, polywave_list = elliott.calculate(pd.DataFrame(data), price_type="neo", timeframe="H4", step=6)
         # TODO : if neo_wo_merge was True Then polywave_lsit = []

@@ -39,7 +39,6 @@ class PivotPoints(RealTimeTool):
 
         self.data.append(candle)
 
-
     def draw_local_extremum(self, local_min, local_max):
         if len(local_min) != 0:
             times1, prices1, texts1, names1 = [], [], [], []

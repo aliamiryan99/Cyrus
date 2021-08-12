@@ -1,14 +1,15 @@
 
+from MetaTraderChartTool.Tools.Tool import Tool
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
 from AlgorithmFactory.AlgorithmTools.Channels import get_channels
 
 
-class Channels:
+class Channels(Tool):
 
     def __init__(self, data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha, extend_number):
-        self.data = data
+        super().__init__(data)
         self.extend_number = extend_number
 
         self.up_channels, self.down_channels = get_channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha)
