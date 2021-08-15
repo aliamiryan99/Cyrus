@@ -4,15 +4,20 @@ from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
 from AlgorithmFactory.AlgorithmTools.Channels import get_channels
+from AlgorithmFactory.AlgorithmTools.ParallelChannels import get_parallel_channels
 
 
 class Channels(Tool):
 
-    def __init__(self, data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha, extend_number):
+    def __init__(self, data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha, extend_number, type):
         super().__init__(data)
         self.extend_number = extend_number
 
-        self.up_channels, self.down_channels = get_channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha)
+        if type == 'monotone':
+            self.up_channels, self.down_channels = get_channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha)
+        elif type == 'parallel':
+            self.up_channels, self.down_channels = get_parallel_channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha)
+
 
     def draw(self, chart_tool: BasicChartTools):
 

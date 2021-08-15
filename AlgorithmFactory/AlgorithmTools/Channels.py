@@ -37,7 +37,7 @@ def check_up_channel(price_up, price_down, local_min, local_max, local_min_point
         if check_ascending(price_down, local_min[local_min_pointer-check_window+1:local_min_pointer+1]):
             up_line, up_slop = get_up_convex_line(price_up, local_max[local_max_pointer-check_window+1:local_max_pointer+1])
             down_line, down_slop = get_down_convex_line(price_down, local_min[local_min_pointer-check_window+1:local_min_pointer+1])
-            if up_line is 0 or down_line is 0:
+            if down_line is 0 or up_line is 0:
                 return None
             if abs((up_slop - down_slop)/(up_slop + down_slop)) < alpha:
                 return {'UpLine': up_line, 'DownLine': down_line, 'Window': window}
@@ -49,7 +49,7 @@ def check_down_channel(price_up, price_down, local_min, local_max, local_min_poi
         if check_descending(price_down, local_min[local_min_pointer-check_window+1:local_min_pointer+1]):
             up_line, up_slop = get_up_convex_line(price_up, local_max[local_max_pointer-check_window+1:local_max_pointer+1])
             down_line, down_slop = get_down_convex_line(price_down, local_min[local_min_pointer-check_window+1:local_min_pointer+1])
-            if up_line is 0 or down_line is 0:
+            if down_line is 0 or up_line is 0:
                 return None
             if abs((up_slop - down_slop)/(up_slop + down_slop)) < alpha:
                 return {'UpLine': up_line, 'DownLine': down_line, 'Window': window}

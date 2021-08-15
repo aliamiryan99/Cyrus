@@ -6,7 +6,7 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics"]
-    tool_name = 'PivotPoints'
+    tool_name = 'Channels'
 
     def __init__(self, data, tool_name):
 
@@ -43,15 +43,16 @@ class ChartConfig:
         if tool_name == "Channels":
             from MetaTraderChartTool.Tools.Channels import Channels
             extremum_window_start = 2
-            extremum_window_end = 20
-            extremum_window_step = 5
+            extremum_window_end = 3
+            extremum_window_step = 1
             extremum_mode = 1
             check_window = 4
             alpha = 0.1
             extend_number = 50
+            type = 'parallel'   # 'parallel' , 'monotone'
 
             self.tool = Channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode,
-                                 check_window, alpha, extend_number)
+                                 check_window, alpha, extend_number, type)
 
         if tool_name == "Elliot":
             from MetaTraderChartTool.Tools.Elliot import Elliot
