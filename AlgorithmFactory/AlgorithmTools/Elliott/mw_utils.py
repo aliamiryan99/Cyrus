@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import copy
-from AlgorithmFactory.AlgorithmTools.Elliott import intersection
+from AlgorithmFactory.AlgorithmTools.Elliott.utility import intersection
 
 fib_ratio = 0.618033989
 fib_ratio_precision = fib_ratio * 0.05

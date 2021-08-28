@@ -1,6 +1,9 @@
-from AlgorithmFactory.AlgorithmTools.Elliott import PolyWave
-from AlgorithmFactory.AlgorithmTools.Elliott import MonoWave
-from AlgorithmFactory.AlgorithmTools.Elliott import Node
+
+from AlgorithmFactory.AlgorithmTools.Elliott.utility import *
+from AlgorithmFactory.AlgorithmTools.Elliott.mw_utils import *
+from AlgorithmFactory.AlgorithmTools.Elliott.polywave import PolyWave
+from AlgorithmFactory.AlgorithmTools.Elliott.monowave import MonoWave
+from AlgorithmFactory.AlgorithmTools.Elliott.node import Node
 
 
 def calculate(df, price_type='mean', step=8, iteration_cnt=1, removes_enabled=False, process_monowave=False,
@@ -14,6 +17,7 @@ def calculate(df, price_type='mean', step=8, iteration_cnt=1, removes_enabled=Fa
 
     polywave_list = []
     hyper_monowaves_list = []
+    prediction_list = []
 
     if process_monowave:
         m1 = monowaves1.monowaves.iloc[0]
@@ -119,11 +123,12 @@ def calculate(df, price_type='mean', step=8, iteration_cnt=1, removes_enabled=Fa
         polywaves1.build_polywave(pairs)
         polywaves1.candidate_patterns()
         valid_pairs = polywaves1.analyzing_rules()
-        start_candle_idx, end_candle_idx, start_price, end_price, ew_type = polywaves1.visualize_valid_polywave()
+        start_candle_idx, end_candle_idx, start_price, end_price, ew_type, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3 = polywaves1.visualize_valid_polywave()
         polywave_list.append({"Start_index": start_candle_idx, "Start_price": start_price, "End_index": end_candle_idx, "End_price": end_price, "Type": ew_type})
+        prediction_list.append({"X1": pred_x1, "X2": pred_x2, "Y1": pred_y1, "Y2": pred_y2, "Y3": pred_y3})
 
         hyper_monowaves_list.append(pd.DataFrame(hyper_monowaves))
         hyper_monowaves = compaction(hyper_monowaves, valid_pairs)
         print(f"{j} finished")
 
-    return hyper_monowaves_list, polywave_list
+    return hyper_monowaves_list, polywave_list, prediction_list

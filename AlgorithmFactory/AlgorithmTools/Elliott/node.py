@@ -1,5 +1,5 @@
 import numpy as np
-from AlgorithmFactory.AlgorithmTools.Elliott import intermediates_signal
+from AlgorithmFactory.AlgorithmTools.Elliott.utility import intermediates_signal
 import pandas as pd
 import copy
 

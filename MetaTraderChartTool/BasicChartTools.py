@@ -50,11 +50,21 @@ class BasicChartTools:
         self.execution = Execution(self.connector)
         self.reporting = Reporting(self.connector)
 
+    def delete(self, names, chart_id=0):
+        if not self._check_lens(names, "Delete (Name len can't be zero)"):
+            return
+
+        names_str = self._get_str_list(names)
+
+        params = "{};{}".format(chart_id, names_str)
+
+        self.execution.execute(params, _type="DELETE")
+
     # Format : "VLINE" | ChartId | Name | SubWindow | Time | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def v_line(self, names, times, chart_id=0, sub_window=0, color="255,255,255", style=0, width=1, back=0, selection=1,
                hidden=1, z_order=0):
         if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
-                not self._check_lens(times, "VLine Error (Time len can't be zero"):
+                not self._check_lens(times, "VLine Error (Time len can't be zero)"):
             return
 
         names_str = self._get_str_list(names)

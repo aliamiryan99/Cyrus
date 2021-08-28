@@ -1,6 +1,9 @@
 import copy
 import numpy as np
 
+from AlgorithmFactory.AlgorithmTools.Elliott.utility import *
+from AlgorithmFactory.AlgorithmTools.Elliott.mw_utils import *
+
 
 class PolyWave:
     def __init__(self, monoWaveList):
@@ -55,6 +58,12 @@ class PolyWave:
         end_price = []
         ew_type = []
 
+        pred_x1 = []
+        pred_x2 = []
+        pred_y1 = []
+        pred_y2 = []
+        pred_y3 = []
+
         for i in range(len(self.polywaveList)):
             if self.polywaveList.loc[i].EW_type != []:
                 start_i = self.polywaveList.loc[i].PWstartIndex
@@ -65,7 +74,24 @@ class PolyWave:
                 end_price.append(self.monowavesList[end_i].End_price)
                 ew_type.append(self.polywaveList.loc[i].EW_type)
 
-        return start_candle_idx, end_candle_idx, start_price, end_price, ew_type
+                if check_subitem_in_list(self.polywaveList.loc[i, 'EW_type'], 'Impulse'):
+                    res = self.impulsions_prediction(i)
+                    pred_x1.append(res[0])
+                    pred_x2.append(res[1])
+                    pred_y1.append(res[2])
+                    pred_y2.append(res[3])
+                    pred_y3.append(res[4])
+
+                elif check_subitem_in_list(self.polywaveList.loc[i, 'EW_type'], 'Flat') or check_subitem_in_list(
+                        self.polywaveList.loc[i, 'EW_type'], 'Zigzag'):
+                    res = self.flat_zigzag_prediction(i)
+                    pred_x1.append(res[0])
+                    pred_x2.append(res[1])
+                    pred_y1.append(res[2])
+                    pred_y2.append(res[3])
+                    pred_y3.append(res[4])
+
+        return start_candle_idx, end_candle_idx, start_price, end_price, ew_type, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3
 
     def candidate_patterns(self):
         n = len(self.polywaveList)
@@ -822,3 +848,47 @@ class PolyWave:
                         (post_action.Direction == -1 and post_action.End_price < min(Mb.End_price, Md.End_price))):
                     self.polywaveList.loc[index, 'PostConfirmation'] = True
 
+    def flat_zigzag_prediction(self, index):
+        stIndex = self.polywaveList.loc[index].PWstartIndex
+
+        Ma = self.monowavesList[stIndex]
+        Mb = self.monowavesList[stIndex + 1]
+        Mc = self.monowavesList[stIndex + 2]
+
+        xa = Ma.Start_candle_index
+        ya = Ma.Start_price
+        xb = Mc.Start_candle_index
+        yb = Mc.Start_price
+
+        xc = Mc.End_candle_index
+        yc = Mc.End_price
+
+        x = xc + xc - xb
+
+        # post market action must break the "0-B" trendline in the same amount of time (or less) that wave-c took to form
+        xr1, yr1 = intersection(xa, ya, xb, yb, x, yc, x, yb)
+        xr2, yr2 = intersection(xa, ya, xb, yb, xc, yc, x, yb)
+        return int(xc), int(xr1), yr1, yr2, yb
+
+    def impulsions_prediction(self, index):
+        stIndex = self.polywaveList.loc[index].PWstartIndex
+
+        M1 = self.monowavesList[stIndex]
+        M2 = self.monowavesList[stIndex + 1]
+        M3 = self.monowavesList[stIndex + 2]
+        M4 = self.monowavesList[stIndex + 3]
+        M5 = self.monowavesList[stIndex + 4]
+
+        # post-Impulsive market action must break the 2-4 trendline in the same amount of time consumed by the 5th wave or less
+        x2 = M2.End_candle_index
+        y2 = M2.End_price
+        x4 = M4.End_candle_index
+        y4 = M4.End_price
+
+        x5 = M5.End_candle_index
+        y5 = M5.End_price
+        x6 = x5 + x5 - x4
+
+        xr1, yr1 = intersection(x2, y2, x4, y4, x6, y5, x6, y4)
+        xr2, yr2 = intersection(x2, y2, x4, y4, x5, y5, x6, y4)
+        return int(x5), int(xr1), yr1, yr2, y4

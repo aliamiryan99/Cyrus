@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 # ---------- filter patterns function
-def filter_results(high, low, res, middle, harmonic_name, trend_direction):
+def filter_results(high, low, res, middle, harmonic_name, trend_direction, alpha, beta):
     if len(res) == 0:
         return []
 
@@ -17,8 +17,8 @@ def filter_results(high, low, res, middle, harmonic_name, trend_direction):
     if filter_mode == 'std':
         res = eliminate_high_std_patterns(res, middle)
     elif filter_mode == 'Percent':
-        alpha = .25  # .37 STD coefficient.higher led to bigger channel
-        beta = .90  # .94 percent of should be in the channel
+        # alpha = .37  # .37 STD coefficient.higher led to bigger channel
+        # beta = .90  # .94 percent of should be in the channel
         res = eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha, beta)
 
     # ---- check the ratio is near to fibonacci number or not

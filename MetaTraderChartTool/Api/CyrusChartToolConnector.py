@@ -294,6 +294,25 @@ class ChartToolConnector:
 
         self.remote_send(self._PUSH_SOCKET, _msg)
 
+    """
+        Function to Clear Chart
+    """
+
+    def send_clear_request(self):
+        _msg = "{}".format('CLEAR')
+
+        self.remote_send(self._PUSH_SOCKET, _msg)
+
+    """
+        Function to Delete Objects
+    """
+
+    def send_delete_request(self, params):
+        _msg = "{};".format('DELETE')
+        _msg += params
+
+        self.remote_send(self._PUSH_SOCKET, _msg)
+
     ##########################################################################
     """
     Function to construct messages for sending TRACK_PRICES commands to 

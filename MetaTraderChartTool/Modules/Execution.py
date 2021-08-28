@@ -12,9 +12,10 @@ class Execution:
     ##########################################################################
 
     def execute(self,
-                  draw_param,
+                  params,
                   _delay=0.1,
-                  _wbreak=40):
+                  _wbreak=40,
+                  _type="DRAW"):
 
         _check = ''
 
@@ -22,7 +23,10 @@ class Execution:
         self._zmq._set_response_(None)
 
         # Draw
-        self._zmq.send_draw_request(draw_param)
+        if _type == "DRAW":
+            self._zmq.send_draw_request(params)
+        elif _type == "DELETE":
+            self._zmq.send_delete_request(params)
 
         # While loop start time reference
         _ws = to_datetime('now')

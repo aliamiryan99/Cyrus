@@ -16,6 +16,7 @@ class PivotPoints(RealTimeTool):
 
         self.last_local_min, self.last_local_max = self.local_min[-1], self.local_max[-1]
         self.last_min_id, self.last_max_id = 1, 1
+        self.last_min_delete, self.last_max_delete = 1, 1
 
         self.draw_local_extremum(self.local_min, self.local_max)
 
@@ -30,16 +31,21 @@ class PivotPoints(RealTimeTool):
 
         if self.local_min[-1] != self.last_local_min:
             self.draw_local_extremum([self.local_min[-1]], [])
+            self.chart_tool.delete([f'LocalMinPython{self.last_min_delete}'])
+            self.last_min_delete += 1
             self.last_local_min = self.local_min[-1]
             print(f"Local Min Time {self.data[self.local_min[-1]]['Time']}")
         if self.local_max[-1] != self.last_local_max:
             self.draw_local_extremum([], [self.local_max[-1]])
+            self.chart_tool.delete([f'LocalMaxPython{self.last_max_delete}'])
+            self.last_max_delete += 1
             self.last_local_max = self.local_max[-1]
             print(f"Local Max Time {self.data[self.local_max[-1]]['Time']}")
 
         self.data.append(candle)
 
     def draw_local_extremum(self, local_min, local_max):
+
         if len(local_min) != 0:
             times1, prices1, texts1, names1 = [], [], [], []
             for i in range(len(local_min)):

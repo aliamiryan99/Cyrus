@@ -6,7 +6,7 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics"]
-    tool_name = 'Channels'
+    tool_name = 'Elliot'
 
     def __init__(self, data, tool_name):
 
@@ -68,6 +68,8 @@ class ChartConfig:
             extremum_window = 6
             time_range = 5
             price_range_alpha = 1
+            alpha = 0.8
+            beta = 0.25
 
-            self.tool = Harmonics(data, extremum_window, time_range, price_range_alpha, name)
+            self.tool = Harmonics(data, extremum_window, time_range, price_range_alpha, name, alpha, beta)
 

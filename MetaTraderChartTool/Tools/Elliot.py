@@ -12,7 +12,7 @@ class Elliot(Tool):
     def __init__(self, data):
         super().__init__(data)
 
-        monowave_list, polywave_list = elliott.calculate(pd.DataFrame(data), price_type="neo", timeframe="H4", step=6)
+        monowave_list, polywave_list, prediction_list = elliott.calculate(pd.DataFrame(data), price_type="neo", timeframe="H4", step=6)
         # TODO : if neo_wo_merge was True Then polywave_lsit = []
         self.result_final = {}
         results = []
@@ -36,6 +36,15 @@ class Elliot(Tool):
 
             index = "P" + str(i)
             self.result_final[index] = polywave_list[i]
+
+            x1_list = prediction_list[i]['X1']
+            x2_list = prediction_list[i]['X2']
+
+            prediction_list[i]['Start_time'] = list(np.array(times)[x1_list])
+            prediction_list[i]['End_time'] = list(np.array(times)[x2_list])
+
+            index = "Pr" + str(i)
+            self.result_final[index] = prediction_list[i]
 
     def draw(self, chart_tool: BasicChartTools):
 
@@ -79,5 +88,17 @@ class Elliot(Tool):
         end_prices = self.result_final['P0']['End_price']
 
         chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=color, width=width, style=chart_tool.EnumStyle.Dot)
+
+        color = "0,0,255"
+        for j in range(3):
+            names = [f"Prediction {j}-{i}" for i in
+                     range(len(self.result_final['Pr0']['Start_time']))]
+            start_times = self.result_final['Pr0']['Start_time']
+            end_times = self.result_final['Pr0']['End_time']
+            start_prices = self.result_final['Pr0']['Y'+str(j+1)]
+            end_prices = self.result_final['Pr0']['Y'+str(j+1)]
+
+            chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=color,
+                                  style=chart_tool.EnumStyle.Dot)
 
 
