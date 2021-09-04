@@ -18,18 +18,18 @@ account_management_list = ['Balance', 'Risk']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['EURUSD.I']
-    management_ratio = [1]
-    history_size = 200
-    algorithm_time_frame = "H1"
-    trailing_time_frame = "H1"
+    symbols = ['XAUUSD.I']
+    management_ratio = [3]
+    history_size = 260
+    algorithm_time_frame = "D1"
+    trailing_time_frame = "D1"
     tag = "EURUSD"
 
-    algorithm_name = 'CrossMovingAverage'
+    algorithm_name = 'SimpleIdea'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
-    close_mode = 'tp_sl'
-    tp_sl_name = 'Wave'
+    close_mode = 'trailing'
+    tp_sl_name = 'Extremum'
     trailing_name = 'Basic'
     account_management_name = 'Balance'
 
@@ -37,10 +37,11 @@ class InstanceConfig:
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = False  # re entrance strategy
+        self.re_entrance_enable = True  # re entrance strategy
         self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
+        self.force_region = 50  # force region point
         self.force_close_on_algorithm_price = False  # if true positions only close in algorithm price ( for gaps )
         self.algorithm_virtual_signal = False  # if true algorithm positions don't executed (only re_entrance)
         self.enable_max_trade_per_candle = True  # if true only max_trade_per_candle can be placed on one candle
@@ -171,8 +172,8 @@ class InstanceConfig:
                                                 extremum_window, extremum_mode, extremum_pivot)
         elif algorithm_name == 'SuperStrongSupportResistance':
             from AlgorithmFactory.Algorithms.SSSR import SuperStrongSupportResistance
-            window_size = 150
-            extremum_window = 6
+            window_size = 250
+            extremum_window = 20
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
 
             self.algorithm = SuperStrongSupportResistance(symbol, data, window_size, extremum_window, extremum_mode)
@@ -376,10 +377,10 @@ class InstanceConfig:
             self.tp_sl_tool = Body(window, alpha, mode, tp_disable, sl_disable)
         elif tp_sl_name == 'Extremum':
             from AlgorithmFactory.AlgorithmsOfExit.TpSl.Extremum import Extremum
-            extremum_window = 2
+            extremum_window = 1
             extremum_mode = 1
             extremum_pivot = 1
-            alpha = 1
+            alpha = 2
 
             self.tp_sl_tool = Extremum(data, symbol, extremum_window, extremum_mode, extremum_pivot, alpha)
         elif tp_sl_name == 'Wave':

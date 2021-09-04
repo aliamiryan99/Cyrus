@@ -218,6 +218,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                 print(data)
                 print("________________________________________________________________________________")
             elif data['_action'] == 'CLOSE':
+                data['_close_time'] = datetime.strptime(data['_close_time'], Config.date_order_format)
                 found = False
                 if data['_response'] != 'NOT_FOUND':
                     for trade in self.open_buy_trades[data['_symbol']]:

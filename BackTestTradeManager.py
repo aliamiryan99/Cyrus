@@ -49,8 +49,8 @@ class BackTestLauncher:
                 # Select Symbol Configuration
                 history = data[symbol][i - self.history_size:i + 1]
 
-                # Debug Section
-                # if data_time == datetime(year=2017, month=2, day=22, hour=0, minute=0):
+                #Debug Section
+                # if data_time == datetime(year=2017, month=3, day=15, hour=7, minute=42):
                 #     print(data_time)
 
                 # Ignore Holidays

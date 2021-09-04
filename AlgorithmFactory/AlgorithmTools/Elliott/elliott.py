@@ -124,7 +124,8 @@ def calculate(df, price_type='mean', step=8, iteration_cnt=1, removes_enabled=Fa
         polywaves1.candidate_patterns()
         valid_pairs = polywaves1.analyzing_rules()
         start_candle_idx, end_candle_idx, start_price, end_price, ew_type, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3 = polywaves1.visualize_valid_polywave()
-        polywave_list.append({"Start_index": start_candle_idx, "Start_price": start_price, "End_index": end_candle_idx, "End_price": end_price, "Type": ew_type})
+        polywave_list.append({"Start_index": start_candle_idx, "Start_price": start_price, "End_index": end_candle_idx,
+                              "End_price": end_price, "Type": ew_type})
         prediction_list.append({"X1": pred_x1, "X2": pred_x2, "Y1": pred_y1, "Y2": pred_y2, "Y3": pred_y3})
 
         hyper_monowaves_list.append(pd.DataFrame(hyper_monowaves))

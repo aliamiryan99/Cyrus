@@ -8,8 +8,8 @@ class Config:
     leverage = 100
 
     # in point
-    spreads = {'EURUSD': 20, 'GBPUSD': 30, 'NZDUSD': 40, 'USDCAD': 40, 'USDCHF': 30, 'USDJPY': 30,
-               'AUDUSD': 30, 'XAUUSD': 50, 'XAGUSD': 50, 'US30USD': 60, 'USATECHUSD': 100, 'US500USD': 100}
+    spreads = {'EURUSD': 10, 'GBPUSD': 20, 'NZDUSD': 30, 'USDCAD': 30, 'USDCHF': 20, 'USDJPY': 20,
+               'AUDUSD': 20, 'XAUUSD': 30, 'XAGUSD': 30, 'US30USD': 60, 'USATECHUSD': 100, 'US500USD': 100}
 
     volume_digit = 2    # for example 2 -> at least 0.01 lot
     max_volume = 200

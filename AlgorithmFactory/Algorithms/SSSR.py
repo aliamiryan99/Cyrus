@@ -16,7 +16,7 @@ class SuperStrongSupportResistance:
         if len_window <= window_size:
             raise Exception("window len should be greater than window size")
 
-        self.data_window = data_history[len_window-self.window_size-5:len_window]
+        self.data_window = data_history[len_window-self.window_size-5:]
 
         bottom_candle, top_candle = get_bottom_top(self.data_window[:-1])
 
@@ -46,9 +46,12 @@ class SuperStrongSupportResistance:
         return 0, 0
 
     def on_data(self, candle, cash):
+        self.data_window.pop(0)
         self.candle_buy_submitted = False
         self.candle_sell_submitted = False
-        self.update_local_extremum()
+        self.local_min_price,\
+        self.local_max_price = update_local_extremum_list(self.data_window, self.local_min_price, self.local_max_price,
+                                                          self.extremum_window, self.extremum_mode)
         self.price_up.pop(0)
         self.price_down.pop(0)
         if self.extremum_mode == 1:
@@ -58,9 +61,7 @@ class SuperStrongSupportResistance:
             self.price_up.append(max(self.data_window[-1]['Open'], self.data_window[-1]['Close']))
             self.price_down.append(min(self.data_window[-1]['Open'], self.data_window[-1]['Close']))
 
-        self.data_window.pop(0)
         self.data_window.append(candle)
-
         self.check_satisfy()
         return 0, 0
 

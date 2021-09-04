@@ -150,10 +150,13 @@ def get_local_extremum_area(data, local_min, local_max, time_range, price_range)
 
 
 def update_local_extremum(local_extremum):
-    while local_extremum[0] <= 0:
-        local_extremum = local_extremum[1:]
-    for i in range(len(local_extremum)):
-        local_extremum[i] -= 1
+    if len(local_extremum) != 0:
+        while len(local_extremum) != 0 and local_extremum[0] <= 0:
+            local_extremum = local_extremum[1:]
+        for i in range(len(local_extremum)):
+            local_extremum[i] -= 1
+    else:
+        print("Warning : Extremum List Is Empty")
     return local_extremum
 
 
