@@ -986,7 +986,7 @@ bool DWX_ClosePartial(double size, string &zmq_ret, int ticket=0, bool externCal
    close_ret = OrderClose(OrderTicket(), size, priceCP, MaximumSlippage);
    
    if (close_ret == true) {
-      zmq_ret = zmq_ret + ", '_symbol': " + "'" + OrderSymbol() + "'" + ", '_close_price': " + DoubleToString(priceCP) + ", '_close_lots': " + DoubleToString(size);
+      zmq_ret = zmq_ret + ", '_symbol': " + "'" + OrderSymbol() + "'" + ", '_close_price': " + DoubleToString(priceCP) + ", '_close_lots': " + DoubleToString(size) + ", '_close_time':'" + TimeToStr(TimeCurrent(),TIME_DATE|TIME_SECONDS) +"'";
    } else {
       error = GetLastError();
       zmq_ret = zmq_ret  + ", '_response': '" + IntegerToString(error) + "', '_response_value': '" + ErrorDescription(error) + "'";
@@ -1050,7 +1050,7 @@ void DWX_CloseOrder_Ticket(int _ticket, string &zmq_ret) {
 
    bool found = false;
 
-   zmq_ret = zmq_ret + "'_action': 'CLOSE', '_ticket': " + IntegerToString(_ticket);
+   zmq_ret = zmq_ret + "'_action': 'CLOSE', '_ticket': " + IntegerToString(_ticket) ;
 
    for(int i=0; i<OrdersTotal(); i++) {
       if (OrderSelect(i,SELECT_BY_POS)==true && OrderTicket() == _ticket) {
