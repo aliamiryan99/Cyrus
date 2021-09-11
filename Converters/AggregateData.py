@@ -21,8 +21,8 @@ def aggregate_data(histories, time_frame):
     return new_history
 
 
-category = "Major"
-symbol = "GBPUSD"
+category = "Metal"
+symbol = "XAUUSD"
 time_frame_source = "H1"
 time_frame_target = "H4"
 

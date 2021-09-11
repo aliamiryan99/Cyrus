@@ -24,6 +24,9 @@ class SimpleTrailing:
             i += 1
         self.threshold = (sum / self.window) * self.alpha
 
+    def on_pre_tick(self):
+        pass
+
     def on_tick(self, history, entry_point, position_type, time):
         old_candle = history[-2]
         if old_candle['Volume'] == 0:

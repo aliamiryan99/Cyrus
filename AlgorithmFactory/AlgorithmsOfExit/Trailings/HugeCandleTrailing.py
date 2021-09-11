@@ -50,7 +50,10 @@ class HugeCandleTrailing:
                 return True, old_high
         return False, 0
 
-    def on_tick_reset(self):
+    def on_pre_tick(self):
+        pass
+
+    def on_tick_end(self):
         pass
 
     def detect_huge_candle(self, start_index):

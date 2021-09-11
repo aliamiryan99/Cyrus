@@ -12,6 +12,9 @@ class TrailingStop:
     def on_data(self, candle):
         pass
 
+    def on_pre_tick(self):
+        pass
+
     def on_tick(self, history, entry_point, position_type, time):
 
         # entryPoint = 2999

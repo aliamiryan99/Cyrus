@@ -19,6 +19,9 @@ class StochasticTrailing:
         self.indicator.update(history)
         self.data_window.append(history[-1])
 
+    def on_pre_tick(self):
+        pass
+
     def on_tick(self, history, entry_point, position_type, time):
         if position_type == 'Buy':
             if self.indicator.values[-1] > self.upper_band:

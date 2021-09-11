@@ -8,6 +8,7 @@ from Indicators.MA import MovingAverage
 from Indicators.Stochastic import Stochastic
 from Indicators.MACD import MACD
 from Indicators.AMA import AMA
+from Indicators.Ichimoku import Ichimoku
 
 from Visualization.Tools import *
 from Visualization.BaseChart import *
@@ -16,13 +17,14 @@ from Visualization.BaseChart import *
 class IndicatorVisualizer(Visualizer):
 
     def __init__(self, data, indicator_names, heikin_data_level, extremum_enable, extremum_window, extremum_mode,
-                 ma_enable, ma_list):
+                 ma_enable, ma_list, ichimoku_enable):
         self.data = data
         self.hikin_data_level = heikin_data_level
         self.indicator_names = indicator_names
         self.extremum_enable = extremum_enable
         self.ma_enable = ma_enable
         self.ma_list = ma_list
+        self.ichimoku_enable = ichimoku_enable
 
         for i in range(self.hikin_data_level):
             heikin_converter = HeikinConverter(self.data[0])
@@ -84,10 +86,14 @@ class IndicatorVisualizer(Visualizer):
             self.local_min_indicator_list.append(local_min_indicator)
             self.local_max_indicator_list.append(local_max_indicator)
 
-            self.ma_indicators = []
-            if self.ma_enable:
-                for ma in ma_list:
-                    self.ma_indicators.append(MovingAverage(data, ma['ma_type'], ma['price_type'], ma['window']))
+        self.ma_indicators = []
+        if self.ma_enable:
+            for ma in ma_list:
+                self.ma_indicators.append(MovingAverage(data, ma['ma_type'], ma['price_type'], ma['window']))
+        if self.ichimoku_enable:
+            ichimoku = Ichimoku(data)
+            self.ichimoku_result = ichimoku.result
+
 
     def draw(self, fig, height):
         data_df = pd.DataFrame(self.data)
@@ -109,10 +115,23 @@ class IndicatorVisualizer(Visualizer):
             fig.circle(self.local_max_price, data_df.High[self.local_max_price], size=8, color="red")
             fig.circle(self.local_min_price, data_df.Low[self.local_min_price], size=8, color="blue")
 
-        for i in range(len(self.ma_list)):
-            ma = self.ma_list[i]
-            ma_indicator = self.ma_indicators[i].values
-            fig.line(x=list(np.arange(len(self.data))), y=ma_indicator, color=ma['color'], width=ma['width'])
+        if self.ma_enable:
+            for i in range(len(self.ma_list)):
+                ma = self.ma_list[i]
+                ma_indicator = self.ma_indicators[i].values
+                fig.line(x=list(np.arange(len(self.data))), y=ma_indicator, color=ma['color'], width=ma['width'])
+
+        if self.ichimoku_enable:
+            fig.line(x=list(np.arange(len(self.ichimoku_result['TenkanSen']))), y=self.ichimoku_result['TenkanSen'],
+                     color="#ca3a64", width=1)
+            fig.line(x=list(np.arange(len(self.ichimoku_result['KijunSen']))), y=self.ichimoku_result['KijunSen'],
+                     color="#453af4", width=1)
+            fig.line(x=list(np.arange(len(self.ichimoku_result['ChikouSpan']))), y=self.ichimoku_result['ChikouSpan'],
+                     color="#3afa64", width=1)
+            fig.line(x=list(np.arange(len(self.ichimoku_result['SenkouSpanA']))), y=self.ichimoku_result['SenkouSpanA'],
+                     color="#fafa64", width=4)
+            fig.line(x=list(np.arange(len(self.ichimoku_result['SenkouSpanB']))), y=self.ichimoku_result['SenkouSpanB'],
+                     color="#3afaf4", width=4)
 
         figs = [fig]
         figs += indicator_fig_list

@@ -14,6 +14,9 @@ class CandleTrailing:
         self.open_candle = True
         return
 
+    def on_pre_tick(self):
+        pass
+
     def on_tick(self, history, entry_point, position_type, time):
         if self.open_candle:
             if entry_point == -1 or entry_point == len(history)-1:

@@ -1,6 +1,6 @@
 from AlgorithmFactory.AlgorithmPackages.Divergence import DivergencePkg
 from AlgorithmFactory.AlgorithmTools import LocalExtermums
-from AlgorithmFactory.AlgorithmTools import HeikinConverter
+from AlgorithmFactory.AlgorithmTools.HeikinCandle import HeikinConverter
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 from AlgorithmFactory.AlgorithmTools.CandleTools import *
 from AlgorithmFactory.AlgorithmTools.IndicatorTools import *

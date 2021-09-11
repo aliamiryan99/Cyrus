@@ -6,7 +6,7 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics"]
-    tool_name = 'Elliot'
+    tool_name = 'Indicator'
 
     def __init__(self, data, tool_name):
 
@@ -72,4 +72,7 @@ class ChartConfig:
             beta = 0.25
 
             self.tool = Harmonics(data, extremum_window, time_range, price_range_alpha, name, alpha, beta)
+        if tool_name == "Indicator":
+            from MetaTraderChartTool.Tools.Indicator import Indicator
 
+            self.tool = Indicator(data)

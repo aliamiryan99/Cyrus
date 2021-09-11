@@ -2,7 +2,7 @@
 
 class ChartConfig:
 
-    symbol = "GBPUSD"
+    symbol = "XAUUSD"
     time_frame = "H4"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.02.2017 00:00:00.000"
@@ -10,7 +10,7 @@ class ChartConfig:
     holidays_show = False
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression', 'Channel']
-    visualizer = 'Channel'
+    visualizer = 'Indicator'
 
     def __init__(self, data, visualizer):
 
@@ -57,16 +57,17 @@ class ChartConfig:
             self.visualizer = SupportResistanceVisualizer(data, extremum_mode, extremum_window, num_sections)
         elif visualizer == 'Indicator':
             from Visualization.IndicatorVisualizer import IndicatorVisualizer
-            indicator_names = ['RSI']
+            indicator_names = []
             heikin_data_level = 0
             extremum_enable = False
             extremum_window = 2
             extremum_mode = 1
-            ma_enable = True
+            ma_enable = False
             ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 14, 'color': '#2364d1', 'width': 1}]
+            ichimoku_enable = True
 
             self.visualizer = IndicatorVisualizer(data, indicator_names, heikin_data_level, extremum_enable,
-                                                  extremum_window, extremum_mode, ma_enable, ma_list)
+                                                  extremum_window, extremum_mode, ma_enable, ma_list, ichimoku_enable)
         elif visualizer == 'MinMax':
             from Visualization.MinMaxVisualizer import MinMaxVisualizer
             extremum_window = 1

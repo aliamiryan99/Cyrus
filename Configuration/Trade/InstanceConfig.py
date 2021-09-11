@@ -6,38 +6,38 @@ algorithm_list = ['SimpleIdea', 'SimpleIdeaRefinement', 'SimpleIdeaModified', 'D
                   'CrossMovingAverage', 'SuperStrongSupportResistance', 'MonotoneExtremum', 'ExtremumTrendBreak',
                   'RefinementLearning', 'ShadowConfirmation', 'ConditionalDivergence', 'Stochastic',
                   'StrongSimpleIdea', 'HighLowSimpleIdea', 'MinMax', 'Regression', 'SharpPointDetection', 'Harmonic',
-                  'EverLastKiss']
+                  'EverLastKiss', 'Ichimoku']
 
 repairment_list = ['ReEntrance']
 recovery_list = ['Basic', 'Signal', 'Candle']
 close_mode_list = ['tp_sl', 'trailing', 'both']
 tp_sl_list = ['Fix', 'Body', 'Extremum', 'Wave']
-trailing_list = ['Basic', 'Candle', 'HugeCandle', 'LocalExtremum', 'Stochastic']
+trailing_list = ['Basic', 'Candle', 'HugeCandle', 'LocalExtremum', 'Stochastic', 'ReverseSignal']
 account_management_list = ['Balance', 'Risk']
 
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['XAUUSD.I']
+    symbols = ['XAUUSD']
     management_ratio = [3]
-    history_size = 260
-    algorithm_time_frame = "D1"
-    trailing_time_frame = "D1"
+    history_size = 200
+    algorithm_time_frame = "H4"
+    trailing_time_frame = "H4"
     tag = "EURUSD"
 
-    algorithm_name = 'SimpleIdea'
+    algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'trailing'
     tp_sl_name = 'Extremum'
-    trailing_name = 'Basic'
+    trailing_name = 'ReverseSignal'
     account_management_name = 'Balance'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
                  tp_sl_name, trailing_name, account_management_name, management_ratio):
 
         # Options
-        self.re_entrance_enable = True  # re entrance strategy
+        self.re_entrance_enable = False  # re entrance strategy
         self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)
@@ -52,7 +52,7 @@ class InstanceConfig:
         # Select Algorithm
         data = copy.deepcopy(data)
         if algorithm_name == 'SimpleIdea':
-            from AlgorithmFactory.Algorithms.SI import SimpleIdea
+            from AlgorithmFactory.Algorithms.SimpleIdea import SimpleIdea
             si_win_inc = 2
             si_win_dec = 2
             si_shadow_threshold = 10
@@ -69,7 +69,7 @@ class InstanceConfig:
                                         si_extremum_window, si_extremum_mode, si_alpha,
                                         si_impulse_threshold)
         elif algorithm_name == 'SimpleIdeaRefinement':
-            from AlgorithmFactory.Algorithms.SIR import SimpleIdeaRefinement
+            from AlgorithmFactory.Algorithms.SimpleIdeaRefinement import SimpleIdeaRefinement
             rsi_win_inc = 1
             rsi_win_dec = 1
             rsi_pivot = 1  # if price mode is 2 then pivot >= 2
@@ -79,7 +79,7 @@ class InstanceConfig:
             self.algorithm = SimpleIdeaRefinement(symbol, data, rsi_win_inc, rsi_win_dec, rsi_pivot, rsi_price_mode,
                                                   rsi_alpha)
         elif algorithm_name == 'SimpleIdeaModified':
-            from AlgorithmFactory.Algorithms.SIM import SimpleIdeaModified
+            from AlgorithmFactory.Algorithms.SimpleIdeaModified import SimpleIdeaModified
             win_inc = 2
             win_dec = 2
             shadow_threshold = 10
@@ -90,7 +90,7 @@ class InstanceConfig:
             self.algorithm = SimpleIdeaModified(symbol, data, win_inc, win_dec, shadow_threshold,
                                                 body_threshold, mode, mean_window)
         elif algorithm_name == 'Divergence':
-            from AlgorithmFactory.Algorithms.Div import Divergence
+            from AlgorithmFactory.Algorithms.Divergence import Divergence
             heikin_level = 0
             big_window = 12
             small_window = 3
@@ -115,25 +115,25 @@ class InstanceConfig:
                                         optimize_enable, look_forward, score_tr)
 
         elif algorithm_name == 'NSoldier':
-            from AlgorithmFactory.Algorithms.NSld import NSoldier
+            from AlgorithmFactory.Algorithms.NSoldier import NSoldier
             window = 3
 
             self.algorithm = NSoldier(symbol, data, window)
         elif algorithm_name == 'Doji':
-            from AlgorithmFactory.Algorithms.Doj import Doji
+            from AlgorithmFactory.Algorithms.Doji import Doji
             win = 3
             detect_mode = 3  # 1: HighLow, 2: TopBottom, 3: LastCandle
             candle_mode = 1  # 1: Body, 2: Total
 
             self.algorithm = Doji(data, win, detect_mode, candle_mode)
         elif algorithm_name == 'HighLowBreak':
-            from AlgorithmFactory.Algorithms.HLB import HighLowBreak
+            from AlgorithmFactory.Algorithms.HighLowBreak import HighLowBreak
             window = 1
             pivot = 1
 
             self.algorithm = HighLowBreak(symbol, data, window, pivot)
         elif algorithm_name == 'SimpleIdeaAndDoji':
-            from AlgorithmFactory.Algorithms.SIandDoj import SimpleIdeaAndDoji
+            from AlgorithmFactory.Algorithms.SimpleIdeaAndDoji import SimpleIdeaAndDoji
             si_win_inc = 2
             si_win_dec = 2
             si_shadow_threshold = 10
@@ -146,7 +146,7 @@ class InstanceConfig:
                                                si_body_threshold, doji_win, doji_detect_mode,
                                                doji_candle_mode)
         elif algorithm_name == 'SmiHammer':
-            from AlgorithmFactory.Algorithms.SH import SemiHammer
+            from AlgorithmFactory.Algorithms.SemiHammer import SemiHammer
             window = 20
             detect_mode = 1
             alpha = 2
@@ -154,12 +154,12 @@ class InstanceConfig:
 
             self.algorithm = SemiHammer(data, window, alpha, detect_mode, trigger_threshold)
         elif algorithm_name == 'SimpleTrendLineBreak':
-            from AlgorithmFactory.Algorithms.STLB import SimpleTrendLineBreak
+            from AlgorithmFactory.Algorithms.SimpleTrendLineBreak import SimpleTrendLineBreak
             window = 100
 
             self.algorithm = SimpleTrendLineBreak(data, window)
         elif algorithm_name == 'CrossMovingAverage':
-            from AlgorithmFactory.Algorithms.MACros import MovingAverageCross
+            from AlgorithmFactory.Algorithms.MovingAverageCross import MovingAverageCross
             total_data_size = 100
             window_size = 14
             price_type = 'Close'
@@ -171,14 +171,14 @@ class InstanceConfig:
             self.algorithm = MovingAverageCross(symbol, data, total_data_size, window_size, price_type, ma_type,
                                                 extremum_window, extremum_mode, extremum_pivot)
         elif algorithm_name == 'SuperStrongSupportResistance':
-            from AlgorithmFactory.Algorithms.SSSR import SuperStrongSupportResistance
+            from AlgorithmFactory.Algorithms.SuperStrongSupportResistance import SuperStrongSupportResistance
             window_size = 250
             extremum_window = 20
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
 
             self.algorithm = SuperStrongSupportResistance(symbol, data, window_size, extremum_window, extremum_mode)
         elif algorithm_name == 'MonotoneExtremum':
-            from AlgorithmFactory.Algorithms.MonExt import MonotoneExtremum
+            from AlgorithmFactory.Algorithms.MonotoneExtremum import MonotoneExtremum
             window_size = 150
             extremum_window = 4
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
@@ -191,7 +191,7 @@ class InstanceConfig:
             self.algorithm = MonotoneExtremum(symbol, data, window_size, extremum_window, extremum_mode,
                                               extremum_level, extremum_pivot, mode)
         elif algorithm_name == 'ExtremumTrendBreak':
-            from AlgorithmFactory.Algorithms.ExTrBr import ExtremumTrendBreak
+            from AlgorithmFactory.Algorithms.ExtremumTrendBreak import ExtremumTrendBreak
             window_size = 150
             extremum_window = 8
             extremum_mode = 1  # 1 : High Low , 2 : Top Bottom
@@ -200,17 +200,17 @@ class InstanceConfig:
             self.algorithm = ExtremumTrendBreak(symbol, data, window_size, extremum_window, extremum_mode,
                                                 is_last_candle_check)
         elif algorithm_name == 'RefinementLearning':
-            from AlgorithmFactory.Algorithms.RL import RefinementLearning
+            from AlgorithmFactory.Algorithms.RefinementLearning import RefinementLearning
             self.rl_window_size = 100
             self.algorithm = RefinementLearning(symbol, data, self.rl_window_size)
         elif algorithm_name == 'ShadowConfirmation':
-            from AlgorithmFactory.Algorithms.ShCon import ShadowConfirmation
+            from AlgorithmFactory.Algorithms.ShadowConfirmation import ShadowConfirmation
             self.sc_window_size = 3
             self.sc_mode = 1  # shadow_confirmation_mode ; 1 : fast_limit , 2 : normal_limit , 3 : late_limit
 
             self.algorithm = ShadowConfirmation(data, self.sc_window_size, self.sc_mode)
         elif algorithm_name == 'ConditionalDivergence':
-            from AlgorithmFactory.Algorithms.ConDiv import ConditionalDivergence
+            from AlgorithmFactory.Algorithms.ConditionalDivergence import ConditionalDivergence
             extremum_mode = 1  # High Low
             extremum_window = 1
             resistance_pivot = 1
@@ -220,7 +220,7 @@ class InstanceConfig:
             self.algorithm = ConditionalDivergence(symbol, data, extremum_mode, extremum_window, resistance_pivot,
                                                    price_mode, trend_window)
         elif algorithm_name == 'Stochastic':
-            from AlgorithmFactory.Algorithms.Stoch import Stochastic
+            from AlgorithmFactory.Algorithms.Stochastic import Stochastic
             upper_band = 0.8
             lower_band = 0.2
             price_mode = 1  # 1 : High, Low, 2 : Top, Bottom
@@ -228,7 +228,7 @@ class InstanceConfig:
 
             self.algorithm = Stochastic(symbol, data, upper_band, lower_band, price_mode, window)
         elif algorithm_name == 'StrongSimpleIdea':
-            from AlgorithmFactory.Algorithms.SSI import StrongSimpleIdea
+            from AlgorithmFactory.Algorithms.StrongSimpleIdea import StrongSimpleIdea
             win_inc = 3
             win_dec = 3
             shadow_threshold = 10
@@ -245,7 +245,7 @@ class InstanceConfig:
                                               mean_window, extremum_window, extremum_mode, huge_detection_window,
                                               alpha, gap_threshold)
         elif algorithm_name == 'HighLowSimpleIdea':
-            from AlgorithmFactory.Algorithms.HLSI import HighLowSimpleIdea
+            from AlgorithmFactory.Algorithms.HighLowSimpleIdea import HighLowSimpleIdea
             window = 3
             mode = 2  # mode 1 : On Open , mode 2 : On Open With Shadow Condition
 
@@ -257,7 +257,7 @@ class InstanceConfig:
 
             self.algorithm = MinMax(symbol, data, extremum_window, extremum_mode)
         elif algorithm_name == 'Regression':
-            from AlgorithmFactory.Algorithms.Reg import Regression
+            from AlgorithmFactory.Algorithms.Regression import Regression
             extremum_window = 3
             extremum_mode = 1
 
@@ -269,7 +269,7 @@ class InstanceConfig:
 
             self.algorithm = SharpPointDetection(data, mean_alpha, candle_bound)
         elif algorithm_name == 'Harmonic':
-            from AlgorithmFactory.Algorithms.HarPat import Harmonic
+            from AlgorithmFactory.Algorithms.Harmonic import Harmonic
             harmonic_name = "Gartley"
             extremum_window = 6
             extremum_mode = 1
@@ -289,6 +289,10 @@ class InstanceConfig:
             beta = 4
 
             self.algorithm = EverLastingKiss(symbol, data, extremum_start_window, extremum_end_window, extremum_window_step, extremum_mode, check_window, alpha, beta)
+        elif algorithm_name == "Ichimoku":
+            from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
+
+            self.algorithm = IchimokuAlgorithm(data)
 
         # ReEntrance Section
         if repairment_name == 'ReEntrance':
@@ -333,7 +337,7 @@ class InstanceConfig:
                                                      volume_alpha)
         elif recovery_name == 'Signal':
             from AlgorithmFactory.AlgorithmsOfRecovery.SignalRecoveryAlgorithm import SignalRecovery
-            from AlgorithmFactory.Algorithms.HLB import HighLowBreak
+            from AlgorithmFactory.Algorithms.HighLowBreak import HighLowBreak
             window = 1
             pivot = 1
 
@@ -394,18 +398,18 @@ class InstanceConfig:
 
         data = copy.deepcopy(data)
         if trailing_name == 'Basic':
-            from AlgorithmFactory.AlgorithmsOfExit.Trailings.SimpTr import SimpleTrailing
+            from AlgorithmFactory.AlgorithmsOfExit.Trailings.SimpleTrailing import SimpleTrailing
             mode = 3
             window = 10
             alpha = 0.1
 
             self.trailing_tool = SimpleTrailing(symbol, window, alpha, mode)
         elif trailing_name == 'Candle':
-            from AlgorithmFactory.AlgorithmsOfExit.Trailings.CndTr import CandleTrailing
+            from AlgorithmFactory.AlgorithmsOfExit.Trailings.CandleTrailing import CandleTrailing
 
             self.trailing_tool = CandleTrailing()
         elif trailing_name == 'HugeCandle':
-            from AlgorithmFactory.AlgorithmsOfExit.Trailings.HugCanTr import HugeCandleTrailing
+            from AlgorithmFactory.AlgorithmsOfExit.Trailings.HugeCandleTrailing import HugeCandleTrailing
             alpha = 0
             beta = 0.8
             mode = 1
@@ -416,19 +420,25 @@ class InstanceConfig:
             self.trailing_tool = HugeCandleTrailing(data, alpha, beta, mode, extremum_window, extremum_mode,
                                                     extremum_pivot)
         elif trailing_name == 'LocalExtremum':
-            from AlgorithmFactory.AlgorithmsOfExit.Trailings.LExTr import LocalExtremumTrailing
+            from AlgorithmFactory.AlgorithmsOfExit.Trailings.LocalExtremumTrailing import LocalExtremumTrailing
             window = 2
             mode = 1
             pivot = 1
 
             self.trailing_tool = LocalExtremumTrailing(data, window, mode, pivot)
         elif trailing_name == 'Stochastic':
-            from AlgorithmFactory.AlgorithmsOfExit.Trailings.StochTr import StochasticTrailing
+            from AlgorithmFactory.AlgorithmsOfExit.Trailings.StochasticTrailing import StochasticTrailing
             upper_band = 0.8
             lower_band = 0.2
             window = 14
 
             self.trailing_tool = StochasticTrailing(data, upper_band, lower_band, window)
+        elif trailing_name == "ReverseSignal":
+            from AlgorithmFactory.AlgorithmsOfExit.Trailings.ReverseSignalTrailing import ReverseSignalTrailing
+            from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
+            trailing_algorithm = IchimokuAlgorithm(data)
+
+            self.trailing_tool = ReverseSignalTrailing(trailing_algorithm)
 
         # # Account Management Section
         # IF Risk : 1% loss per trade if 1 , IF Balance : 0.01 LOT for each 1000 dollar if 1 , IF Fix : 1 lot if 1

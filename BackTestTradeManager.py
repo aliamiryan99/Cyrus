@@ -368,6 +368,7 @@ class BackTestLauncher:
         self.last_buy_closed[symbol] = None
         self.last_sell_closed[symbol] = None
         if self.close_modes[symbol] == 'trailing' or self.close_modes[symbol] == 'both':
+            self.trailing_tools[symbol].on_pre_tick()
             open_buy_positions = copy.deepcopy(self.market.open_buy_positions) + self.virtual_buys[symbol]
             for position in open_buy_positions:
                 if position['Symbol'] == symbol:

@@ -4,23 +4,31 @@ from abc import abstractmethod
 class Market:
 
     @abstractmethod
-    def buy(self):
+    def buy(self,  price, symbol, take_profit, stop_loss, volume):
         pass
 
     @abstractmethod
-    def sell(self):
+    def sell(self, price, symbol, take_profit, stop_loss, volume):
         pass
 
     @abstractmethod
-    def close(self, ticket):
+    def modify(self, ticket, take_profit, stop_loss):
         pass
 
     @abstractmethod
-    def close_all(self):
+    def close(self, ticket, price, volume):
         pass
 
     @abstractmethod
-    def get_open_positions(self):
+    def close_all(self, symbol, price):
+        pass
+
+    @abstractmethod
+    def get_open_buy_positions(self):
+        pass
+
+    @abstractmethod
+    def get_open_sell_positions(self):
         pass
 
     @abstractmethod

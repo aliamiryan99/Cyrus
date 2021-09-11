@@ -1,5 +1,5 @@
 from AlgorithmFactory.AlgorithmPackages.SimpleIdea import SimpleIdeaPkg
-from AlgorithmFactory.Algorithms.Doj import Doji
+from AlgorithmFactory.Algorithms.Doji import Doji
 
 
 class SimpleIdeaAndDoji:

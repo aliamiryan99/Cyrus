@@ -42,7 +42,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
     inc = df.Close > df.Open
     dec = ~inc
 
-    buy = position_df.Type == 'buy'
+    buy = position_df.Type == 'Buy'
     sell = ~buy
 
     # Colour scheme for increasing and descending candles

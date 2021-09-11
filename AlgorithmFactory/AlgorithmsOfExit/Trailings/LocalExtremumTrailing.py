@@ -17,6 +17,9 @@ class LocalExtremumTrailing:
         self.data_window.pop(0)
         self.data_window.append(history[-1])
 
+    def on_pre_tick(self):
+        pass
+
     def on_tick(self, history, entry_point, position_type, time):
         new_candle = history[-1]
 
