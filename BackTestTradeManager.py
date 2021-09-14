@@ -50,8 +50,8 @@ class BackTestLauncher:
                 history = data[symbol][i - self.history_size:i + 1]
 
                 #Debug Section
-                # if data_time == datetime(year=2017, month=3, day=15, hour=7, minute=42):
-                #     print(data_time)
+                if data_time == datetime(year=2019, month=8, day=9, hour=12, minute=0):
+                    print(data_time)
 
                 # Ignore Holidays
                 if history[-1]['Volume'] == 0:

@@ -2,7 +2,7 @@
 
 class ChartConfig:
 
-    symbol = "XAUUSD"
+    symbol = "GBPUSD"
     time_frame = "H4"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.02.2017 00:00:00.000"

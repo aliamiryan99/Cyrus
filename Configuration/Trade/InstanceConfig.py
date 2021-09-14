@@ -18,18 +18,18 @@ account_management_list = ['Balance', 'Risk']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['XAUUSD']
+    symbols = ['EURUSD.I']
     management_ratio = [3]
     history_size = 200
-    algorithm_time_frame = "H4"
-    trailing_time_frame = "H4"
-    tag = "EURUSD"
+    algorithm_time_frame = "M1"
+    trailing_time_frame = "M1"
+    tag = "XAUUSD"
 
     algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'trailing'
-    tp_sl_name = 'Extremum'
+    tp_sl_name = 'Fix'
     trailing_name = 'ReverseSignal'
     account_management_name = 'Balance'
 
@@ -366,8 +366,8 @@ class InstanceConfig:
         self.close_mode = close_mode  # 'tp_sl', 'trailing', 'both'
         if tp_sl_name == 'Fix':
             from AlgorithmFactory.AlgorithmsOfExit.TpSl.Fix import Fix
-            fix_tp = 100  # it can be disable if value equal to 0 (in point)
-            fix_sl = 0  # it can be disable if value equal to 0 (int point)
+            fix_tp = 500  # it can be disable if value equal to 0 (in point)
+            fix_sl = 500  # it can be disable if value equal to 0 (int point)
 
             self.tp_sl_tool = Fix(symbol, fix_tp, fix_sl)
         elif tp_sl_name == 'Body':

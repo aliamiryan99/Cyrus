@@ -11,8 +11,9 @@ def aggregate_data(histories, time_frame):
             new_history.append(copy.deepcopy(histories[i]))
             old_id = new_id
         else:
-            if new_history[-1]['Volume'] == 0:
-                new_history.append(copy.deepcopy(histories[i]))
+            if new_history[-1]['Volume'] == 0 and histories[i]['Volume'] != 0:
+                new_history[-1] = copy.deepcopy(histories[i])
+                pass
             else:
                 new_history[-1]['High'] = max(new_history[-1]['High'], histories[i]['High'])
                 new_history[-1]['Low'] = min(new_history[-1]['Low'], histories[i]['Low'])

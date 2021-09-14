@@ -23,8 +23,8 @@ class Ichimoku:
         self.result['SenkouSpanB'] = np.append(self.result['SenkouSpanB'][1:], [senkou_span_b])
 
     @staticmethod
-    def ichimoku_calculate(open, high, low, close,tenkan_lookback = 9, kijun_lookback = 26,
-                           senkou_span_b_lookback = 52, chikou_loopback=26, senkou_span_projection=26):
+    def ichimoku_calculate(open, high, low, close,tenkan_lookback=9, kijun_lookback=26,
+                           senkou_span_b_lookback=52, chikou_loopback=26, senkou_span_projection=26):
 
         result = {}
 
@@ -32,7 +32,7 @@ class Ichimoku:
         result['KijunSen'] = np.array([open[0]]*len(open))
         for i in range(kijun_lookback, len(open)):
             try:
-                result['KijunSen'][i] = (max(high[i-kijun_lookback:i+1]) + min(low[i - kijun_lookback:i + 1]))/2
+                result['KijunSen'][i] = (max(high[i-kijun_lookback+1:i+1]) + min(low[i - kijun_lookback+1:i + 1]))/2
             except ValueError:
                 pass
 
@@ -40,8 +40,7 @@ class Ichimoku:
         result['TenkanSen'] = np.array([open[0]]*len(open))
         for i in range(tenkan_lookback, len(open)):
             try:
-                result['TenkanSen'][i] = (max(high[i - tenkan_lookback:i + 1,]) + min(
-                    low[i - tenkan_lookback:i + 1]))/2
+                result['TenkanSen'][i] = (max(high[i - tenkan_lookback+1:i + 1,]) + min(low[i - tenkan_lookback+1:i + 1]))/2
             except ValueError:
                 pass
 
@@ -58,8 +57,7 @@ class Ichimoku:
         senkou_span_b = np.array([open[0]]*(len(open)+senkou_span_projection))
         for i in range(len(open)):
             try:
-                senkou_span_b[i+senkou_span_projection] = (max(high[i - senkou_span_b_lookback:i + 1]) + min(
-                    low[i - senkou_span_b_lookback:i + 1]))/2
+                senkou_span_b[i+senkou_span_projection] = (max(high[i - senkou_span_b_lookback+1:i + 1]) + min(low[i - senkou_span_b_lookback+1:i + 1]))/2
             except ValueError:
                 pass
 
