@@ -17,7 +17,7 @@ from Visualization.BaseChart import *
 class IndicatorVisualizer(Visualizer):
 
     def __init__(self, data, indicator_names, heikin_data_level, extremum_enable, extremum_window, extremum_mode,
-                 ma_enable, ma_list, ichimoku_enable):
+                 ma_enable, ma_list, ichimoku_enable, tenkan, kijun):
         self.data = data
         self.hikin_data_level = heikin_data_level
         self.indicator_names = indicator_names
@@ -25,6 +25,8 @@ class IndicatorVisualizer(Visualizer):
         self.ma_enable = ma_enable
         self.ma_list = ma_list
         self.ichimoku_enable = ichimoku_enable
+        self.tenkan = tenkan
+        self.kijun = kijun
 
         for i in range(self.hikin_data_level):
             heikin_converter = HeikinConverter(self.data[0])
@@ -91,7 +93,7 @@ class IndicatorVisualizer(Visualizer):
             for ma in ma_list:
                 self.ma_indicators.append(MovingAverage(data, ma['ma_type'], ma['price_type'], ma['window']))
         if self.ichimoku_enable:
-            ichimoku = Ichimoku(data)
+            ichimoku = Ichimoku(data, tenkan, kijun)
             self.ichimoku_result = ichimoku.result
 
 
@@ -132,6 +134,8 @@ class IndicatorVisualizer(Visualizer):
                      color="#fafa64", width=4)
             fig.line(x=list(np.arange(len(self.ichimoku_result['SenkouSpanB']))), y=self.ichimoku_result['SenkouSpanB'],
                      color="#3afaf4", width=4)
+            fig.line(x=list(np.arange(len(self.ichimoku_result['TenKijun']))), y=self.ichimoku_result['TenKijun'],
+                     color="#ca3af4", width=1)
 
         figs = [fig]
         figs += indicator_fig_list

@@ -53,15 +53,31 @@ def get_ohlc(data):
 def get_body_mean(data, window):
     body_mean = 0
     for i in range(1, window+1):
-        body_mean += abs(data[-i]['Open'] - data[-1]['Close']) / window
+        body_mean += abs(data[-i]['Open'] - data[-i]['Close']) / window
     return body_mean
 
 
 def get_total_mean(data, window):
     body_mean = 0
     for i in range(1, window+1):
-        body_mean += abs(data[-i]['High'] - data[-1]['Low']) / window
+        body_mean += abs(data[-i]['High'] - data[-i]['Low']) / window
     return body_mean
+
+
+def get_max_price(data, window):
+    max = data[-1]['High']
+    for i in range(2, window+1):
+        if data[-i]['High'] > max:
+            max = data[-i]['High']
+    return max
+
+
+def get_min_price(data, window):
+    min = data[-1]['Low']
+    for i in range(2, window + 1):
+        if data[-i]['Low'] < min:
+            min = data[-i]['Low']
+    return min
 
 
 def update_top_bottom(top, bottom, candle):

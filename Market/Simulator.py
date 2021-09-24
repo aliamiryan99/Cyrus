@@ -38,8 +38,12 @@ class Simulator(Market):
             stop_loss = price - sign * stop_loss * 10 ** -Variables.config.symbols_pip[symbol]
         self.simulation.modify(ticket, take_profit, stop_loss)
 
-    def close(self, ticket, price, volume):
-        self.simulation.close(ticket, price, volume, ticket)
+    def close(self, ticket, price):
+        type, position = self.get_position(ticket)
+        self.simulation.close(self.time, price, position['Volume'], ticket)
+
+    def close_partial(self, ticket, price, volume):
+        self.simulation.close(self.time, price, volume, ticket)
 
     def close_all(self, symbol, price):
         self.simulation.close_all_symbol('buy', symbol, self.time, price)
@@ -51,7 +55,7 @@ class Simulator(Market):
     def get_open_sell_positions(self):
         return self.simulation.open_sell_positions
 
-    # return tuple( type('buy','sell') , position )
+    # return tuple( type('Buy','Sell') , position )
     def get_position(self, ticket):
         return self.simulation.get_position(ticket)
 

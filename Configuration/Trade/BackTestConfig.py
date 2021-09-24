@@ -13,7 +13,7 @@ class Config:
 
     volume_digit = 2    # for example 2 -> at least 0.01 lot
     max_volume = 200
-    start_date = "01.02.2017 00:00:00.000"
+    start_date = "14.04.2020 00:00:00.000"
     end_date = "01.03.2021 00:00:00.000"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
 

@@ -16,7 +16,11 @@ class Market:
         pass
 
     @abstractmethod
-    def close(self, ticket, price, volume):
+    def close(self, ticket, price):
+        pass
+
+    @abstractmethod
+    def close_partial(self, ticket, price, volume):
         pass
 
     @abstractmethod

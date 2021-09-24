@@ -360,6 +360,26 @@ def index_date_v2(data, date):
     else:
         return i - 1
 
+
+def index_date_v3(data, date):
+    start = 0
+    end = len(data['Time']) - 1
+    if date < data['Time'][start] or date > data['Time'][end]:
+        return -1
+    i = 0
+    while start <= end:
+        i = int((start + end) / 2)
+        if data['Time'][i] == date:
+            return i
+        elif data['Time'][i] < date:
+            start = i + 1
+        elif data['Time'][i] > date:
+            end = i - 1
+    if data['Time'][i] <= date:
+        return i
+    else:
+        return i - 1
+
 num = 0
 def draw_chart(df, title):
     # style

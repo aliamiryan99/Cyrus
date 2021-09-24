@@ -2,11 +2,11 @@
 
 class ChartConfig:
 
-    symbol = "GBPUSD"
-    time_frame = "H4"
+    symbol = "EURUSD"
+    time_frame = "M15"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
-    start_date = "01.02.2017 00:00:00.000"
-    end_date = "01.01.2021 08:00:00.000"
+    start_date = "01.04.2020 00:00:00.000"
+    end_date = "01.03.2021 00:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression', 'Channel']
@@ -65,9 +65,12 @@ class ChartConfig:
             ma_enable = False
             ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 14, 'color': '#2364d1', 'width': 1}]
             ichimoku_enable = True
+            tenkan = 9 * 16
+            kijun = 26 * 16
 
             self.visualizer = IndicatorVisualizer(data, indicator_names, heikin_data_level, extremum_enable,
-                                                  extremum_window, extremum_mode, ma_enable, ma_list, ichimoku_enable)
+                                                  extremum_window, extremum_mode, ma_enable, ma_list, ichimoku_enable,
+                                                  tenkan, kijun)
         elif visualizer == 'MinMax':
             from Visualization.MinMaxVisualizer import MinMaxVisualizer
             extremum_window = 1

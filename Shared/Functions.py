@@ -5,6 +5,8 @@ class Functions:
     @staticmethod
     def get_time_id(time, time_frame):
         identifier = time.day
+        if time_frame == "MN":
+            identifier = time.month
         if time_frame == "W1":
             identifier = time.isocalendar()[1]
         if time_frame == "H12":
@@ -22,3 +24,8 @@ class Functions:
         if time_frame == "M1":
             identifier = time.hour * 60 + time.minute
         return identifier
+
+    @staticmethod
+    def item_data_list_to_dic(data, i):
+        return {'Time': data['Time'][i], 'Open': data['Open'][i], 'High': data['High'][i], 'Low': data['Low'][i],
+                'Close': data['Close'][i], 'Volume': data['Volume'][i]}

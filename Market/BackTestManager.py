@@ -20,7 +20,7 @@ from Shared.Functions import Functions
 data = {}
 
 
-class MarketManager:
+class BackTestManager:
 
     def __init__(self):
         self.symbols = MarketConfig.symbols
@@ -40,28 +40,28 @@ class MarketManager:
         back_test_length = self.end_indexes[self.symbols[0]] - self.start_indexes[self.symbols[0]]
         for ii in tqdm(range(back_test_length)):
             i = self.start_indexes[self.symbols[0]] + ii
-            data_time = data[self.symbols[0]][i]['Time']
+            data_time = data[self.symbols[0]]['Time'][i]
             # Market Update Section
             self.simulation.update(data_time)
 
             for symbol in self.symbols:
                 i = self.start_indexes[symbol] + ii
-                data_time = data[symbol][i]['Time']
+                data_time = data[symbol]['Time'][i]
                 self.market.time = data_time
 
                 # Select Symbol Configuration
-                history = data[symbol][i - self.history_size:i + 1]
+                tick_candle = Functions.item_data_list_to_dic(data[symbol], i)
 
                 #Debug Section
                 # if data_time == datetime(year=2017, month=3, day=15, hour=7, minute=42):
                 #     print(data_time)
 
                 # Ignore Holidays
-                if history[-1]['Volume'] == 0:
+                if tick_candle['Volume'] == 0:
                     continue
 
                 # Update History
-                self.update_history(history, symbol)
+                self.update_history(tick_candle, symbol)
 
 
         # Exit Section
@@ -93,8 +93,8 @@ class MarketManager:
 
         for i in range(len(symbols)):
             symbol = symbols[i]
-            start_indexes[symbol] = Outputs.index_date_v2(data_total[Config.symbols_dict[symbol]], start_time)
-            end_indexes[symbol] = Outputs.index_date_v2(data_total[Config.symbols_dict[symbol]], end_time)
+            start_indexes[symbol] = Outputs.index_date_v3(data_total[Config.symbols_dict[symbol]], start_time)
+            end_indexes[symbol] = Outputs.index_date_v3(data_total[Config.symbols_dict[symbol]], end_time)
 
         data_algorithm_paths = []
         data_trailing_paths = []
@@ -147,9 +147,9 @@ class MarketManager:
         for i in range(len(symbols)):
             symbol = symbols[i]
             algo_data = \
-                algorithm_data[i].to_dict('Records')[self.algorithm_start_indexes[symbol] -
+                algorithm_data[symbol][self.algorithm_start_indexes[symbol] -
                                                      MarketConfig.history_size:self.algorithm_start_indexes[symbol]]
-            configs[symbol] = MarketConfig(symbol, market, algo_data, MarketConfig.strategy_name)
+            configs[symbol] = MarketConfig(market, symbol, algo_data, MarketConfig.strategy_name)
 
         strategies = {}
         for symbol in symbols:
@@ -194,22 +194,22 @@ class MarketManager:
             sell_open_positions_lens, last_buy_closed, last_sell_closed, trade_buy_in_candle_counts,\
             trade_sell_in_candle_counts, virtual_buys, virtual_sells, recovery_trades
 
-    def update_history(self, history, symbol):
+    def update_history(self, tick_candle, symbol):
         # Algorithm Time ID
-        current_time = Functions.get_time_id(history[-1]['Time'], self.configs[symbol].time_frame)
+        current_time = Functions.get_time_id(tick_candle['Time'], self.configs[symbol].time_frame)
         last_candle_time = Functions.get_time_id(self.algorithm_histories[symbol][-1]['Time'], self.configs[symbol].time_frame)
         if current_time != last_candle_time:
             # New Candle Open Section
-            last_candle = {"Time": history[-1]['Time'], "Open": history[-1]['Open'], "High": history[-1]['High'],
-                           "Low": history[-1]['Low'], "Close": history[-1]['Close'], "Volume": history[-1]['Volume']}
+            last_candle = {"Time": tick_candle['Time'], "Open": tick_candle['Open'], "High": tick_candle['High'],
+                           "Low": tick_candle['Low'], "Close": tick_candle['Close'], "Volume": tick_candle['Volume']}
             self.algorithm_histories[symbol].append(last_candle)
             self.algorithm_histories[symbol].pop(0)
             self.strategies[symbol].on_data(self.algorithm_histories[symbol][-1])
         else:
             # Update Last Candle Section
-            self.algorithm_histories[symbol][-1]['High'] = max(self.algorithm_histories[symbol][-1]['High'],history[-1]['High'])
-            self.algorithm_histories[symbol][-1]['Low'] = min(self.algorithm_histories[symbol][-1]['Low'], history[-1]['Low'])
-            self.algorithm_histories[symbol][-1]['Close'] = history[-1]['Close']
-            self.algorithm_histories[symbol][-1]['Volume'] += history[-1]['Volume']
+            self.algorithm_histories[symbol][-1]['High'] = max(self.algorithm_histories[symbol][-1]['High'],tick_candle['High'])
+            self.algorithm_histories[symbol][-1]['Low'] = min(self.algorithm_histories[symbol][-1]['Low'], tick_candle['Low'])
+            self.algorithm_histories[symbol][-1]['Close'] = tick_candle['Close']
+            self.algorithm_histories[symbol][-1]['Volume'] += tick_candle['Volume']
             # Signal Section
             self.strategies[symbol].on_tick()

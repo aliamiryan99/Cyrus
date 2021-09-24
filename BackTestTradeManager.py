@@ -38,27 +38,27 @@ class BackTestLauncher:
         back_test_length = self.end_indexes[self.symbols[0]] - self.start_indexes[self.symbols[0]]
         for ii in tqdm(range(back_test_length)):
             i = self.start_indexes[self.symbols[0]] + ii
-            data_time = data[self.symbols[0]][i]['Time']
+            data_time = data[self.symbols[0]]['Time'][i]
             # Market Update Section
             self.market.update(data_time)
 
             for symbol in self.symbols:
                 i = self.start_indexes[symbol] + ii
-                data_time = data[symbol][i]['Time']
+                data_time = data[symbol]['Time'][i]
 
                 # Select Symbol Configuration
-                history = data[symbol][i - self.history_size:i + 1]
+                tick_candle = Functions.item_data_list_to_dic(data[symbol], i)
 
                 #Debug Section
-                if data_time == datetime(year=2019, month=8, day=9, hour=12, minute=0):
-                    print(data_time)
+                # if data_time == datetime(year=2019, month=8, day=9, hour=12, minute=0):
+                #     print(data_time)
 
                 # Ignore Holidays
-                if history[-1]['Volume'] == 0:
+                if tick_candle['Volume'] == 0:
                     continue
 
                 # Update History
-                signal, price = self.update_history(history, symbol)
+                signal, price = self.update_history(tick_candle, symbol)
 
                 # Take Profit And Stop Loss
                 stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell =\
@@ -68,11 +68,11 @@ class BackTestLauncher:
                 volume = self.account_managements[symbol].calculate(self.market.balance, symbol, price, stop_loss)
 
                 # Algorithm Execution
-                self.algorithm_execute(history, signal, price, data_time, symbol, take_profit_buy, stop_loss_buy,
+                self.algorithm_execute(tick_candle, signal, price, data_time, symbol, take_profit_buy, stop_loss_buy,
                                        take_profit_sell, stop_loss_sell, volume)
 
                 # Trailing Stop Section
-                self.trailing(history, data_time, symbol)
+                self.trailing(tick_candle, data_time, symbol)
 
                 if self.last_buy_closed[symbol] is None:
                     self.last_buy_closed[symbol] = self.market.get_last_buy_closed(symbol)
@@ -80,13 +80,13 @@ class BackTestLauncher:
                     self.last_sell_closed[symbol] = self.market.get_last_sell_closed(symbol)
 
                 # Virtual Tp Sl Check
-                self.virtual_check(history, symbol)
+                self.virtual_check(tick_candle, symbol)
 
                 # Re Entrance Algorithm Section
-                self.re_entrance(history, data_time, symbol)
+                self.re_entrance(tick_candle, data_time, symbol)
 
                 # Recovery Algorithm Section
-                self.recovery(symbol, history, data_time)
+                self.recovery(symbol, tick_candle, data_time)
 
         # Exit Section
         self.market.exit()
@@ -119,8 +119,8 @@ class BackTestLauncher:
 
         for i in range(len(symbols)):
             symbol = symbols[i]
-            start_indexes[symbol] = Outputs.index_date_v2(data_total[Config.symbols_dict[symbol]], start_time)
-            end_indexes[symbol] = Outputs.index_date_v2(data_total[Config.symbols_dict[symbol]], end_time)
+            start_indexes[symbol] = Outputs.index_date_v3(data_total[Config.symbols_dict[symbol]], start_time)
+            end_indexes[symbol] = Outputs.index_date_v3(data_total[Config.symbols_dict[symbol]], end_time)
 
         data_algorithm_paths = []
         data_trailing_paths = []
@@ -161,14 +161,13 @@ class BackTestLauncher:
             trailing_data, trailing_start_indexes, trailing_end_indexes
 
     def initialize_algorithms(self):
-        global data
         algorithm_data = {}
         trailing_data = {}
 
         for i in range(len(self.symbols)):
             algorithm_data[self.symbols[i]] = self.algorithm_data_total[i].to_dict('Records')
             trailing_data[self.symbols[i]] = self.trailing_data_total[i].to_dict('Records')
-        # history
+        # tick_candle
         history_size = InstanceConfig.history_size
 
         # Algorithm
@@ -245,14 +244,14 @@ class BackTestLauncher:
             sell_open_positions_lens, last_buy_closed, last_sell_closed, trade_buy_in_candle_counts,\
             trade_sell_in_candle_counts, virtual_buys, virtual_sells, recovery_trades
 
-    def update_history(self, history, symbol):
+    def update_history(self, tick_candle, symbol):
         # Algorithm Time ID
-        history_time = Functions.get_time_id(history[-1]['Time'], self.configs[symbol].algorithm_time_frame)
+        history_time = Functions.get_time_id(tick_candle['Time'], self.configs[symbol].algorithm_time_frame)
         algorithm_time = Functions.get_time_id(self.algorithm_histories[symbol][-1]['Time'], self.configs[symbol].algorithm_time_frame)
         if history_time != algorithm_time:
             # New Candle Open Section
-            last_candle = {"Time": history[-1]['Time'], "Open": history[-1]['Open'], "High": history[-1]['High'],
-                           "Low": history[-1]['Low'], "Close": history[-1]['Close'], "Volume": history[-1]['Volume']}
+            last_candle = {"Time": tick_candle['Time'], "Open": tick_candle['Open'], "High": tick_candle['High'],
+                           "Low": tick_candle['Low'], "Close": tick_candle['Close'], "Volume": tick_candle['Volume']}
             self.algorithm_histories[symbol].append(last_candle)
             self.algorithm_histories[symbol].pop(0)
             signal, price = self.algorithms[symbol].on_data(self.algorithm_histories[symbol][-1], self.market.equity)
@@ -260,21 +259,21 @@ class BackTestLauncher:
             self.tp_sl_tools[symbol].on_data(self.algorithm_histories[symbol][-1])
         else:
             # Update Last Candle Section
-            self.algorithm_histories[symbol][-1]['High'] = max(self.algorithm_histories[symbol][-1]['High'],history[-1]['High'])
-            self.algorithm_histories[symbol][-1]['Low'] = min(self.algorithm_histories[symbol][-1]['Low'], history[-1]['Low'])
-            self.algorithm_histories[symbol][-1]['Close'] = history[-1]['Close']
-            self.algorithm_histories[symbol][-1]['Volume'] += history[-1]['Volume']
+            self.algorithm_histories[symbol][-1]['High'] = max(self.algorithm_histories[symbol][-1]['High'],tick_candle['High'])
+            self.algorithm_histories[symbol][-1]['Low'] = min(self.algorithm_histories[symbol][-1]['Low'], tick_candle['Low'])
+            self.algorithm_histories[symbol][-1]['Close'] = tick_candle['Close']
+            self.algorithm_histories[symbol][-1]['Volume'] += tick_candle['Volume']
             # Signal Section
             signal, price = self.algorithms[symbol].on_tick()
 
         # Trailing Time ID
         trailing_time = Functions.get_time_id(self.trailing_histories[symbol][-1]['Time'], self.configs[symbol].trailing_time_frame)
-        history_time = Functions.get_time_id(history[-1]['Time'], self.configs[symbol].trailing_time_frame)
+        history_time = Functions.get_time_id(tick_candle['Time'], self.configs[symbol].trailing_time_frame)
 
         if history_time != trailing_time:
-            last_candle = {"Time": history[-1]['Time'], "Open": history[-1]['Open'], "High": history[-1]['High'],
-                           "Low": history[-1]['Low'], "Close": history[-1]['Close'],
-                           "Volume": history[-1]['Volume']}
+            last_candle = {"Time": tick_candle['Time'], "Open": tick_candle['Open'], "High": tick_candle['High'],
+                           "Low": tick_candle['Low'], "Close": tick_candle['Close'],
+                           "Volume": tick_candle['Volume']}
             self.trailing_histories[symbol].append(last_candle)
             self.trailing_histories[symbol].pop(0)
             self.trade_buy_in_candle_counts[symbol] = 0
@@ -282,10 +281,10 @@ class BackTestLauncher:
             self.trailing_tools[symbol].on_data(self.trailing_histories[symbol])
             self.re_entrance_algorithms[symbol].on_data()
         else:
-            self.trailing_histories[symbol][-1]['High'] = max(self.trailing_histories[symbol][-1]['High'], history[-1]['High'])
-            self.trailing_histories[symbol][-1]['Low'] = min(self.trailing_histories[symbol][-1]['Low'], history[-1]['Low'])
-            self.trailing_histories[symbol][-1]['Close'] = history[-1]['Close']
-            self.trailing_histories[symbol][-1]['Volume'] += history[-1]['Volume']
+            self.trailing_histories[symbol][-1]['High'] = max(self.trailing_histories[symbol][-1]['High'], tick_candle['High'])
+            self.trailing_histories[symbol][-1]['Low'] = min(self.trailing_histories[symbol][-1]['Low'], tick_candle['Low'])
+            self.trailing_histories[symbol][-1]['Close'] = tick_candle['Close']
+            self.trailing_histories[symbol][-1]['Volume'] += tick_candle['Volume']
         return signal, price
 
     def tp_sl(self, signal, price, symbol):
@@ -308,7 +307,7 @@ class BackTestLauncher:
 
         return stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell
 
-    def algorithm_execute(self, history, signal, price, data_time, symbol, take_profit_buy, stop_loss_buy,
+    def algorithm_execute(self, tick_candle, signal, price, data_time, symbol, take_profit_buy, stop_loss_buy,
                           take_profit_sell, stop_loss_sell, volume):
         config = self.configs[symbol]
         if config.max_volume_enable:
@@ -319,10 +318,10 @@ class BackTestLauncher:
                 if not config.enable_max_trade_per_candle or \
                         (config.enable_max_trade_per_candle and
                          self.trade_buy_in_candle_counts[symbol] < config.max_trade_per_candle):
-                    if config.algorithm_force_price and history[-1]['Low'] <= price <= history[-1]['High'] or\
+                    if config.algorithm_force_price and tick_candle['Low'] <= price <= tick_candle['High'] or\
                             not config.algorithm_force_price:
-                        if not config.algorithm_force_price and not history[-1]['Low'] <= price <= history[-1]['High']:
-                            price = history[-1]['Open']
+                        if not config.algorithm_force_price and not tick_candle['Low'] <= price <= tick_candle['High']:
+                            price = tick_candle['Open']
                         if not config.algorithm_virtual_signal:
                             trade = self.market.buy(data_time, price, symbol, take_profit_buy, stop_loss_buy, volume, self.last_ticket)
                             if trade is not None:
@@ -344,10 +343,10 @@ class BackTestLauncher:
                 if not config.enable_max_trade_per_candle or \
                         (config.enable_max_trade_per_candle and self.trade_sell_in_candle_counts[
                             symbol] < config.max_trade_per_candle):
-                    if config.algorithm_force_price and history[-1]['Low'] <= price <= history[-1]['High'] or\
+                    if config.algorithm_force_price and tick_candle['Low'] <= price <= tick_candle['High'] or\
                             not config.algorithm_force_price:
-                        if not config.algorithm_force_price and not history[-1]['Low'] <= price <= history[-1]['High']:
-                            price = history[-1]['Open']
+                        if not config.algorithm_force_price and not tick_candle['Low'] <= price <= tick_candle['High']:
+                            price = tick_candle['Open']
                         if not config.algorithm_virtual_signal:
                             trade = self.market.sell(data_time, price, symbol, take_profit_sell, stop_loss_sell, volume,
                                                      self.last_ticket)
@@ -364,7 +363,7 @@ class BackTestLauncher:
                             self.last_algorithm_signal_ticket[symbol] = -1
                             self.trade_sell_in_candle_counts[symbol] += 1
 
-    def trailing(self, history, data_time, symbol):
+    def trailing(self, tick_candle, data_time, symbol):
         self.last_buy_closed[symbol] = None
         self.last_sell_closed[symbol] = None
         if self.close_modes[symbol] == 'trailing' or self.close_modes[symbol] == 'both':
@@ -377,9 +376,9 @@ class BackTestLauncher:
                     is_close, close_price = self.trailing_tools[symbol].on_tick(self.trailing_histories[symbol],
                                                                   entry_point, 'Buy', data_time)
                     if is_close:
-                        if history[-1]['Low'] <= close_price <= history[-1]['High']:
+                        if tick_candle['Low'] <= close_price <= tick_candle['High']:
                             if position['Ticket'] == -1:
-                                self.last_buy_closed[symbol] = self.virtual_close(position, history[-1]['Time'], close_price)
+                                self.last_buy_closed[symbol] = self.virtual_close(position, tick_candle['Time'], close_price)
                                 self.virtual_buys[symbol].remove(position)
                             else:
                                 self.market.close(data_time, close_price, position['Volume'], position['Ticket'])
@@ -387,13 +386,13 @@ class BackTestLauncher:
                                     if trades[0]['Ticket'] == position['Ticket']:
                                         self.recovery_trades[symbol].remove(trades)
                                         break
-                        elif not self.configs[symbol].force_close_on_algorithm_price and history[-1]['Open'] < close_price:
+                        elif not self.configs[symbol].force_close_on_algorithm_price and tick_candle['Open'] < close_price:
                             if position['Ticket'] == -1:
-                                self.last_buy_closed[symbol] = self.virtual_close(position, history[-1]['Time'],
-                                                                        history[-1]['Open'])
+                                self.last_buy_closed[symbol] = self.virtual_close(position, tick_candle['Time'],
+                                                                        tick_candle['Open'])
                                 self.virtual_buys[symbol].remove(position)
                             else:
-                                self.market.close(data_time, history[-1]['Open'], position['Volume'], position['Ticket'])
+                                self.market.close(data_time, tick_candle['Open'], position['Volume'], position['Ticket'])
                                 for trades in self.recovery_trades[symbol]:
                                     if trades[0]['Ticket'] == position['Ticket']:
                                         self.recovery_trades[symbol].remove(trades)
@@ -407,9 +406,9 @@ class BackTestLauncher:
                     is_close, close_price = self.trailing_tools[symbol].on_tick(self.trailing_histories[symbol],
                                                                                 entry_point, 'Sell', data_time)
                     if is_close:
-                        if history[-1]['Low'] <= close_price <= history[-1]['High']:
+                        if tick_candle['Low'] <= close_price <= tick_candle['High']:
                             if position['Ticket'] == -1:
-                                self.last_sell_closed[symbol] = self.virtual_close(position, history[-1]['Time'],
+                                self.last_sell_closed[symbol] = self.virtual_close(position, tick_candle['Time'],
                                                                                    close_price)
                                 self.virtual_sells[symbol].remove(position)
                             else:
@@ -418,38 +417,38 @@ class BackTestLauncher:
                                     if trades[0]['Ticket'] == position['Ticket']:
                                         self.recovery_trades[symbol].remove(trades)
                                         break
-                        elif not self.configs[symbol].force_close_on_algorithm_price and close_price < history[-1]['Open']:
+                        elif not self.configs[symbol].force_close_on_algorithm_price and close_price < tick_candle['Open']:
                             if position['Ticket'] == -1:
-                                self.last_sell_closed[symbol] = self.virtual_close(position, history[-1]['Time'],
-                                                                         history[-1]['Open'])
+                                self.last_sell_closed[symbol] = self.virtual_close(position, tick_candle['Time'],
+                                                                         tick_candle['Open'])
                                 self.virtual_sells[symbol].remove(position)
                             else:
-                                self.market.close(data_time, history[-1]['Open'], position['Volume'], position['Ticket'])
+                                self.market.close(data_time, tick_candle['Open'], position['Volume'], position['Ticket'])
                                 for trades in self.recovery_trades[symbol]:
                                     if trades[0]['Ticket'] == position['Ticket']:
                                         self.recovery_trades[symbol].remove(trades)
                                         break
             self.trailing_tools[symbol].on_tick_end()
 
-    def virtual_check(self, history, symbol):
+    def virtual_check(self, tick_candle, symbol):
         virtual_buys_copy = copy.copy(self.virtual_buys[symbol])
         for virtual_buy in virtual_buys_copy:
-            if virtual_buy['SL'] != 0 and history[-1]['Low'] <= virtual_buy['SL']:
-                self.last_buy_closed[symbol] = self.virtual_close(virtual_buy, history[-1]['Time'], virtual_buy['SL'])
+            if virtual_buy['SL'] != 0 and tick_candle['Low'] <= virtual_buy['SL']:
+                self.last_buy_closed[symbol] = self.virtual_close(virtual_buy, tick_candle['Time'], virtual_buy['SL'])
                 self.virtual_buys[symbol].remove(virtual_buy)
-            elif virtual_buy['TP'] != 0 and history[-1]['High'] >= virtual_buy['TP']:
-                self.last_buy_closed[symbol] = self.virtual_close(virtual_buy, history[-1]['Time'], virtual_buy['TP'])
+            elif virtual_buy['TP'] != 0 and tick_candle['High'] >= virtual_buy['TP']:
+                self.last_buy_closed[symbol] = self.virtual_close(virtual_buy, tick_candle['Time'], virtual_buy['TP'])
                 self.virtual_buys[symbol].remove(virtual_buy)
 
         virtual_sells_copy = copy.copy(self.virtual_sells[symbol])
         for virtual_sell in virtual_sells_copy:
-            if virtual_sell['SL'] != 0 and history[-1]['High'] + Config.spreads[symbol] >= virtual_sell['SL']:
-                self.last_sell_closed[symbol] = self.virtual_close(virtual_sell, history[-1]['Time'],
+            if virtual_sell['SL'] != 0 and tick_candle['High'] + Config.spreads[symbol] >= virtual_sell['SL']:
+                self.last_sell_closed[symbol] = self.virtual_close(virtual_sell, tick_candle['Time'],
                                                                    virtual_sell['SL'] + Config.spreads[symbol])
                 self.virtual_sells[symbol].remove(virtual_sell)
-            elif virtual_sell['TP'] != 0 and history[-1]['Low'] + Config.spreads[symbol] <= virtual_sell['TP']:
+            elif virtual_sell['TP'] != 0 and tick_candle['Low'] + Config.spreads[symbol] <= virtual_sell['TP']:
                 self.last_sell_closed[symbol] =\
-                    self.virtual_close(virtual_sell, history[-1]['Time'], virtual_sell['TP'])
+                    self.virtual_close(virtual_sell, tick_candle['Time'], virtual_sell['TP'])
                 self.virtual_sells[symbol].remove(virtual_sell)
 
     @staticmethod
@@ -462,7 +461,7 @@ class BackTestLauncher:
                 'TP': virtual_position['TP'],
                 'Volume': virtual_position['Volume'], 'Ticket': virtual_position['Ticket']}
 
-    def re_entrance(self, history, data_time, symbol):
+    def re_entrance(self, tick_candle, data_time, symbol):
         config = self.configs[symbol]
         if config.re_entrance_enable:
             is_buy_closed, is_sell_closed = False, False
@@ -513,13 +512,13 @@ class BackTestLauncher:
                     if not config.enable_max_trade_per_candle or \
                             (config.enable_max_trade_per_candle and self.trade_buy_in_candle_counts[
                                 symbol] < config.max_trade_per_candle):
-                        if not config.force_re_entrance_price and price_re_entrance <= history[-1]['Open']:
-                            self.market.buy(data_time, history[-1]['Open'], symbol, take_profit_buy, stop_loss_buy,
+                        if not config.force_re_entrance_price and price_re_entrance <= tick_candle['Open']:
+                            self.market.buy(data_time, tick_candle['Open'], symbol, take_profit_buy, stop_loss_buy,
                                             volume, self.last_ticket)
                             self.last_ticket += 1
                             self.trade_buy_in_candle_counts[symbol] += 1
                             self.re_entrance_algorithms[symbol].reset_triggers('buy')
-                        elif history[-1]['Low'] <= price_re_entrance <= history[-1]['High']:
+                        elif tick_candle['Low'] <= price_re_entrance <= tick_candle['High']:
                             self.market.buy(data_time, price_re_entrance, symbol, take_profit_buy, stop_loss_buy,
                                             volume, self.last_ticket)
                             self.last_ticket += 1
@@ -531,13 +530,13 @@ class BackTestLauncher:
                     if not config.enable_max_trade_per_candle or \
                             (config.enable_max_trade_per_candle and self.trade_sell_in_candle_counts[
                                 symbol] < config.max_trade_per_candle):
-                        if not config.force_re_entrance_price and price_re_entrance >= history[-1]['Open']:
-                            self.market.sell(data_time, history[-1]['Open'], symbol, take_profit_sell, stop_loss_sell,
+                        if not config.force_re_entrance_price and price_re_entrance >= tick_candle['Open']:
+                            self.market.sell(data_time, tick_candle['Open'], symbol, take_profit_sell, stop_loss_sell,
                                              volume, self.last_ticket)
                             self.last_ticket += 1
                             self.trade_sell_in_candle_counts[symbol] += 1
                             self.re_entrance_algorithms[symbol].reset_triggers('sell')
-                        elif history[-1]['Low'] <= price_re_entrance <= history[-1]['High']:
+                        elif tick_candle['Low'] <= price_re_entrance <= tick_candle['High']:
                             self.market.sell(data_time, price_re_entrance, symbol, take_profit_sell, stop_loss_sell,
                                              volume, self.last_ticket)
                             self.last_ticket += 1
@@ -547,13 +546,13 @@ class BackTestLauncher:
             self.buy_open_positions_lens[symbol] = self.market.get_open_buy_positions_count(symbol) + len(self.virtual_buys[symbol])
             self.sell_open_positions_lens[symbol] = self.market.get_open_sell_positions_count(symbol) + len(self.virtual_sells[symbol])
 
-    def recovery(self, symbol, history, data_time):
+    def recovery(self, symbol, tick_candle, data_time):
         if self.configs[symbol].recovery_enable:
             for i in range(len(self.recovery_trades[symbol])):
                 recovery_signal, modify_signals = self.recovery_algorithms[symbol].on_tick(self.recovery_trades[symbol][i])
                 if recovery_signal['Signal'] == 1:
                     if recovery_signal['TP'] != 0:
-                        recovery_signal['TP'] += history[-1]['Close']
+                        recovery_signal['TP'] += tick_candle['Close']
                     trade = self.market.buy(data_time, recovery_signal['Price'], symbol, recovery_signal['TP'], 0,
                                             recovery_signal['Volume'], self.last_ticket)
                     if trade is not None:
@@ -561,12 +560,12 @@ class BackTestLauncher:
                         self.recovery_trades[symbol][i].append(trade)
                         for modify_signal in modify_signals:
                             if modify_signal['TP'] != 0:
-                                modify_signal['TP'] += history[-1]['Close']
+                                modify_signal['TP'] += tick_candle['Close']
                             self.market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
 
                 elif recovery_signal['Signal'] == -1:
                     if recovery_signal['TP'] != 0:
-                        recovery_signal['TP'] += history[-1]['Close']
+                        recovery_signal['TP'] += tick_candle['Close']
                     trade = self.market.sell(data_time, recovery_signal['Price'], symbol, recovery_signal['TP'], 0,
                                              recovery_signal['Volume'], self.last_ticket)
                     if trade is not None:
@@ -574,14 +573,14 @@ class BackTestLauncher:
                         self.recovery_trades[symbol][i].append(trade)
                         for modify_signal in modify_signals:
                             if modify_signal['TP']:
-                                modify_signal['TP'] += history[-1]['Close']
+                                modify_signal['TP'] += tick_candle['Close']
                             self.market.modify(modify_signal['Ticket'], modify_signal['TP'], 0)
 
             recovery_trades_copy = copy.copy(self.recovery_trades[symbol])
             for i in range(len(recovery_trades_copy)):
                 if (recovery_trades_copy[i][0]['Type'] == 'Buy' and
-                    history[-1]['High'] > recovery_trades_copy[i][0]['TP'] != 0) or \
-                        (recovery_trades_copy[i][0]['Type'] == 'Sell' and history[-1]['Low'] + Config.spreads[
+                    tick_candle['High'] > recovery_trades_copy[i][0]['TP'] != 0) or \
+                        (recovery_trades_copy[i][0]['Type'] == 'Sell' and tick_candle['Low'] + Config.spreads[
                             symbol] < recovery_trades_copy[i][0]['TP'] != 0):
                     self.recovery_algorithms[symbol].tp_touched(recovery_trades_copy[i][0]['Ticket'])
                     self.recovery_trades[symbol].remove(recovery_trades_copy[i])

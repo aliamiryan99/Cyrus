@@ -6,7 +6,7 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics"]
-    tool_name = 'Indicator'
+    tool_name = 'Harmonics'
 
     def __init__(self, data, tool_name):
 
