@@ -15,7 +15,9 @@ class Config:
     tick_date_format = '%Y.%m.%d %H:%M:%S'
 
     timeframes_dic = {'M1': 1, 'M5': 5, 'M15': 15, 'M30': 30, 'H1': 60, 'H4': 240, 'D1': 1440,
-                      'W1': 10080, 'MN1': 43200}
+                      'W1': 10080, 'MN': 43200}
+    timeframes_dic_rev = {1: 'M1', 5: 'M5', 15: 'M15', 30: 'M30', 60: 'H1', 240: 'H4', 1440: 'D1',
+                      10080: 'W1', 43200: 'MN'}
     secondary_timefarmes = {"H12": "H4"}
     secondary_timefarmes_ratio = {"H12": 3}
 

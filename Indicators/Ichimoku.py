@@ -44,7 +44,7 @@ class Ichimoku:
         result['TenkanSen'] = np.array([open[0]]*len(open))
         for i in range(tenkan_lookback, len(open)):
             try:
-                result['TenkanSen'][i] = (max(high[i - tenkan_lookback+1:i + 1,]) + min(low[i - tenkan_lookback+1:i + 1]))/2
+                result['TenkanSen'][i] = (max(high[i - tenkan_lookback+1:i + 1]) + min(low[i - tenkan_lookback+1:i + 1]))/2
             except ValueError:
                 pass
 

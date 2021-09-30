@@ -143,9 +143,9 @@ class BackTestLauncher:
             algorithm_data[i] = algorithm_data[i][algorithm_data[i].Volume != 0]
             trailing_data[i] = trailing_data[i][trailing_data[i].Volume != 0]
             algorithm_start_indexes[symbol] = Outputs.index_date(algorithm_data[i], start_time)
-            trailing_start_indexes[symbol] = Outputs.index_date(algorithm_data[i], start_time)
+            trailing_start_indexes[symbol] = Outputs.index_date(trailing_data[i], start_time)
             algorithm_end_indexes[symbol] = Outputs.index_date(algorithm_data[i], end_time)
-            trailing_end_indexes[symbol] = Outputs.index_date(algorithm_data[i], end_time)
+            trailing_end_indexes[symbol] = Outputs.index_date(trailing_data[i], end_time)
             algo_data = \
                 algorithm_data[i].to_dict('Records')[algorithm_start_indexes[symbol] -
                                                      InstanceConfig.history_size:algorithm_start_indexes[symbol]]

@@ -22,6 +22,7 @@ class MetaTraderChartToolsManager(BasicChartTools):
 
     def __init__(self,
                  _name="Polaris",
+                 _wbreak = 40,
                  _delay=0.1,
                  _broker_gmt=3,
                  _verbose=False):
@@ -45,20 +46,31 @@ class MetaTraderChartToolsManager(BasicChartTools):
             symbol = self.reporting.get_curr_symbol()
 
         time_frame = ChartConfig.time_frame
+        if ChartConfig.auto_time_frame:
+            period = self.reporting.get_period()
+            time_frame = Config.timeframes_dic_rev[period]
+
+        candles = ChartConfig.candles
+        if ChartConfig.auto_candles:
+            candles = self.reporting.get_bars_cnt()
+
 
         self.connector.send_hist_request(_symbol=symbol,
                                           _timeframe=Config.timeframes_dic[time_frame],
-                                          _count=ChartConfig.candles)
-        sleep(4)
+                                          _count=candles)
+        for i in range(_wbreak):
+            sleep(_delay)
+            if symbol + '_' + time_frame in  self.connector._History_DB.keys():
+                break
+
         self.history = self.connector._History_DB[symbol + '_' + time_frame]
         for item in self.history:
             item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
         print(pd.DataFrame(self.history))
 
-        chart_config = ChartConfig(self.history, ChartConfig.tool_name)
+        chart_config = ChartConfig(symbol, self.history, ChartConfig.tool_name)
 
         chart_config.tool.draw(self)
-
 
 
 """ -----------------------------------------------------------------------------------------------

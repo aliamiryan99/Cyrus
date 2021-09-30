@@ -24,7 +24,7 @@ class Reporting:
 
     ##########################################################################
 
-    def get_curr_symbol(self, _delay=0.1, _wbreak=10):
+    def get_curr_symbol(self, _delay=0.1, _wbreak=20):
         # Reset Data output
         self._zmq._set_response_(None)
 
@@ -49,6 +49,64 @@ class Reporting:
 
             if ('_symbol' in _response.keys()):
                 return _response['_symbol']
+
+        # Default
+        return 0
+
+    def get_bars_cnt(self, _delay=0.1, _wbreak=20):
+        # Reset Data output
+        self._zmq._set_response_(None)
+
+        # Get Symbol
+        self._zmq.get_bars_cnt_request()
+
+        # While loop start time reference
+        _ws = to_datetime('now')
+
+        # While Data not received, sleep until timeout
+        while self._zmq._valid_response_('zmq') == False:
+
+            sleep(_delay)
+
+            if (to_datetime('now') - _ws).total_seconds() > (_delay * _wbreak):
+                break
+
+        # If Data received, return symbol
+        if self._zmq._valid_response_('zmq'):
+
+            _response = self._zmq._get_response_()
+
+            if ('_bars' in _response.keys()):
+                return _response['_bars']
+
+        # Default
+        return 0
+
+    def get_period(self, _delay=0.1, _wbreak=20):
+        # Reset Data output
+        self._zmq._set_response_(None)
+
+        # Get Symbol
+        self._zmq.get_time_frame_request()
+
+        # While loop start time reference
+        _ws = to_datetime('now')
+
+        # While Data not received, sleep until timeout
+        while self._zmq._valid_response_('zmq') == False:
+
+            sleep(_delay)
+
+            if (to_datetime('now') - _ws).total_seconds() > (_delay * _wbreak):
+                break
+
+        # If Data received, return symbol
+        if self._zmq._valid_response_('zmq'):
+
+            _response = self._zmq._get_response_()
+
+            if ('_period' in _response.keys()):
+                return _response['_period']
 
         # Default
         return 0

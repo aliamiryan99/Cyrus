@@ -51,7 +51,7 @@ class OnlineTickDataWriter(DWX_ZMQ_Strategy):
         self._delay = _delay
         self._verbose = _verbose
         self._finished = False
-
+        self._time_frame = _time_frame
 
         # Get Historical Data
         self.management_ratio = InstanceConfig.management_ratio
@@ -79,7 +79,7 @@ class OnlineTickDataWriter(DWX_ZMQ_Strategy):
             if time_frame != self.algorithm_time_frame:
                 self._histories[symbol] = self.aggregate_data(self._histories[symbol], self.algorithm_time_frame)
             self._time_identifiers[symbol] = Functions.get_time_id(self._histories[symbol][-1]['Time'],
-                                                                   self.algorithm_time_frame)
+                                                                   self._time_frame)
             self.tick_history[symbol] = {'Time': [], 'Ask': [], 'Bid': []}
 
         for symbol in self._symbols:
@@ -122,11 +122,9 @@ class OnlineTickDataWriter(DWX_ZMQ_Strategy):
         # Update History
         self.update_history(time, symbol, bid)
 
-
-
     ##########################################################################
     def update_history(self, time, symbol, bid):
-        time_identifier = Functions.get_time_id(time, self.algorithm_time_frame)
+        time_identifier = Functions.get_time_id(time, self._time_frame)
 
         if self._time_identifiers[symbol] != time_identifier:
             # New Candle Open Section
@@ -146,7 +144,7 @@ class OnlineTickDataWriter(DWX_ZMQ_Strategy):
 
     def write_history_tick(self, symbol, time: datetime):
         time_str = time.strftime("%Y.%m.%d %H.%M.%S")
-        pd.DataFrame(self.tick_history[symbol]).to_csv(f"MetaTrader/Data/{symbol}-{time_str}.csv", index=False)
+        pd.DataFrame(self.tick_history[symbol]).to_csv(f"MetaTrader/TickData/{symbol}-{time_str}.csv", index=False)
         self.clear_history_tick(symbol)
 
     def clear_history_tick(self, symbol):
@@ -269,7 +267,7 @@ if __name__ == "__main__":
 
     # creates object with a predefined configuration: symbol list including EURUSD and GBPUSD
     print('Loading Data Writer...')
-    launcher = OnlineTickDataWriter(_symbols=['EURUSD.I'], _time_frame="M1")
+    launcher = OnlineTickDataWriter(_symbols=['EURUSD.I'], _time_frame="H1")
 
     # Starts example execution
     print('Running Data Writer...')

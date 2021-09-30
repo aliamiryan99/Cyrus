@@ -2,13 +2,15 @@
 
 class ChartConfig:
 
+    auto_time_frame = True
     time_frame = "H4"
     date_format = '%Y.%m.%d %H:%M'
+    auto_candles = True
     candles = 2000
-    tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics"]
-    tool_name = 'Harmonics'
+    tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics", "RangeRegion"]
+    tool_name = 'RangeRegion'
 
-    def __init__(self, data, tool_name):
+    def __init__(self, symbol, data, tool_name):
 
         if tool_name == "PivotPoints":
             from MetaTraderChartTool.Tools.PivotPoints import PivotPoints
@@ -76,3 +78,9 @@ class ChartConfig:
             from MetaTraderChartTool.Tools.Indicator import Indicator
 
             self.tool = Indicator(data)
+
+        if tool_name == "RangeRegion":
+            from MetaTraderChartTool.Tools.RangeRegion import RangeRegion
+            range_candle_threshold = 3
+
+            self.tool = RangeRegion(symbol, data, range_candle_threshold)

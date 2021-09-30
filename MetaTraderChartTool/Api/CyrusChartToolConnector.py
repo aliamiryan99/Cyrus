@@ -269,6 +269,22 @@ class ChartToolConnector:
         self.remote_send(self._PUSH_SOCKET, _msg)
 
     """
+        Function to get bars count
+    """
+    def get_bars_cnt_request(self):
+        _msg = "{}".format('GET_BARS')
+
+        self.remote_send(self._PUSH_SOCKET, _msg)
+
+    """
+            Function to get period of time_frame
+    """
+    def get_time_frame_request(self):
+        _msg = "{}".format('GET_TIMEFRAME')
+
+        self.remote_send(self._PUSH_SOCKET, _msg)
+
+    """
     Function to construct messages for sending HIST commands to MetaTrader
     """
     def send_hist_request(self,

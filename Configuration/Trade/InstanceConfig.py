@@ -18,12 +18,12 @@ account_management_list = ['Balance', 'Risk']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['EURUSD']
-    management_ratio = [2, 2, 2, 1, 2]
-    history_size = 500
-    algorithm_time_frame = "M15"
-    trailing_time_frame = "M15"
-    tag = "Role1 M15 To H4"
+    symbols = ['XAUUSD']
+    management_ratio = [3]
+    history_size = 400
+    algorithm_time_frame = "H4"
+    trailing_time_frame = "H4"
+    tag = "Role1 KomoFilter XAUUSD H4"
 
     algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'
@@ -194,13 +194,16 @@ class InstanceConfig:
             from AlgorithmFactory.AlgorithmsOfExit.Trailings.ReverseSignalTrailing import ReverseSignalTrailing
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
             role = 1
-            tenkan = 9 * 26
-            kijun = 26 * 26
+            tenkan = 9
+            kijun = 26
             range_filter_enable = False
-            n = 9*16
+            n = 9 * 16
             m = 0.4
+            time_frame = "H4"
+            sequential_trade = False
+            komu_cloud_filter = False
 
-            trailing_algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m)
+            trailing_algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter)
 
             self.trailing_tool = ReverseSignalTrailing(trailing_algorithm)
 
@@ -463,12 +466,15 @@ class InstanceConfig:
         elif algorithm_name == "Ichimoku":
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
             role = 1
-            tenkan = 9 * 26
-            kijun = 26 * 26
-            range_filter_enable = True
+            tenkan = 9
+            kijun = 26
+            range_filter_enable = False
             n = 9*16
             m = 0.4
+            time_frame = "H4"
+            sequential_trade = False
+            komu_cloud_filter = True
 
-            algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m)
+            algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter)
 
         return algorithm

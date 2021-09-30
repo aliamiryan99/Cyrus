@@ -2,11 +2,12 @@
 from AlgorithmFactory.Algorithms.Algorithm import Algorithm
 from AlgorithmFactory.AlgorithmTools.CandleTools import *
 from Indicators.Ichimoku import Ichimoku
+from Shared.Functions import Functions
 
 
 class IchimokuAlgorithm(Algorithm):
 
-    def __init__(self, data, role, tenkan, kijun, range_filter_enable, n, m):    # role : 1, 2, 3
+    def __init__(self, data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter):    # role : 1, 2, 3
         self.data = data
 
         self.ichimoku = Ichimoku(self.data, tenkan, kijun)
@@ -14,6 +15,9 @@ class IchimokuAlgorithm(Algorithm):
         self.role = role
         self.range_filter_enable = range_filter_enable
         self.n, self.m = n, m
+        self.time_frame = time_frame
+        self.sequential_trade = sequential_trade
+        self.komu_cloud_filter = komu_cloud_filter
 
         self.ichimoku_line = "TenkanSen"
         if self.role == 2:
@@ -27,15 +31,20 @@ class IchimokuAlgorithm(Algorithm):
         self.buy_limit_price = 0
         self.sell_trigger = False
         self.sell_limit_price = 0
+        self.signal_trigger = 0
+        self.last_time_id = Functions.get_time_id(self.data[-1]['Time'], time_frame)
+        self.pre_signal = 0
 
     def on_tick(self):
         if self.buy_trigger:
             if self.data[-1]['Close'] >= self.buy_limit_price:
                 self.buy_trigger = False
+                self.pre_signal = 1
                 return 1, self.buy_limit_price
         elif self.sell_trigger:
             if self.data[-1]['Close'] <= self.sell_limit_price:
                 self.sell_trigger = False
+                self.pre_signal = -1
                 return -1, self.sell_limit_price
         return 0, 0
 
@@ -62,6 +71,12 @@ class IchimokuAlgorithm(Algorithm):
             if avg_diff < self.m:
                 range_market = True
 
+        if self.komu_cloud_filter:
+            max_cloud, min_cloud = max(self.ich_result["SenkouSpanA"][-26], self.ich_result["SenkouSpanB"][-26]), min(self.ich_result["SenkouSpanA"][-26], self.ich_result["SenkouSpanB"][-26])
+
+            if min_cloud < self.data[-1]['Close'] < max_cloud:
+                range_market = True
+
         signal, price = 0, 0
         if not range_market:
             # Role 1, 2
@@ -76,20 +91,47 @@ class IchimokuAlgorithm(Algorithm):
                     self.sell_trigger = True
                     self.sell_limit_price = self.data[-1]['Low']
 
+                if self.sequential_trade:
+                    if self.role == 2 and self.pre_signal == 1:
+                        if self.data[-2]['Close'] < self.ichimoku.result['TenkanSen'][-2] and \
+                                self.ichimoku.result['TenkanSen'][-1] < self.data[-1]['Close']:
+                            self.sell_trigger = False
+                            self.buy_trigger = True
+                            self.buy_limit_price = self.data[-1]['High']
+                    if self.role == 3 and self.pre_signal == -1:
+                        if self.data[-1]['Close'] < self.ichimoku.result['TenkanSen'][-1] and \
+                                self.ichimoku.result['TenkanSen'][-2] < self.data[-2]['Close']:
+                            self.buy_trigger = False
+                            self.sell_trigger = True
+                            self.sell_limit_price = self.data[-1]['Low']
+
             # Role 3
             if self.role == 3 or self.role == 6:
                 # Lower to Upper
                 if (self.ich_result['TenkanSen'][-2] <= self.ich_result['KijunSen'][-2]) and\
                         (self.ich_result['TenkanSen'][-1] > self.ich_result['KijunSen'][-1]):
                     signal, price = 1, candle['Open']
-                    if self.role == 6 and self.data[-1]['Close'] < self.ich_result['KijunSen'][-1]:
-                        signal, price = 0, 0
                 # Upper to Lower
                 elif (self.ich_result['TenkanSen'][-2] >= self.ich_result['KijunSen'][-2]) and\
                         (self.ich_result['TenkanSen'][-1] < self.ich_result['KijunSen'][-1]):
                     signal, price = -1, candle['Open']
-                    if self.role == 6 and self.data[-1]['Close'] > self.ich_result['KijunSen'][-1]:
+
+            if self.role == 6:
+                if signal == 1:
+                    if self.data[-1]['Close'] < self.ich_result['KijunSen'][-1]:
+                        self.signal_trigger = 1
                         signal, price = 0, 0
+                if signal == -1:
+                    if self.data[-1]['Close'] > self.ich_result['KijunSen'][-1]:
+                        self.signal_trigger = -1
+                        signal, price = 0, 0
+
+                time_id = Functions.get_time_id(candle['Time'], self.time_frame)
+                if self.last_time_id != time_id:
+                    if self.signal_trigger != 0:
+                        signal, price = self.signal_trigger, candle['Open']
+                    self.signal_trigger = 0
+                    self.last_time_id = time_id
 
         self.data.append(candle)
         return signal, price

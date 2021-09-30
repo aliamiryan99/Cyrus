@@ -1,3 +1,4 @@
+
 from Converters.Tools import *
 import copy
 
@@ -20,17 +21,3 @@ def aggregate_data(histories, time_frame):
                 new_history[-1]['Close'] = histories[i]['Close']
                 new_history[-1]['Volume'] += histories[i]['Volume']
     return new_history
-
-
-category = "CFD"
-symbol = "US30USD"
-time_frame_source = "M15"
-time_frame_target = "M30"
-
-data = read_data(category, symbol, time_frame_source)
-
-target_data = aggregate_data(data, time_frame_target)
-
-save_data(target_data, category, symbol, time_frame_target)
-
-print("Completed")
