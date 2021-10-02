@@ -9,15 +9,28 @@ from Visualization import BaseChart
 from bokeh.io import output_file
 import os
 from datetime import datetime
+import pandas as pd
 
 
 class ChartLauncher:
 
     def __init__(self):
+
+        if ChartConfig.with_back_test:
+            backtest = ChartConfig.backtest
+            self.positions = pd.read_excel(f"Outputs/{backtest[3]}/{backtest[0]}_{backtest[1]}_{backtest[2]}/{backtest[4]}/history.xlsx",
+                          engine="openpyxl")
+            self.positions = self.positions.sort_values(['TimeOpen'])
+            self.positions = self.positions[self.positions.Symbol == ChartConfig.symbol]
+            self.positions = self.positions.to_dict("Records")
+            start_time = self.positions[0]['TimeOpen']
+            end_time = self.positions[-1]['TimeClose']
+        else:
+            start_time = datetime.strptime(ChartConfig.start_date, ChartConfig.date_format)
+            end_time = datetime.strptime(ChartConfig.end_date, ChartConfig.date_format)
+
         data_show_paths = ["Data/" + Config.categories_list[ChartConfig.symbol] + "/" + ChartConfig.symbol +
                            "/" + ChartConfig.time_frame + ".csv"]
-        start_time = datetime.strptime(ChartConfig.start_date, ChartConfig.date_format)
-        end_time = datetime.strptime(ChartConfig.end_date, ChartConfig.date_format)
         self.data_df = ut.csv_to_df(data_show_paths, date_format=ChartConfig.date_format)[0]
         self.start_index = Outputs.index_date(self.data_df, start_time)
         self.end_index = Outputs.index_date(self.data_df, end_time)
@@ -28,6 +41,17 @@ class ChartLauncher:
 
         self.data = self.data_df.to_dict("Records")
 
+        if ChartConfig.with_back_test:
+            for position in self.positions:
+                position['Index'] = Outputs.index_date_v2(self.data, position['TimeOpen'])
+                if position['Index'] == -1:
+                    position['Index'] = len(self.data) - 1
+                position['IndexEnd'] = Outputs.index_date_v2(self.data, position['TimeClose'])
+                if position['IndexEnd'] == -1:
+                    position['IndexEnd'] = len(self.data) - 1
+
+            positions_df = pd.DataFrame(self.positions)
+
         self.ChartConfig = ChartConfig(self.data, ChartConfig.visualizer)
 
         output_dir = "Visualization/Outputs/" + ChartConfig.visualizer + "/" + ChartConfig.time_frame + "/"
@@ -35,7 +59,10 @@ class ChartLauncher:
             os.makedirs(output_dir)
         output_file(output_dir + ChartConfig.symbol + ".html")
 
-        self.fig = BaseChart.get_base_fig(self.data_df, ChartConfig.symbol)
+        if ChartConfig.with_back_test:
+            self.fig = BaseChart.get_back_test_fig(self.data_df, positions_df, ChartConfig.symbol, 0)
+        else:
+            self.fig = BaseChart.get_base_fig(self.data_df, ChartConfig.symbol)
 
         self.visualizer = self.ChartConfig.visualizer
 

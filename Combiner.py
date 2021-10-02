@@ -17,6 +17,8 @@ arrow_size = 12
 # Backtest Parameter
 balance = 10000
 
+
+
 if combiner == 'Backtest':
     combiner = BacktestCombiner(backtests, balance, new_time_frame)
 elif combiner == 'EnterPosition':

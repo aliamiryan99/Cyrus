@@ -405,7 +405,6 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
     show(column(top_fig, fig, sizing_mode='stretch_both'))
 
 
-
 def add_ema(figure, index, price, window_size, color, width):
     ema = trend.ema(price, window_size)
     figure.line(x=index, y=ema, line_color=color, line_width=width)

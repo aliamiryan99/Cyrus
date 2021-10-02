@@ -1,12 +1,12 @@
-
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 import math
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 
 # find Harmonic Patterns function
-def harmonic_pattern(high, low, middle, local_min, local_max, harmonic_name, trend_direction, is_visual):
-
+def harmonic_pattern(high, low, middle, local_min, local_max, harmonic_name, trend_direction, is_visual, alpha, beta,
+                     fibo_tolerance):
     # define Fib Ratios
     # f_r_norm = np.array([.382, .50, .618, .786, 1, 1.272, 1.618])  # Most Important FibRatio
     # fib_tolerance = 0.01
@@ -19,7 +19,7 @@ def harmonic_pattern(high, low, middle, local_min, local_max, harmonic_name, tre
     if harmonic_name == 'Gartley':
         x_b_ratio = [.618]
         a_c_ratio = [0.382, 0.886]
-        b_d_ratio = [1.13,  1.618]
+        b_d_ratio = [1.13, 1.618]
         x_d_ratio = [0.786]
     elif harmonic_name == 'Butterfly':
         x_b_ratio = [.786]
@@ -61,10 +61,11 @@ def harmonic_pattern(high, low, middle, local_min, local_max, harmonic_name, tre
         b_d_ratio = [1.272]
         x_d_ratio = [0.000, 10.00]
     elif harmonic_name == 'ABCD':
-        x_b_ratio = [0.000, 10.000]
-        a_c_ratio = [0.618, 0.786]
-        b_d_ratio = [1.272, 1.618]
-        x_d_ratio = [0.000,  10.00]
+        x_b_ratio = [0.618, 0.786]
+        a_c_ratio = [1.272, 1.618]
+        b_d_ratio = [0.000, 10.00]
+        x_d_ratio = [0.000, 10.00]
+
     elif harmonic_name == 'ExpandingFlag':
         x_b_ratio = [1.272, 1.618]
         a_c_ratio = [2.240]
@@ -76,15 +77,20 @@ def harmonic_pattern(high, low, middle, local_min, local_max, harmonic_name, tre
         a_c_ratio = [1 / alpha]
         b_d_ratio = [alpha]
         x_d_ratio = [0.000, 10.00]
+
+    valid_fibbo_num = np.array(
+        [0.382, 0.50, 0.618, 0.707, 0.786, 0.886, 1, 1.272, 1.130, 1.382, 1.618, 2, 2.618, 3.618])
+
     results = harmonic_patterns_detector(high, low, middle, local_min, local_max, harmonic_name, trend_direction,
-                                         x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, is_visual)
+                                         x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, valid_fibbo_num, is_visual, alpha,
+                                         beta, fibo_tolerance)
+
     return results
 
 
 def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                                harmonic_name, trend_direction, x_b_ratio_target, a_c_ratio_target, b_d_ratio_target,
-                               x_d_ratio_target, is_visual):
-
+                               x_d_ratio_target, valid_fibbo_num, is_visual, alpha, beta, fibo_tolerance):
     res = []
 
     ac2bd_tr = .15  # threshold of ac wings to bd based on Time and candle num
@@ -98,31 +104,48 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
     if harmonic_name == 'ExpandingFlag':
         max_candle_diff = 350
     else:
-        max_candle_diff = 150
-    min_candle_diff = 3
+        max_candle_diff = 250
+    min_candle_diff = 1
 
     # fibonacci number Tolerance
     if harmonic_name == 'Inverse':
         tol = 0.035  # default 0.003
     else:
-        tol = 0.005
+        # tol = 0.005
+        tol = fibo_tolerance
 
     reg_tol = 0.15  # regression Line Tolerance
 
-    # ----  build the targets bounds
-    if len(x_b_ratio_target) == 1:
+    # ----  add tolerance to the boundary of fibonacci ratio
+    if len(x_b_ratio_target) != 1:
+        x_b_ratio_target[0] = x_b_ratio_target[0] * (1 - tol)
+        x_b_ratio_target[1] = x_b_ratio_target[1] * (1 + tol)
+    else:
         x_b_ratio_target = [x_b_ratio_target[0] * (1 - tol), x_b_ratio_target[0] * (1 + tol)]
-    if len(a_c_ratio_target) == 1:
+
+    if len(a_c_ratio_target) != 1:
+        a_c_ratio_target[0] = a_c_ratio_target[0] * (1 - tol)
+        a_c_ratio_target[1] = a_c_ratio_target[1] * (1 + tol)
+    else:
         a_c_ratio_target = [a_c_ratio_target[0] * (1 - tol), a_c_ratio_target[0] * (1 + tol)]
-    if len(b_d_ratio_target) == 1:
+
+    if len(b_d_ratio_target) != 1:
+        b_d_ratio_target[0] = b_d_ratio_target[0] * (1 - tol)
+        b_d_ratio_target[1] = b_d_ratio_target[1] * (1 + tol)
+    else:
         b_d_ratio_target = [b_d_ratio_target[0] * (1 - tol), b_d_ratio_target[0] * (1 + tol)]
-    if len(x_d_ratio_target) == 1:
+
+    if len(x_d_ratio_target) != 1:
+        x_d_ratio_target[0] = x_d_ratio_target[0] * (1 - tol)
+        x_d_ratio_target[1] = x_d_ratio_target[1] * (1 + tol)
+    else:
         x_d_ratio_target = [x_d_ratio_target[0] * (1 - tol), x_d_ratio_target[0] * (1 + tol)]
 
     # find complete pattern with X A B C D
     # bearish patterns
     if is_visual:
         p_bar = tqdm(total=len(local_min))
+
     tmp_a, tmp_b, tmp_c, tmp_d = 0, 0, 0, 0
     for i in range(len(local_min)):
         x = low[local_min[i]]
@@ -138,13 +161,6 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
         tmp_b = i
         for j in range(tmp_a, len(local_max)):
 
-            # check for the range of the waves
-            a = high[local_max[j]]
-
-            # Check regression Similarity of X and A
-            rng = [local_min[i], local_max[j]]
-            is_regression_cond = regression_check(middle, rng, reg_tol)
-
             # find for the B point
             while local_min[tmp_b] <= local_max[j]:
                 tmp_b += 1
@@ -153,19 +169,28 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
             if tmp_b >= len(local_min):
                 break
             tmp_c = j
+
+            # check for the range of the waves
+            a = high[local_max[j]]
+
+            # Check regression Boundary of X and A
+            rng = [local_min[i], local_max[j]]
+            is_regression_cond = check_in_bound_price(middle, low, high, harmonic_name, alpha, beta,
+                                                      np.arange(rng[0], rng[-1] + 1))
+
+            # is_regression_cond = True
             if is_regression_cond and rng[1] - rng[0] > min_candle_diff:
                 for k in range(tmp_b, len(local_min)):
-                    # check for the range of the waves
+                    # check for the range of the XB
                     if local_min[k] - local_min[i] > max_candle_diff:
                         break
 
+                    # range of AB leg
+                    rng = [local_max[j], local_min[k]]
+
                     b = low[local_min[k]]
 
-                    # Check regression Similarity of A and B wave
-                    rng = [local_max[j], local_min[k]]
-                    is_regression_cond = regression_check(middle, rng, reg_tol)
-
-                    # make XB wave ratio
+                    # make XB leg ratio
                     xa = a - x
                     ab = a - b
 
@@ -175,8 +200,20 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                     else:
                         cond_len_ab = False
                     # check the XB wave ratio
-                    if ((x_b_ratio_target[0] <= x_b_ratio) and (x_b_ratio_target[-1] >= x_b_ratio)) and\
-                            is_regression_cond and (rng[1] - rng[0] > min_candle_diff) and cond_len_ab:
+                    if ((x_b_ratio_target[0] <= x_b_ratio) and (x_b_ratio_target[-1] >= x_b_ratio)) and \
+                            (rng[1] - rng[0] > min_candle_diff) and cond_len_ab:
+                        # check the XB ratio be the similar the target fibonacci number
+                        if not check_fibo_ratio(valid_fibbo_num, x_b_ratio, tol):
+                            continue
+
+                        # check price channel of AB leg
+                        is_regression_cond = check_in_bound_price(middle, low, high, harmonic_name, alpha, beta,
+                                                                  np.arange(rng[0], rng[-1] + 1))
+
+                        # is_regression_cond = True
+                        if not is_regression_cond:
+                            continue
+
                         # find for the C point
                         while local_max[tmp_c] <= local_min[k]:
                             tmp_c += 1
@@ -185,16 +222,22 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                         if tmp_c >= len(local_max):
                             break
                         tmp_d = k
+
                         for p in range(tmp_c, len(local_max)):
                             # Check the Patterns Trend
                             if ab > 0 and trend_direction == 'Bearish':
+                                # print('ab > 0 and trend_direction == Bearish')
                                 break
                             elif ab < 0 and trend_direction == 'Bullish':
+                                # print('ab < 0 and trend_direction == Bullish')
                                 break
 
-                            # check for the range of the waves
+                            # check for the range of the Leg
                             if local_max[p] - local_min[i] > max_candle_diff:
                                 break
+
+                            # range of BC leg
+                            rng = [local_min[k], local_max[p]]
 
                             c = high[local_max[p]]
 
@@ -207,8 +250,29 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                             else:
                                 cond_len_bc = False
 
-                            if (a_c_ratio_target[0] <= a_c_ratio) and (a_c_ratio_target[-1] >= a_c_ratio) and\
+                            if (a_c_ratio_target[0] <= a_c_ratio) and (a_c_ratio_target[-1] >= a_c_ratio) and \
                                     cond_len_bc:
+                                # check the AC ratio be the similar the target fibonacci number
+                                if not check_fibo_ratio(valid_fibbo_num, a_c_ratio, tol):
+                                    continue
+
+                                # check price channel of BC leg
+                                is_regression_cond = check_in_bound_price(middle, low, high, harmonic_name, alpha, beta,
+                                                                          np.arange(rng[0], rng[-1] + 1))
+                                # is_regression_cond = True
+                                if not is_regression_cond:
+                                    continue
+
+                                # if it was a AB=CD pattern d point shouldn't be check
+                                if harmonic_name == 'ABCD':
+                                    b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd = 0, 0, 0, 0, 0
+                                    l = local_min[k] + 1
+                                    d = b
+                                    res.append(
+                                        [local_min[i], local_max[j], local_min[k], local_max[p], l, x, a, b, c, d,
+                                         x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd])
+                                    continue
+
                                 # find for the d point
                                 tmp_d = local_max[p] + 1
                                 if tmp_d >= len(high):
@@ -218,14 +282,28 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                                     if not is_visual and l != len(high) - 1:
                                         continue
                                     if bc > 0 and trend_direction == 'Bearish':
+                                        # print('bc > 0 and trend_direction == Bearish')
                                         break
                                     elif bc < 0 and trend_direction == 'Bullish':
+                                        # print('bc < 0 and trend_direction == Bullish')
                                         break
                                     # check for the range of the waves
                                     if l - local_min[i] > max_candle_diff:
                                         break
 
-                                    d = low[l]
+                                    if trend_direction == 'Bearish':
+                                        if low[l] > low[l - 1] and low[l] > low[l - 2] and low[l] > low[l - 3] and low[
+                                            l] > low[l - 4]:
+                                            d = low[l]
+                                        else:
+                                            continue
+                                    elif trend_direction == 'Bullish':
+                                        if low[l] < low[l - 1] and low[l] < low[l - 2] and low[l] < low[l - 3] and low[
+                                            l] < low[l - 4]:
+                                            d = low[l]
+                                        else:
+                                            continue
+
                                     # make BD wave ratio
                                     cd = (c - d)
                                     b_d_ratio = cd / bc
@@ -234,16 +312,28 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                                     xd = (d - x)
                                     x_d_ratio = 1 - (xd / xa)
 
-                                    # Check regression Similarity
+                                    # range od CD leg
                                     rng = [local_max[p], l]
-                                    is_regression_cond = regression_check(middle, rng, reg_tol)
 
                                     # check the AC wave ratio
-                                    if is_regression_cond and ((b_d_ratio_target[0] <= b_d_ratio) and
-                                                               (b_d_ratio_target[-1] >= b_d_ratio)) and\
+                                    if ((b_d_ratio_target[0] <= b_d_ratio) and
+                                        (b_d_ratio_target[-1] >= b_d_ratio)) and \
                                             ((x_d_ratio_target[0] <= x_d_ratio) and
-                                             (x_d_ratio_target[-1] >= x_d_ratio)) and\
+                                             (x_d_ratio_target[-1] >= x_d_ratio)) and \
                                             (rng[1] - rng[0] > min_candle_diff):
+                                        # check the XD and BD ratio be the similar the target fibonacci number
+                                        if not check_fibo_ratio(valid_fibbo_num, x_d_ratio, tol):
+                                            continue
+                                        if not check_fibo_ratio(valid_fibbo_num, b_d_ratio, tol):
+                                            continue
+
+                                        # check price channel of CD leg
+                                        is_regression_cond = check_in_bound_price(middle, low, high, harmonic_name,
+                                                                                  alpha, beta,
+                                                                                  np.arange(rng[0], rng[-1] + 1))
+                                        # is_regression_cond = True
+                                        if not is_regression_cond:
+                                            continue
 
                                         # check the length of wings with times or (candle Numbers)
                                         ac2bd_cond = True
@@ -261,7 +351,9 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                                             xb2bd_cond = False
 
                                         if ac2bd_cond and xb2ac_cond and xb2bd_cond:
-                                            res.append([local_min[i], local_max[j], local_min[k], local_max[p], l, x, a, b, c, d, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd])
+                                            res.append(
+                                                [local_min[i], local_max[j], local_min[k], local_max[p], l, x, a, b, c,
+                                                 d, x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio, xb2ac, xb2bd, ac2bd])
     if is_visual:
         p_bar.close()
     if is_visual:
@@ -273,15 +365,24 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
             return 0
 
 
+# check the Fibonacci ratio
+def check_fibo_ratio(ref_fibo, target_fibo, tol):
+    fib_tr = [ref_fibo * (1 - tol), ref_fibo, ref_fibo * (1 + tol)]
+    condition = (target_fibo > fib_tr[0]) & (target_fibo < fib_tr[2])
+    if np.isin(True, condition):
+        return True
+    else:
+        return False
+
+
 # check Regression Condition function
 def regression_check(middle, rng, reg_tol):
-
     # cast the number to single precision
-    c = middle[rng[0]:rng[1]+1]
+    c = middle[rng[0]:rng[1] + 1]
 
     # ----- regression Line of harmonic pattern
-    S = (c[-1] - c[0]) / (rng[-1] - rng[0])     # slope
-    I = c[0] - S * rng[0]   # intersect
+    S = (c[-1] - c[0]) / (rng[-1] - rng[0])  # slope
+    I = c[0] - S * rng[0]  # intersect
     p2 = np.array([S, I])
 
     # -----  regression Line of candles on
@@ -294,10 +395,11 @@ def regression_check(middle, rng, reg_tol):
 
 
 def regression_fit(rng, middle):
-    n = rng[1]-rng[0]+1
+    n = rng[1] - rng[0] + 1
 
     n_floor = math.floor(n / 2)
-    numerator = np.sum(((n - 1) / 2 - np.arange(0, n_floor-1)) * (middle[n - np.arange(1, n_floor)] - middle[np.arange(0, n_floor-1)]))
+    numerator = np.sum(((n - 1) / 2 - np.arange(0, n_floor - 1)) * (
+            middle[n - np.arange(1, n_floor)] - middle[np.arange(0, n_floor - 1)]))
     denumerator = ((n ** 3) - n) / 12
 
     # slop of regression
@@ -308,3 +410,82 @@ def regression_fit(rng, middle):
     return np.array([p1, p2])
 
 
+# -------------------- || check if the price move around the leg || --------------------
+# -- filter Based on percentage of line
+def check_in_bound_price(middle, low, high, harmonic_name, alpha, beta, rng):
+    boundery_mode = 'rotationary'
+    high = middle
+    low = middle
+
+    # find boundary of the legs
+    lower_bound, upper_bound = find_boundery(boundery_mode, middle, high, low, rng, alpha)
+
+    # check the satisfaction conditions of boundaries
+    situation = np.sum(np.logical_and(lower_bound < low[rng], high[rng] < upper_bound)) >= rng.size * beta
+    if harmonic_name == 'ABCD':
+        situation = True
+
+    return situation
+
+
+def find_boundery(boundery_mode, middle, high, low, x, alpha):  # alpha = .50
+    # find boundary based on two approach
+    # first approach works based on the rotation of line and a percent of the average price of that line
+    # second approach define base on the percent of the body average
+
+    p = np.polyfit([x[0], x[-1]], [middle[x[0]], middle[x[-1]]], 1)
+    y = np.polyval(p, x)
+
+    if boundery_mode == 'body_average':
+        candle_avg = np.mean(high - low)
+        deg = (np.pi / 2) - (np.abs(middle[x[-1]] - middle[x[0]]) / (x[-1] - x[0]))
+        h = alpha * candle_avg * np.sin(deg)
+        upper_bound_hat = y + h
+        lower_bound_hat = y - h
+
+    elif boundery_mode == 'rotationary':
+        # ------------------ find the rotation degree
+        slope = np.rad2deg(np.arctan(np.abs(middle[x[-1]] - middle[x[0]]) / (x[-1] - x[0])))
+
+        # ------------------ rotate line
+        x_hat, y_hat_line = rotate_line(x, y, -slope)
+        x_hat, y_hat = rotate_line(x, middle[x], -slope)
+        # ------------------ find bound of line \
+        # upper_bound = y_hat + (1 + alpha) * np.std(middle[x])
+        # lower_bound = y_hat - (1 + alpha) * np.std(middle[x])
+        upper_bound = y_hat_line + (1 + alpha) * np.std(y_hat)
+        lower_bound = y_hat_line - (1 + alpha) * np.std(y_hat)
+
+        # ------------------ de - rotate boundary lines
+        _, upper_bound_hat = rotate_line(x_hat, upper_bound, slope)
+        _, lower_bound_hat = rotate_line(x_hat, lower_bound, slope)
+
+    return lower_bound_hat, upper_bound_hat
+
+
+def rotate_line(x, y, deg):  # Vertices matrix
+    v = np.array((x, y, np.zeros(y.size))).transpose()
+    v_centre = np.mean(v, 0)  # Centre, of line
+    vc = v - np.ones((v.shape[0], 1)) * v_centre  # Centering coordinates
+    a_rad = ((deg * math.pi) / 180)  # Angle in radians
+    e = [0, 0, a_rad]  # Euler angles for X, Y, Z - axis rotations
+
+    # Direction Cosines (rotation matrix) construction
+    rx = np.array([[1, 0, 0],
+                   [0, math.cos(e[0]), -math.sin(e[0])],
+                   [0, math.sin(e[0]), -math.cos(e[0])]])  # X-Axis rotation
+
+    ry = np.array([[math.cos(e[1]), 0, math.sin(e[1])],
+                   [0, 1, 0],
+                   [-math.sin(e[1]), 0, math.cos(e[1])]])  # Y-axis rotation
+
+    rz = np.array([[math.cos(e[2]), -math.sin(e[2]), 0],
+                   [math.sin(e[2]), math.cos(e[2]), 0],
+                   [0, 0, 1]])  # Z-axis rotation
+
+    r = rx.dot(ry.dot(rz))  # Rotation matrix
+    vrc = (r.dot(vc.transpose())).transpose()  # Rotating centred coordinates
+    vr = vrc + np.ones((v.shape[0], 1)) * v_centre  # Shifting back to original location
+    x = vr[:, 0]
+    y = vr[:, 1]
+    return x, y

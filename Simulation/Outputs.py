@@ -320,8 +320,6 @@ def init_outputs(profits, positions, simulation, balance_history, equity_history
     maximal_relative_drawdown_percent = round(maximal_relative_drawdown_percent, 2)
 
 
-
-
 def index_date(data, date):
     start = 0
     end = len(data) - 1
@@ -340,6 +338,7 @@ def index_date(data, date):
         return i
     else:
         return i-1
+
 
 def index_date_v2(data, date):
     start = 0

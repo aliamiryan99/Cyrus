@@ -196,6 +196,7 @@ class InstanceConfig:
             role = 1
             tenkan = 9
             kijun = 26
+            senkou_span_projection = 26
             range_filter_enable = False
             n = 9 * 16
             m = 0.4
@@ -203,7 +204,7 @@ class InstanceConfig:
             sequential_trade = False
             komu_cloud_filter = False
 
-            trailing_algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter)
+            trailing_algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter, senkou_span_projection)
 
             self.trailing_tool = ReverseSignalTrailing(trailing_algorithm)
 
@@ -468,6 +469,7 @@ class InstanceConfig:
             role = 1
             tenkan = 9
             kijun = 26
+            senkou_span_projection = 26
             range_filter_enable = False
             n = 9*16
             m = 0.4

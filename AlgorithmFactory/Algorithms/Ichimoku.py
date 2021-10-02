@@ -7,10 +7,10 @@ from Shared.Functions import Functions
 
 class IchimokuAlgorithm(Algorithm):
 
-    def __init__(self, data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter):    # role : 1, 2, 3
+    def __init__(self, data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter, senkou_span_projection):    # role : 1, 2, 3
         self.data = data
 
-        self.ichimoku = Ichimoku(self.data, tenkan, kijun)
+        self.ichimoku = Ichimoku(self.data, tenkan, kijun, senkou_span_projection=senkou_span_projection)
         self.ich_result = self.ichimoku.result
         self.role = role
         self.range_filter_enable = range_filter_enable
@@ -18,6 +18,7 @@ class IchimokuAlgorithm(Algorithm):
         self.time_frame = time_frame
         self.sequential_trade = sequential_trade
         self.komu_cloud_filter = komu_cloud_filter
+        self.senkou_span_projection = senkou_span_projection
 
         self.ichimoku_line = "TenkanSen"
         if self.role == 2:
@@ -132,6 +133,25 @@ class IchimokuAlgorithm(Algorithm):
                         signal, price = self.signal_trigger, candle['Open']
                     self.signal_trigger = 0
                     self.last_time_id = time_id
+
+            if self.role == 7:
+                max_cloud, min_cloud = max(self.ich_result["SenkouSpanA"][-self.senkou_span_projection],
+                                           self.ich_result["SenkouSpanB"][-self.senkou_span_projection]),\
+                                       min(self.ich_result["SenkouSpanA"][-self.senkou_span_projection],
+                                           self.ich_result["SenkouSpanB"][-self.senkou_span_projection])
+                pre_max_cloud, pre_min_cloud = max(self.ich_result["SenkouSpanA"][-self.senkou_span_projection-1],
+                                                   self.ich_result["SenkouSpanB"][-self.senkou_span_projection-1]),\
+                                               min(self.ich_result["SenkouSpanA"][-self.senkou_span_projection-1],
+                                                   self.ich_result["SenkouSpanB"][-self.senkou_span_projection-1])
+                if self.data[-2]['Close'] < pre_max_cloud and max_cloud < self.data[-1]['Close']:
+                    self.sell_trigger = False
+                    self.buy_trigger = True
+                    self.buy_limit_price = self.data[-1]['High']
+
+                elif self.data[-1]['Close'] < min_cloud and min_cloud < self.data[-2]['Close']:
+                    self.buy_trigger = False
+                    self.sell_trigger = True
+                    self.sell_limit_price = self.data[-1]['Low']
 
         self.data.append(candle)
         return signal, price

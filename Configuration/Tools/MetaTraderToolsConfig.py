@@ -8,7 +8,7 @@ class ChartConfig:
     auto_candles = True
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics", "RangeRegion"]
-    tool_name = 'RangeRegion'
+    tool_name = 'Harmonics'
 
     def __init__(self, symbol, data, tool_name):
 
@@ -64,16 +64,19 @@ class ChartConfig:
         if tool_name == "Harmonics":
             from MetaTraderChartTool.Tools.Harmonics import Harmonics
 
+            pattern_direction = 'bearish'  # bullish, bearish, both
             harmonic_list = ['Gartley', 'Butterfly', 'Bat', 'Crab', 'Shark', 'Cypher', 'FiveZero', 'ThreeDrives',
                              'ExpandingFlag', 'ABCD', 'Inverse', 'All']
             name = 'Butterfly'
+            fibo_tolerance = 0.2  # percentage of Fibonacci tolerance
             extremum_window = 6
             time_range = 5
             price_range_alpha = 1
             alpha = 0.8
             beta = 0.25
+            save_result = False
 
-            self.tool = Harmonics(data, extremum_window, time_range, price_range_alpha, name, alpha, beta)
+            self.tool = Harmonics(data, extremum_window, time_range, price_range_alpha, name, alpha, beta, fibo_tolerance, pattern_direction, harmonic_list, save_result)
         if tool_name == "Indicator":
             from MetaTraderChartTool.Tools.Indicator import Indicator
 
