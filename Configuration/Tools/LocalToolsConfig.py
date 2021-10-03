@@ -2,7 +2,7 @@
 
 class ChartConfig:
 
-    symbol = "EURUSD"
+    symbol = "XAUUSD"
     time_frame = "H4"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.04.2017 00:00:00.000"
@@ -14,7 +14,7 @@ class ChartConfig:
     visualizer = 'Indicator'
 
     with_back_test = True
-    backtest = ["H4", "H4", "M1", "Ichimoku", "Role1 H4"]
+    backtest = ["H4", "H4", "M1", "Ichimoku", "Role7 XAUUSD H4"]
 
     def __init__(self, data, visualizer):
 

@@ -2,6 +2,9 @@
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from MetaTraderChartTool.Tools.Tool import Tool
 from AlgorithmFactory.AlgorithmTools.Range import detect_range_region
+from AlgorithmFactory.AlgorithmTools.Range import get_breakouts
+from AlgorithmFactory.AlgorithmTools.Range import get_new_result_index
+from AlgorithmFactory.AlgorithmTools.Range import get_proximal_region
 from Configuration.Trade.OnlineConfig import Config
 from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 
@@ -23,22 +26,11 @@ class RangeRegion(Tool):
 
         self.results = detect_range_region(self.next_data, range_candle_threshold)
 
-        self.area_length = 50 * 10 ** -Config.symbols_pip[symbol]
-        self.blue_markers = []
-        self.red_markers = []
-        marker_activation = False
-        result_i = 0
-        for i in range(len(data)):
-            if result_i != len(self.results) and data[i]['Time'] > self.next_data[self.results[result_i]['End']]['Time']:
-                result_i += 1
-                marker_activation = True
-            if marker_activation:
-                if data[i]['Close'] > self.results[result_i-1]['TopRegion']:
-                    self.blue_markers.append(i)
-                    marker_activation = False
-                elif data[i]['Close'] < self.results[result_i-1]['BottomRegion']:
-                    self.red_markers.append(i)
-                    marker_activation = False
+        self.extend_results = get_new_result_index(self.results, self.next_data, self.data)
+
+        get_proximal_region(self.data, self.extend_results)
+
+        self.blue_markers, self.red_markers, self.results_type = get_breakouts(self.next_data, self.results)
 
     def draw(self, chart_tool: BasicChartTools):
 
@@ -51,14 +43,29 @@ class RangeRegion(Tool):
             times2.append(self.next_data[result['End']]['Time'])
             prices2.append(result['TopRegion'])
 
-        chart_tool.rectangle(names, times1, prices1, times2, prices2, back=1)
+        chart_tool.rectangle(names, times1, prices1, times2, prices2)
+
+        names, times1, prices1, times2, prices2 = [], [], [], [], []
+        for i in range(len(self.extend_results)):
+            extend_result = self.extend_results[i]
+            names.append(f"RangeRegionFibo{i}")
+            times1.append(self.data[extend_result['Start']]['Time'])
+            times2.append(self.data[extend_result['End']]['Time'])
+            if self.results_type[i] == "Up":
+                prices1.append(extend_result['ProximalTop'])
+                prices2.append(extend_result['ProximalBottom'])
+            elif self.results_type[i] == "Down":
+                prices1.append(extend_result['ProximalBottom'])
+                prices2.append(extend_result['ProximalTop'])
+
+        chart_tool.fibonacci_retracement(names, times1, prices1, times2, prices2, color="0,0,0")
 
         names, times1, prices1,  = [], [], []
         for i in range(len(self.blue_markers)):
             buy_index = self.blue_markers[i]
             names.append(f"BuyMarker{i}")
-            times1.append(self.data[buy_index]['Time'])
-            prices1.append(self.data[buy_index]['Close'])
+            times1.append(self.next_data[buy_index]['Time'])
+            prices1.append(self.next_data[buy_index]['Close'])
 
         chart_tool.arrow(names, times1, prices1, 5, BasicChartTools.EnumAnchor.Right, color="0,0,255")
 
@@ -66,7 +73,7 @@ class RangeRegion(Tool):
         for i in range(len(self.red_markers)):
             sell_index = self.red_markers[i]
             names.append(f"SellMarker{i}")
-            times1.append(self.data[sell_index]['Time'])
-            prices1.append(self.data[sell_index]['Close'])
+            times1.append(self.next_data[sell_index]['Time'])
+            prices1.append(self.next_data[sell_index]['Close'])
 
         chart_tool.arrow(names, times1, prices1, 5, BasicChartTools.EnumAnchor.Right, color="255,0,0")

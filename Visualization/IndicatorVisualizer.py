@@ -134,8 +134,8 @@ class IndicatorVisualizer(Visualizer):
                      color="#fafa64", width=4)
             fig.line(x=list(np.arange(len(self.ichimoku_result['SenkouSpanB']))), y=self.ichimoku_result['SenkouSpanB'],
                      color="#3afaf4", width=4)
-            fig.line(x=list(np.arange(len(self.ichimoku_result['TenKijun']))), y=self.ichimoku_result['TenKijun'],
-                     color="#ca3af4", width=1)
+            # fig.line(x=list(np.arange(len(self.ichimoku_result['TenKijun']))), y=self.ichimoku_result['TenKijun'],
+            #          color="#ca3af4", width=1)
 
         figs = [fig]
         figs += indicator_fig_list

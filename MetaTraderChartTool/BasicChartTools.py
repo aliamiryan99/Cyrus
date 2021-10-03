@@ -396,6 +396,11 @@ class BasicChartTools:
         fib_times1, fib_times2 = [], []
         fib_prices1, fib_prices2 = [], []
 
+        fib_names_text = []
+        fib_times_text = []
+        fib_prices_text = []
+        fib_texts = []
+
         for i in range(len(names)):
             fib_levels = get_fib_levels(prices1[i], prices2[i])
             for key in fib_levels.keys():
@@ -405,7 +410,13 @@ class BasicChartTools:
                 fib_prices1.append(fib_levels[key])
                 fib_prices2.append(fib_levels[key])
 
+                fib_names_text.append(f"{key}_{names[i]}t")
+                fib_times_text.append(times2[i])
+                fib_prices_text.append(fib_levels[key])
+                fib_texts.append(f'{key}')
+
         self.trend_line(fib_names, fib_times1, fib_prices1, fib_times2, fib_prices2, chart_id, sub_window, color, style, width, back, selection, ray, hidden, z_order)
+        self.text(fib_names_text, fib_times_text, fib_prices_text, fib_texts, anchor=BasicChartTools.EnumAnchor.RightLower, color=color)
 
 
 

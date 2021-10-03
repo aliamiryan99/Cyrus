@@ -23,7 +23,7 @@ class InstanceConfig:
     history_size = 400
     algorithm_time_frame = "H4"
     trailing_time_frame = "H4"
-    tag = "Role1 KomoFilter XAUUSD H4"
+    tag = "Role6,2 XAUUSD H4"
 
     algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'
@@ -193,7 +193,7 @@ class InstanceConfig:
         elif trailing_name == "ReverseSignal":
             from AlgorithmFactory.AlgorithmsOfExit.Trailings.ReverseSignalTrailing import ReverseSignalTrailing
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 1
+            role = 2
             tenkan = 9
             kijun = 26
             senkou_span_projection = 26
@@ -466,7 +466,7 @@ class InstanceConfig:
                                              extremum_window_step, extremum_mode, check_window, alpha, beta)
         elif algorithm_name == "Ichimoku":
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 1
+            role = 6
             tenkan = 9
             kijun = 26
             senkou_span_projection = 26
@@ -474,9 +474,9 @@ class InstanceConfig:
             n = 9*16
             m = 0.4
             time_frame = "H4"
-            sequential_trade = False
-            komu_cloud_filter = True
+            sequential_trade = True
+            komu_cloud_filter = False
 
-            algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter)
+            algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter, senkou_span_projection)
 
         return algorithm

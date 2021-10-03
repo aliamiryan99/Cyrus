@@ -7,8 +7,9 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     auto_candles = True
     candles = 2000
-    tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics", "RangeRegion"]
-    tool_name = 'Harmonics'
+    tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
+                 "RangeRegion"]
+    tool_name = 'RangeRegion'
 
     def __init__(self, symbol, data, tool_name):
 

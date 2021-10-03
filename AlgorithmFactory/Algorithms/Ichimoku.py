@@ -134,7 +134,7 @@ class IchimokuAlgorithm(Algorithm):
                     self.signal_trigger = 0
                     self.last_time_id = time_id
 
-            if self.role == 7:
+            if self.role == 8:
                 max_cloud, min_cloud = max(self.ich_result["SenkouSpanA"][-self.senkou_span_projection],
                                            self.ich_result["SenkouSpanB"][-self.senkou_span_projection]),\
                                        min(self.ich_result["SenkouSpanA"][-self.senkou_span_projection],
