@@ -53,24 +53,20 @@ class RangeRegion(Tool):
 
         chart_tool.rectangle(names, times1, prices1, times2, prices2, back=1)
 
-        names, times1, prices1, times2, prices2 = [], [], [], [], []
+        names, times1, prices1,  = [], [], []
         for i in range(len(self.blue_markers)):
             buy_index = self.blue_markers[i]
             names.append(f"BuyMarker{i}")
-            times1.append(self.data[buy_index-1]['Time'])
-            prices1.append(self.data[buy_index]['Close']-self.area_length)
-            times2.append(self.data[buy_index+1]['Time'])
-            prices2.append(self.data[buy_index]['Close']+self.area_length)
+            times1.append(self.data[buy_index]['Time'])
+            prices1.append(self.data[buy_index]['Close'])
 
-        chart_tool.rectangle(names, times1, prices1, times2, prices2, back=1)
+        chart_tool.arrow(names, times1, prices1, 5, BasicChartTools.EnumAnchor.Right, color="0,0,255")
 
-        names, times1, prices1, times2, prices2 = [], [], [], [], []
+        names, times1, prices1 = [], [], []
         for i in range(len(self.red_markers)):
             sell_index = self.red_markers[i]
             names.append(f"SellMarker{i}")
-            times1.append(self.data[sell_index - 1]['Time'])
-            prices1.append(self.data[sell_index]['Close'] - self.area_length)
-            times2.append(self.data[sell_index + 1]['Time'])
-            prices2.append(self.data[sell_index]['Close'] + self.area_length)
+            times1.append(self.data[sell_index]['Time'])
+            prices1.append(self.data[sell_index]['Close'])
 
-        chart_tool.rectangle(names, times1, prices1, times2, prices2, back=1)
+        chart_tool.arrow(names, times1, prices1, 5, BasicChartTools.EnumAnchor.Right, color="255,0,0")

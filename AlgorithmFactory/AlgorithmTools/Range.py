@@ -7,7 +7,7 @@ def detect_range_region(data, range_candle_threshold):
     open, high, low , close = get_ohlc(data)
     bottom, top = get_bottom_top(data)
 
-    in_range_candles = 0
+    in_range_candles = 1
     top_region = high[0]
     bottom_region = low[0]
 
@@ -22,8 +22,8 @@ def detect_range_region(data, range_candle_threshold):
                 bottom_region = low[i]
         else:
             if in_range_candles >= range_candle_threshold:
-                results.append({'Start': i-in_range_candles-1, 'End': i, 'BottomRegion': bottom_region, 'TopRegion': top_region})
-            in_range_candles = 0
+                results.append({'Start': i-in_range_candles, 'End': i, 'BottomRegion': bottom_region, 'TopRegion': top_region})
+            in_range_candles = 1
             top_region = high[i]
             bottom_region = low[i]
 

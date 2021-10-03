@@ -232,6 +232,23 @@ class BasicChartTools:
                                                                     width,
                                                                     back, selection, hidden, z_order)
 
+    # Format : "ARROW" | ChartId | Name | SubWindow | Time | Price | Arrow | Anchor | Color | Style | Width | Back | Selection | Hidden | ZOrder
+    def arrow(self, names, times, prices, arrow_code, anchor, chart_id=0, sub_window=0, color="255,255,255", style=0,
+                 width=1, back=0, selection=1, hidden=1, z_order=0):
+        if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
+                not self._check_lens(times, "ArrowUp Error (Time len can't be zero"):
+            return
+
+        names_str = self._get_str_list(names)
+        times_str = self._get_str_time_list(times)
+        prices_str = self._get_str_list(prices)
+
+        params = "{};{};{};{};{};{};{};{};{};{};{};{};{};{};{}".format("ARROW", chart_id, names_str, sub_window,
+                                                                    times_str, prices_str, arrow_code, anchor, color, style,
+                                                                    width, back, selection, hidden, z_order)
+
+        self.execution.execute(params)
+
     # Format : "ARROWUP" | ChartId | Name | SubWindow | Time | Price | Anchor | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def arrow_up(self, names, times, prices, anchor, chart_id=0, sub_window=0, color="255,255,255", style=0,
                    width=1, back=0, selection=1, hidden=1, z_order=0):
