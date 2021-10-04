@@ -1,10 +1,7 @@
 
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from MetaTraderChartTool.Tools.Tool import Tool
-from AlgorithmFactory.AlgorithmTools.Range import detect_range_region
-from AlgorithmFactory.AlgorithmTools.Range import get_breakouts
-from AlgorithmFactory.AlgorithmTools.Range import get_new_result_index
-from AlgorithmFactory.AlgorithmTools.Range import get_proximal_region
+from AlgorithmFactory.AlgorithmTools.Range import *
 from Configuration.Trade.OnlineConfig import Config
 from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 
@@ -32,8 +29,11 @@ class RangeRegion(Tool):
 
         self.blue_markers, self.red_markers, self.results_type = get_breakouts(self.next_data, self.results)
 
+        self.breakouts_result = get_breakouts2(self.data, self.extend_results)
+
     def draw(self, chart_tool: BasicChartTools):
 
+        # Range Box
         names, times1, prices1, times2, prices2 = [], [], [], [], []
         for i in range(len(self.results)):
             result = self.results[i]
@@ -45,6 +45,7 @@ class RangeRegion(Tool):
 
         chart_tool.rectangle(names, times1, prices1, times2, prices2)
 
+        # Fibo Ranges
         names, times1, prices1, times2, prices2 = [], [], [], [], []
         for i in range(len(self.extend_results)):
             extend_result = self.extend_results[i]
@@ -60,6 +61,7 @@ class RangeRegion(Tool):
 
         chart_tool.fibonacci_retracement(names, times1, prices1, times2, prices2, color="0,0,0")
 
+        # Total Braekouts Marker
         names, times1, prices1,  = [], [], []
         for i in range(len(self.blue_markers)):
             buy_index = self.blue_markers[i]
@@ -77,3 +79,24 @@ class RangeRegion(Tool):
             prices1.append(self.next_data[sell_index]['Close'])
 
         chart_tool.arrow(names, times1, prices1, 5, BasicChartTools.EnumAnchor.Right, color="255,0,0")
+
+        # Setup 2
+        names, times1, prices1, times2, prices2 = [], [], [], [], []
+        names2, times12, prices12, times22, prices22 = [], [], [], [], []
+        for i in range(len(self.breakouts_result)):
+            result = self.breakouts_result[i]
+            if result is not None:
+                names.append(f"StopRegion{i}")
+                times1.append(self.data[result['X']]['Time'])
+                prices1.append(result['StartPrice'])
+                times2.append(self.data[result['Y']]['Time'])
+                prices2.append(result['StopPrice'])
+
+                names2.append(f"TargetRegion{i}")
+                times12.append(self.data[result['X']]['Time'])
+                prices12.append(result['StartPrice'])
+                times22.append(self.data[result['Y']]['Time'])
+                prices22.append(result['TargetPrice'])
+
+        chart_tool.rectangle(names, times1, prices1, times2, prices2, back=1, color='178,34,34')
+        chart_tool.rectangle(names2, times12, prices12, times22, prices22, back=1, color='0,100,0')

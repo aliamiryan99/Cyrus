@@ -70,5 +70,6 @@ class ChartLauncher:
         self.visualizer.draw(self.fig, ChartConfig.secondary_fig_height)
 
 
-launcher = ChartLauncher()
-launcher.launch()
+if __name__ == "__manin__":
+    launcher = ChartLauncher()
+    launcher.launch()

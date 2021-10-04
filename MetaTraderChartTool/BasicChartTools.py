@@ -50,6 +50,12 @@ class BasicChartTools:
         self.execution = Execution(self.connector)
         self.reporting = Reporting(self.connector)
 
+    def __del__(self):
+        self.connector.shutdown()
+
+    def clear(self):
+        self.connector.send_clear_request()
+
     def delete(self, names, chart_id=0):
         if not self._check_lens(names, "Delete (Name len can't be zero)"):
             return
