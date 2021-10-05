@@ -71,6 +71,8 @@ def get_breakouts(data, range_results):
                 down_breaks.append(i)
                 results_type.append('Down')
                 marker_activation = False
+    if len(results_type) != len(range_results):
+        results_type.append("Unknown")
 
     return up_breaks, down_breaks, results_type
 
@@ -81,100 +83,108 @@ def get_breakouts2(data, range_results):
     y = 0
     results = []
     for i in range(len(range_results)):
-        break_out_type = 0
-        break_out_direction = 0
         mono_result = range_results[i]
-        for j in range(mono_result['Start'], mono_result['End']):
-            if data[j]['Close'] > mono_result['TopRegion']:
-                break_out_direction = 1
-                break_out_type = 1
-                x = j
-                break
-            elif data[j]['Close'] < mono_result['BottomRegion']:
-                break_out_direction = -1
-                break_out_type = 1
-                x = j
-                break
-            elif data[j]['High'] > mono_result['TopRegion']:
-                break_out_direction = 1
-                break_out_type = 2
-                x = j
-                break
-            elif data[j]['Low'] < mono_result['BottomRegion']:
-                break_out_direction = -1
-                break_out_type = 2
-                x = j
-                break
-        if break_out_type == 0:
-            results.append(None)
-        elif break_out_type == 1:
-            if break_out_direction == 1:
-                start_price = data[x]['Low']
-                for j in range(x, len(data)-1):
-                    if data[j]['Close'] <= start_price:
-                        x = j
-                        start_price = data[j]['Close']
-                        break
-                if x > mono_result['End']:
-                    results.append(None)
-                    continue
-                max_top, min_bottom = top[mono_result['Start']], bottom[mono_result['Start']]
-                for j in range(mono_result['Start'], x + 1):
-                    max_top = max(max_top, top[j])
-                    min_bottom = min(min_bottom, bottom[j])
-                stop_price = max_top
-                target_price = min_bottom
-                for j in range(x+1, len(data)-1):
-                    if data[j]['Low'] <= target_price or data[j]['High'] >= stop_price:
-                        y = j
-                        break
-                results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
-            elif break_out_direction == -1:
-                start_price = data[x]['High']
-                for j in range(x, len(data)-1):
-                    if data[j]['Close'] >= start_price:
-                        x = j
-                        start_price = data[j]['Close']
-                        break
-                if x > mono_result['End']:
-                    results.append(None)
-                    continue
-                max_top, min_bottom = top[mono_result['Start']], bottom[mono_result['Start']]
-                for j in range(mono_result['Start'], x + 1):
-                    max_top = max(max_top, top[j])
-                    min_bottom = min(min_bottom, bottom[j])
-                stop_price = min_bottom
-                target_price = max_top
-                for j in range(x+1, len(data)-1):
-                    if data[j]['High'] >= target_price or data[j]['Low'] <= stop_price:
-                        y = j
-                        break
-                results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+        start = mono_result['Start']
+        while start < mono_result['End']:
+            break_out_type = 0
+            break_out_direction = 0
+            for j in range(start, mono_result['End']):
+                if data[j]['Close'] > mono_result['TopRegion']:
+                    break_out_direction = 1
+                    break_out_type = 1
+                    x = j
+                    break
+                elif data[j]['Close'] < mono_result['BottomRegion']:
+                    break_out_direction = -1
+                    break_out_type = 1
+                    x = j
+                    break
+                elif data[j]['High'] > mono_result['TopRegion']:
+                    break_out_direction = 1
+                    break_out_type = 2
+                    x = j
+                    break
+                elif data[j]['Low'] < mono_result['BottomRegion']:
+                    break_out_direction = -1
+                    break_out_type = 2
+                    x = j
+                    break
+            if break_out_type == 0:
+                results.append(None)
+            elif break_out_type == 1:
+                if break_out_direction == 1:
+                    start_price = data[x]['Low']
+                    for j in range(x, len(data)-1):
+                        if data[j]['Close'] <= start_price:
+                            x = j
+                            start_price = data[j]['Close']
+                            break
+                    if x > mono_result['End']:
+                        results.append(None)
+                    else:
+                        max_top, min_bottom = top[mono_result['Start']], bottom[mono_result['Start']]
+                        for j in range(mono_result['Start'], x + 1):
+                            max_top = max(max_top, top[j])
+                            min_bottom = min(min_bottom, bottom[j])
+                        stop_price = max_top
+                        target_price = min_bottom
+                        for j in range(x+1, len(data)-1):
+                            if data[j]['Low'] <= target_price or data[j]['High'] >= stop_price:
+                                y = j
+                                break
+                        results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+                elif break_out_direction == -1:
+                    start_price = data[x]['High']
+                    for j in range(x, len(data)-1):
+                        if data[j]['Close'] >= start_price:
+                            x = j
+                            start_price = data[j]['Close']
+                            break
+                    if x > mono_result['End']:
+                        results.append(None)
+                    else:
+                        max_top, min_bottom = top[mono_result['Start']], bottom[mono_result['Start']]
+                        for j in range(mono_result['Start'], x + 1):
+                            max_top = max(max_top, top[j])
+                            min_bottom = min(min_bottom, bottom[j])
+                        stop_price = min_bottom
+                        target_price = max_top
+                        for j in range(x+1, len(data)-1):
+                            if data[j]['High'] >= target_price or data[j]['Low'] <= stop_price:
+                                y = j
+                                break
+                        results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
 
-        elif break_out_type == 2:
-            if break_out_direction == 1:
-                stop_price = data[x]['High']
-                start_price = data[x]['Close']
-                target_price = data[mono_result['Start']]['Low']
-                for j in range(mono_result['Start'], x+1):
-                    target_price = min(target_price, data[j]['Low'])
+            elif break_out_type == 2:
+                if break_out_direction == 1:
+                    stop_price = data[x]['High']
+                    start_price = data[x]['Close']
+                    target_price = data[mono_result['Start']]['Low']
+                    for j in range(mono_result['Start'], x+1):
+                        target_price = min(target_price, data[j]['Low'])
 
-                for j in range(x+1, len(data)-1):
-                    if data[j]['Low'] <= target_price or data[j]['High'] >= stop_price:
-                        y = j
-                        break
-                results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
-            elif break_out_direction == -1:
-                stop_price = data[x]['Low']
-                start_price = data[x]['Close']
-                target_price = data[mono_result['Start']]['High']
-                for j in range(mono_result['Start'], x + 1):
-                    target_price = max(target_price, data[j]['High'])
-                for j in range(x+1, len(data) - 1):
-                    if data[j]['High'] >= target_price or data[j]['Low'] <= stop_price:
-                        y = j
-                        break
-                results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+                    for j in range(x+1, len(data)-1):
+                        if data[j]['Low'] <= target_price or data[j]['High'] >= stop_price:
+                            y = j
+                            break
+                    results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+                elif break_out_direction == -1:
+                    stop_price = data[x]['Low']
+                    start_price = data[x]['Close']
+                    target_price = data[mono_result['Start']]['High']
+                    for j in range(mono_result['Start'], x + 1):
+                        target_price = max(target_price, data[j]['High'])
+                    for j in range(x+1, len(data) - 1):
+                        if data[j]['High'] >= target_price or data[j]['Low'] <= stop_price:
+                            y = j
+                            break
+                    results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+            if results[-1] is None:
+                start = mono_result['End']
+            else:
+                start = results[-1]['Y']
+                if abs(results[-1]['TargetPrice'] - results[-1]['StartPrice']) / abs(results[-1]['StopPrice'] - results[-1]['StartPrice']) < 1:
+                    results[-1] = None
     return results
 
 

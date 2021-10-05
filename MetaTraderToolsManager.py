@@ -22,7 +22,7 @@ class MetaTraderChartToolsManager(BasicChartTools):
 
     def __init__(self,
                  _name="Polaris",
-                 _wbreak = 40,
+                 _wbreak =100,
                  _delay=0.1,
                  _broker_gmt=3,
                  _verbose=False):

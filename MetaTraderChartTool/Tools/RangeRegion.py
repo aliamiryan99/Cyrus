@@ -8,16 +8,18 @@ from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 
 class RangeRegion(Tool):
 
-    def __init__(self, symbol, data, range_candle_threshold):
+    def __init__(self, symbol, data, range_candle_threshold, up_timeframe):
         super().__init__(data)
 
-        period = (data[1]['Time'] - data[0]['Time']).seconds//60
-        time_frame = Config.timeframes_dic_rev[period]
-        next_time_frame = time_frame
-        keys = list(Config.timeframes_dic.keys())
-        for i in range(len(keys)-1):
-            if time_frame == keys[i]:
-                next_time_frame = keys[i+1]
+        # diff_time = data[1]['Time'] - data[0]['Time']
+        # period = diff_time.seconds//60 + diff_time.days * 1440
+        # time_frame = Config.timeframes_dic_rev[period]
+        # next_time_frame = time_frame
+        # keys = list(Config.timeframes_dic.keys())
+        # for i in range(len(keys)-1):
+        #     if time_frame == keys[i]:
+        #         next_time_frame = keys[i+1]
+        next_time_frame = up_timeframe
 
         self.next_data = aggregate_data(data, next_time_frame)
 
@@ -48,16 +50,17 @@ class RangeRegion(Tool):
         # Fibo Ranges
         names, times1, prices1, times2, prices2 = [], [], [], [], []
         for i in range(len(self.extend_results)):
-            extend_result = self.extend_results[i]
-            names.append(f"RangeRegionFibo{i}")
-            times1.append(self.data[extend_result['Start']]['Time'])
-            times2.append(self.data[extend_result['End']]['Time'])
-            if self.results_type[i] == "Up":
-                prices1.append(extend_result['ProximalTop'])
-                prices2.append(extend_result['ProximalBottom'])
-            elif self.results_type[i] == "Down":
-                prices1.append(extend_result['ProximalBottom'])
-                prices2.append(extend_result['ProximalTop'])
+            if self.results_type[i] != "Unknown":
+                extend_result = self.extend_results[i]
+                names.append(f"RangeRegionFibo{i}")
+                times1.append(self.data[extend_result['Start']]['Time'])
+                times2.append(self.data[extend_result['End']]['Time'])
+                if self.results_type[i] == "Up":
+                    prices1.append(extend_result['ProximalTop'])
+                    prices2.append(extend_result['ProximalBottom'])
+                elif self.results_type[i] == "Down":
+                    prices1.append(extend_result['ProximalBottom'])
+                    prices2.append(extend_result['ProximalTop'])
 
         chart_tool.fibonacci_retracement(names, times1, prices1, times2, prices2, color="0,0,0")
 
