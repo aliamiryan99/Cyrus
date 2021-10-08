@@ -92,6 +92,7 @@ import copy
 
 from Configuration.Trade.BackTestConfig import Config
 from Configuration.Trade.InstanceConfig import InstanceConfig
+from Configuration.Trade.MarketConfig import MarketConfig
 
 from Shared.Functions import Functions
 
@@ -1005,10 +1006,12 @@ def show_candlestick(name, df, positions_df, df_balance, df_equity, start, trend
                                  trends, extends)
 
 
-def get_output(simulation, trends=None, extends=None):
+def get_output(simulation, trends=None, extends=None, backtest_with_market=False):
     global output_dir
     output_dir = "Outputs/" + InstanceConfig.algorithm_name + "/" + InstanceConfig.algorithm_time_frame +\
                  "_" + InstanceConfig.trailing_time_frame + "_" + Config.time_frame + "/" + InstanceConfig.tag + "/"
+    if backtest_with_market:
+        output_dir = "Outputs/" + MarketConfig.strategy_name + "/" + MarketConfig.time_frame + "/" + MarketConfig.tag + "/"
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     positions = simulation.get_closed_positions()

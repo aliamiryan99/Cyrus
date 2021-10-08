@@ -18,7 +18,7 @@ class ChartLauncher:
 
         if ChartConfig.with_back_test:
             backtest = ChartConfig.backtest
-            self.positions = pd.read_excel(f"Outputs/{backtest[3]}/{backtest[0]}_{backtest[1]}_{backtest[2]}/{backtest[4]}/history.xlsx",
+            self.positions = pd.read_excel(f"Outputs/{backtest[1]}/{backtest[0]}/{backtest[2]}/history.xlsx",
                           engine="openpyxl")
             self.positions = self.positions.sort_values(['TimeOpen'])
             self.positions = self.positions[self.positions.Symbol == ChartConfig.symbol]
@@ -32,8 +32,8 @@ class ChartLauncher:
         data_show_paths = ["Data/" + Config.categories_list[ChartConfig.symbol] + "/" + ChartConfig.symbol +
                            "/" + ChartConfig.time_frame + ".csv"]
         self.data_df = ut.csv_to_df(data_show_paths, date_format=ChartConfig.date_format)[0]
-        self.start_index = Outputs.index_date(self.data_df, start_time)
-        self.end_index = Outputs.index_date(self.data_df, end_time)
+        self.start_index = Outputs.index_date(self.data_df, start_time) - 200
+        self.end_index = Outputs.index_date(self.data_df, end_time) + 50
         self.data_df = self.data_df.iloc[self.start_index:self.end_index + 1]
 
         if not ChartConfig.holidays_show:
@@ -70,6 +70,6 @@ class ChartLauncher:
         self.visualizer.draw(self.fig, ChartConfig.secondary_fig_height)
 
 
-if __name__ == "__manin__":
+if __name__ == "__main__":
     launcher = ChartLauncher()
     launcher.launch()

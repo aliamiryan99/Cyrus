@@ -12,7 +12,7 @@ if MarketConfig.market == "Simulator":
     # Output Section
     launcher = BackTestManager()
     market_executed = launcher.run()
-    Simulation.get_output(market_executed)
+    Simulation.get_output(market_executed, backtest_with_market=True)
 
 elif MarketConfig.market == "MetaTrader":
     pass

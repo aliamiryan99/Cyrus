@@ -87,5 +87,6 @@ class ChartConfig:
             from MetaTraderChartTool.Tools.RangeRegion import RangeRegion
             range_candle_threshold = 3
             up_timeframe = "D1"
+            stop_target_margin = 50
 
-            self.tool = RangeRegion(symbol, data, range_candle_threshold, up_timeframe)
+            self.tool = RangeRegion(symbol, data, range_candle_threshold, up_timeframe, stop_target_margin)

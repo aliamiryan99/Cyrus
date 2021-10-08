@@ -2,19 +2,19 @@
 
 class ChartConfig:
 
-    symbol = "XAUUSD"
-    time_frame = "H4"
+    symbol = "USDJPY"
+    time_frame = "H1"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
-    start_date = "01.04.2017 00:00:00.000"
-    end_date = "01.03.2021 00:00:00.000"
+    start_date = "01.04.2019 00:00:00.000"
+    end_date = "21.09.2020 22:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression',
-                      'Channel']
-    visualizer = 'Indicator'
+                      'Channel', 'RangeRegion']
+    visualizer = 'RangeRegion'
 
     with_back_test = True
-    backtest = ["H4", "H4", "M1", "Ichimoku", "Role7 XAUUSD H4"]
+    backtest = ["H1", "RangeRegion", "RangeRegion USDJPY"]
 
     def __init__(self, data, visualizer):
 
@@ -99,3 +99,10 @@ class ChartConfig:
 
             self.visualizer = ChannelsVisualizer(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode,
                                  check_window, alpha, extend_number)
+        elif visualizer == "RangeRegion":
+            from Visualization.RangeRegion import RangeRegion
+            range_candle_threshold = 3
+            up_timeframe = "D1"
+            stop_target_margin = 50
+
+            self.visualizer = RangeRegion(self.symbol, data, range_candle_threshold, up_timeframe, stop_target_margin)

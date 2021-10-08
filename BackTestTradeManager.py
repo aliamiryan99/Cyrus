@@ -587,7 +587,7 @@ class BackTestLauncher:
             self.recovery_algorithms[symbol].on_tick_end()
 
 
-if __name__ == "__manin__":
+if __name__ == "__main__":
     # Output Section
     launcher = BackTestLauncher()
     market_executed = launcher.run()

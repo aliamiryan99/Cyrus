@@ -53,7 +53,7 @@ class BackTestManager:
                 tick_candle = Functions.item_data_list_to_dic(data[symbol], i)
 
                 #Debug Section
-                # if data_time == datetime(year=2017, month=3, day=15, hour=7, minute=42):
+                # if data_time == datetime(year=2020, month=9, day=21, hour=22, minute=0):
                 #     print(data_time)
 
                 # Ignore Holidays

@@ -5,15 +5,16 @@ class MarketConfig:
 
     market = "Simulator"    # 'Simulator' , 'MetaTrader'
 
-    symbols = ["EURUSD"]
+    symbols = ["USDJPY"]
+    tag = "RangeRegion USDJPY"
 
-    time_frame = "D"
-    history_size = 200
+    time_frame = "H1"
+    history_size = 1000
 
-    strategies = ['NeuralNetwork', 'SimpleIdea']
-    strategy_name = 'SimpleIdea'
+    strategies = ['NeuralNetwork', 'SimpleIdea', 'RangeRegion']
+    strategy_name = 'RangeRegion'
 
-    def __init__(self, market:Market, symbol, data, strategy_name):
+    def __init__(self, market: Market, symbol, data, strategy_name):
 
         if strategy_name == "NeuralNetwork":
             from Strategies.NeuralNetwork import NeuralNetwork
@@ -37,3 +38,11 @@ class MarketConfig:
                                         si_body_threshold, si_mode, si_mean_window,
                                         si_extremum_window, si_extremum_mode, si_alpha,
                                         si_impulse_threshold)
+        if strategy_name == "RangeRegion":
+            from Strategies.RangeRegion import RangeRegion
+
+            range_candle_threshold = 3
+            up_timeframe = "D1"
+            stop_target_margin = 50
+
+            self.strategy = RangeRegion(market, data, symbol, range_candle_threshold, up_timeframe, stop_target_margin)

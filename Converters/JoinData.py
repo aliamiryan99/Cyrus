@@ -9,10 +9,10 @@ def join_data(data1, data2):
     total_data = data1[:middle_index] + data2
     return total_data
 
-category = "Major"
-symbol = "EURUSD"
-time_frame1 = "M1_2017"
-time_frame2 = "M1_2019"
+category = "Metal"
+symbol = "XAUUSD"
+time_frame1 = "M1_2016"
+time_frame2 = "M1_2020"
 time_frame_output = "M1"
 
 data1 = read_data(category, symbol, time_frame1)

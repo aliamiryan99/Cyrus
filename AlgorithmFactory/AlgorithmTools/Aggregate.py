@@ -21,3 +21,4 @@ def aggregate_data(histories, time_frame):
                 new_history[-1]['Close'] = histories[i]['Close']
                 new_history[-1]['Volume'] += histories[i]['Volume']
     return new_history
+
