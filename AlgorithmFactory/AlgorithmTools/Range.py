@@ -2,6 +2,7 @@
 from AlgorithmFactory.AlgorithmTools.CandleTools import *
 from Converters.Tools import *
 
+
 def detect_range_region(data, range_candle_threshold):
 
     open, high, low, close = get_ohlc(data)
@@ -115,22 +116,22 @@ def get_breakouts2(data, range_results, stop_target_margin):
                     break_out_type = 1
                     x = j
                     break
-                elif data[j]['High'] > mono_result['TopRegion'] > data[j]['Open']:
-                    break_out_direction = 1
-                    if data[j]['Close'] < data[j]['Open']:
-                        break_out_type = 2
-                    else:
-                        break_out_type = 1
-                    x = j
-                    break
-                elif data[j]['Low'] < mono_result['BottomRegion'] < data[j]['Open']:
-                    break_out_direction = -1
-                    if data[j]['Open'] < data[j]['Close']:
-                        break_out_type = 2
-                    else:
-                        break_out_type = 1
-                    x = j
-                    break
+                # elif data[j]['High'] > mono_result['TopRegion'] > data[j]['Open']:
+                #     break_out_direction = 1
+                #     if data[j]['Close'] < data[j]['Open']:
+                #         break_out_type = 2
+                #     else:
+                #         break_out_type = 1
+                #     x = j
+                #     break
+                # elif data[j]['Low'] < mono_result['BottomRegion'] < data[j]['Open']:
+                #     break_out_direction = -1
+                #     if data[j]['Open'] < data[j]['Close']:
+                #         break_out_type = 2
+                #     else:
+                #         break_out_type = 1
+                #     x = j
+                #     break
             if break_out_type == 0:
                 results.append(None)
             elif break_out_type == 1:

@@ -13,7 +13,7 @@ recovery_list = ['Basic', 'Signal', 'Candle']
 close_mode_list = ['tp_sl', 'trailing', 'both']
 tp_sl_list = ['Fix', 'Body', 'Extremum', 'Wave']
 trailing_list = ['Basic', 'Candle', 'HugeCandle', 'LocalExtremum', 'Stochastic', 'ReverseSignal']
-account_management_list = ['Balance', 'Risk']
+account_management_list = ['Balance', 'Risk', 'Fix']
 
 
 class InstanceConfig:

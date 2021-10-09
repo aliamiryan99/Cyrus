@@ -2,8 +2,8 @@
 
 class ChartConfig:
 
-    symbol = "USDJPY"
-    time_frame = "H1"
+    symbol = "EURUSD"
+    time_frame = ""
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.04.2019 00:00:00.000"
     end_date = "21.09.2020 22:00:00.000"
@@ -14,7 +14,7 @@ class ChartConfig:
     visualizer = 'RangeRegion'
 
     with_back_test = True
-    backtest = ["H1", "RangeRegion", "RangeRegion USDJPY"]
+    backtest = ["H4", "RangeRegion", "RangeRegion GBPUSD"]
 
     def __init__(self, data, visualizer):
 

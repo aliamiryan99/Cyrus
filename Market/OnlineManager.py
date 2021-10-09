@@ -251,8 +251,7 @@ class OnlineManager(DWX_ZMQ_Strategy):
                            "Low": bid, "Close": bid, "Volume": 1}
             self._histories[symbol].append(last_candle)
             self._histories[symbol].pop(0)
-            signal, price = self._algorithms[symbol].on_data(self._histories[symbol][-1], self.balance)
-            self._recovery_algorithms[symbol].on_data(self._histories[symbol][-1])
+            self._strategies[symbol].on_data(self._histories[symbol][-1], self.balance)
             self._reporting._get_balance()
             self._reporting._get_equity()
             self.trade_buy_in_candle_counts[symbol] = 0
@@ -264,9 +263,7 @@ class OnlineManager(DWX_ZMQ_Strategy):
             # Update Last Candle Section
             self.update_candle_with_tick(self._histories[symbol][-1], bid)
             # Signal Section
-            signal, price = self._algorithms[symbol].on_tick()
-
-        return signal, price
+            self._strategies[symbol].on_tick()
 
     def check_tp_sl(self, symbol, bid, ask):
         open_buy_trades_copy = copy.copy(self.open_buy_trades[symbol])

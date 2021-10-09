@@ -10,11 +10,21 @@ import copy
 
 
 class RangeRegion(Strategy):
-    def __init__(self, market, data, symbol, range_candle_threshold, up_timeframe, stop_target_margin):
+    def __init__(self, market, data, symbol, range_candle_threshold, up_timeframe, stop_target_margin, account_management, management_ratio):
         super().__init__(market, data)
         self.symbol = symbol
         self.next_time_frame = up_timeframe
         self.range_candle_threshold = range_candle_threshold
+
+        if account_management == 'Balance':
+            from AlgorithmFactory.AccountManagment.BalanceManagement import BalanceManagement
+            self.account_management = BalanceManagement(management_ratio)
+        elif account_management == 'Risk':
+            from AlgorithmFactory.AccountManagment.RiskManagement import RiskManagement
+            self.account_management = RiskManagement(management_ratio)
+        elif account_management == "Fix":
+            from AlgorithmFactory.AccountManagment.FixVolume import FixVolume
+            self.account_management = FixVolume(management_ratio)
 
         self.next_data = aggregate_data(data, self.next_time_frame)[:-1]
 
@@ -55,7 +65,8 @@ class RangeRegion(Strategy):
                 tp = int(tp * 10 ** Variables.config.symbols_pip[self.symbol])
                 sl = abs(self.breakouts_result[-1]['StopPrice'] - price)
                 sl = int(sl * 10 ** Variables.config.symbols_pip[self.symbol])
-                volume = 1
+                volume = self.account_management.calculate(self.market.get_balance(), self.symbol, price,
+                                                           self.breakouts_result[-1]['StopPrice'])
                 if self.breakouts_result[-1]['TargetPrice'] > self.breakouts_result[-1]['StartPrice']:
                     self.market.buy(price, self.symbol, tp, sl, volume)
                 else:

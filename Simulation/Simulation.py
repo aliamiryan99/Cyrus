@@ -589,7 +589,7 @@ class Simulation:
             time = self.adjust_time(position['OpenTime'], time_frame_input)
             if time < row['Time'] and position['SL'] != 0:
                 if row['High'] + spreads[position['Symbol']] >= position['SL']:
-                    self.close(row['Time'], position['SL'], position['Volume'],
+                    self.close(row['Time'], position['SL'] - spreads[position['Symbol']] , position['Volume'],
                                position['Ticket'], 'Stop Loss')
 
     def take_profit_check(self):
@@ -613,7 +613,7 @@ class Simulation:
             time = self.adjust_time(position['OpenTime'], time_frame_input)
             if time <= row['Time'] and position['TP'] != 0:
                 if row['Low'] + spreads[position['Symbol']] <= position['TP']:
-                    self.close(row['Time'], position['TP'], position['Volume'],
+                    self.close(row['Time'], position['TP'] - spreads[position['Symbol']], position['Volume'],
                                position['Ticket'], 'Take Profit')
 
     def pending_orders_check(self):

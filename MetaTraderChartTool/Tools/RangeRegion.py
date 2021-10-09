@@ -39,10 +39,15 @@ class RangeRegion(Tool):
         names, times1, prices1, times2, prices2 = [], [], [], [], []
         for i in range(len(self.results)):
             result = self.results[i]
+
+            if result['End'] >= len(self.next_data):
+                end_time = self.next_data[-1]['Time'] + (self.next_data[-1]['Time'] - self.next_data[-2]['Time'])
+            else:
+                end_time = self.next_data[result['End']]['Time']
             names.append(f"RangeRegion{i}")
             times1.append(self.next_data[result['Start']]['Time'])
             prices1.append(result['BottomRegion'])
-            times2.append(self.next_data[result['End']]['Time'])
+            times2.append(end_time)
             prices2.append(result['TopRegion'])
 
         chart_tool.rectangle(names, times1, prices1, times2, prices2)

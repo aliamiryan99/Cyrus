@@ -5,8 +5,8 @@ class MarketConfig:
 
     market = "Simulator"    # 'Simulator' , 'MetaTrader'
 
-    symbols = ["USDJPY"]
-    tag = "RangeRegion USDJPY"
+    symbols = ["EURUSD"]
+    tag = "RangeRegion EURUSD"
 
     time_frame = "H1"
     history_size = 1000
@@ -45,4 +45,7 @@ class MarketConfig:
             up_timeframe = "D1"
             stop_target_margin = 50
 
-            self.strategy = RangeRegion(market, data, symbol, range_candle_threshold, up_timeframe, stop_target_margin)
+            account_management = 'Risk'
+            management_ratio = 1
+
+            self.strategy = RangeRegion(market, data, symbol, range_candle_threshold, up_timeframe, stop_target_margin, account_management, management_ratio)
