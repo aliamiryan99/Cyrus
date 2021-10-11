@@ -1203,7 +1203,7 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
      <number>1000</number>
     </property>
     <property name="value">
-     <number>50</number>
+     <number>100</number>
     </property>
    </widget>
    <widget class="QLabel" name="label_14">
@@ -1401,9 +1401,9 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="message_lbl">
     <property name="geometry">
      <rect>
-      <x>380</x>
+      <x>190</x>
       <y>710</y>
-      <width>251</width>
+      <width>651</width>
       <height>51</height>
      </rect>
     </property>
@@ -1488,6 +1488,9 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
     </property>
     <property name="textFormat">
      <enum>Qt::PlainText</enum>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QComboBox" name="symbol_cmb">

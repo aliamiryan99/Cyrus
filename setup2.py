@@ -47,6 +47,10 @@ class Ui(QtWidgets.QMainWindow):
                   'Type2Enable': self.type2_enable_ckb.isChecked(),
                   'OneStopInRegion': self.one_stop_loss_allowed_ckb.isChecked()}
         launcher = MetaTraderChartToolsManager(params=params)
+        if not launcher.meta_trader_connection:
+            self.message_lbl.setText("Meta Trader Connection Problem")
+        else:
+            self.message_lbl.setText("")
 
     def clear(self):
         from MetaTraderChartTool.BasicChartTools import BasicChartTools

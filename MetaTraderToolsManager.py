@@ -46,32 +46,36 @@ class MetaTraderChartToolsManager(BasicChartTools):
             super().__init__([], [], _verbose)
             symbol = self.reporting.get_curr_symbol()
 
-        time_frame = ChartConfig.time_frame
-        if ChartConfig.auto_time_frame:
-            period = self.reporting.get_period()
-            time_frame = Config.timeframes_dic_rev[period]
+        if symbol == 0:
+            self.meta_trader_connection = False
+        else:
+            self.meta_trader_connection = True
+            time_frame = ChartConfig.time_frame
+            if ChartConfig.auto_time_frame:
+                period = self.reporting.get_period()
+                time_frame = Config.timeframes_dic_rev[period]
 
-        candles = ChartConfig.candles
-        if ChartConfig.auto_candles:
-            candles = self.reporting.get_bars_cnt()
+            candles = ChartConfig.candles
+            if ChartConfig.auto_candles:
+                candles = self.reporting.get_bars_cnt()
 
 
-        self.connector.send_hist_request(_symbol=symbol,
-                                          _timeframe=Config.timeframes_dic[time_frame],
-                                          _count=candles)
-        for i in range(_wbreak):
-            sleep(_delay)
-            if symbol + '_' + time_frame in  self.connector._History_DB.keys():
-                break
+            self.connector.send_hist_request(_symbol=symbol,
+                                              _timeframe=Config.timeframes_dic[time_frame],
+                                              _count=candles)
+            for i in range(_wbreak):
+                sleep(_delay)
+                if symbol + '_' + time_frame in  self.connector._History_DB.keys():
+                    break
 
-        self.history = self.connector._History_DB[symbol + '_' + time_frame]
-        for item in self.history:
-            item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
-        print(pd.DataFrame(self.history))
+            self.history = self.connector._History_DB[symbol + '_' + time_frame]
+            for item in self.history:
+                item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
+            print(pd.DataFrame(self.history))
 
-        chart_config = ChartConfig(symbol, self.history, ChartConfig.tool_name, params)
+            chart_config = ChartConfig(symbol, self.history, ChartConfig.tool_name, params)
 
-        chart_config.tool.draw(self)
+            chart_config.tool.draw(self)
 
 
 """ -----------------------------------------------------------------------------------------------
@@ -85,5 +89,3 @@ if __name__ == "__main__":
     # creates object with a predefined configuration: symbol list including EURUSD and GBPUSD
     print('Loading Algorithm...')
     launcher = MetaTraderChartToolsManager()
-
-    print('Bye!!!')

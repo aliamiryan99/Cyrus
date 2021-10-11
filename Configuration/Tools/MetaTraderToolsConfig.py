@@ -86,7 +86,7 @@ class ChartConfig:
         if tool_name == "RangeRegion":
             from MetaTraderChartTool.Tools.RangeRegion import RangeRegion
             range_candle_threshold = 3
-            up_timeframe = "D1"
+            up_timeframe = "H4"
             stop_target_margin = 50
 
             type1_enable = True

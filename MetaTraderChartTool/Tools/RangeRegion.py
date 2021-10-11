@@ -96,16 +96,21 @@ class RangeRegion(Tool):
         for i in range(len(self.breakouts_result)):
             result = self.breakouts_result[i]
             if result is not None:
+                if result['Y'] >= len(self.data):
+                    end_time = self.data[-1]['Time'] + (self.data[-1]['Time'] - self.data[-2]['Time'])
+                else:
+                    end_time = self.data[result['Y']]['Time']
+
                 names.append(f"StopRegion{i}")
                 times1.append(self.data[result['X']]['Time'])
                 prices1.append(result['StartPrice'])
-                times2.append(self.data[result['Y']]['Time'])
+                times2.append(end_time)
                 prices2.append(result['StopPrice'])
 
                 names2.append(f"TargetRegion{i}")
                 times12.append(self.data[result['X']]['Time'])
                 prices12.append(result['StartPrice'])
-                times22.append(self.data[result['Y']]['Time'])
+                times22.append(end_time)
                 prices22.append(result['TargetPrice'])
 
         chart_tool.rectangle(names, times1, prices1, times2, prices2, back=1, color='178,34,34')
