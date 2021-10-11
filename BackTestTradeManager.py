@@ -49,9 +49,9 @@ class BackTestLauncher:
                 # Select Symbol Configuration
                 tick_candle = Functions.item_data_list_to_dic(data[symbol], i)
 
-                #Debug Section
-                # if data_time == datetime(year=2019, month=8, day=9, hour=12, minute=0):
-                #     print(data_time)
+                # Debug Section
+                if data_time == datetime(year=2020, month=1, day=2, hour=14, minute=35):
+                    print(data_time)
 
                 # Ignore Holidays
                 if tick_candle['Volume'] == 0:

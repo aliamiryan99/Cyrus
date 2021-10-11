@@ -6,7 +6,7 @@ class MarketConfig:
     market = "Simulator"    # 'Simulator' , 'MetaTrader'
 
     symbols = ["EURUSD"]
-    tag = "RangeRegion EURUSD"
+    tag = "RangeRegion"
 
     time_frame = "H1"
     history_size = 1000
@@ -14,7 +14,7 @@ class MarketConfig:
     strategies = ['NeuralNetwork', 'SimpleIdea', 'RangeRegion']
     strategy_name = 'RangeRegion'
 
-    def __init__(self, market: Market, symbol, data, strategy_name):
+    def __init__(self, market: Market, symbol, data, strategy_name, params=None):
 
         if strategy_name == "NeuralNetwork":
             from Strategies.NeuralNetwork import NeuralNetwork
@@ -45,7 +45,33 @@ class MarketConfig:
             up_timeframe = "D1"
             stop_target_margin = 50
 
-            account_management = 'Risk'
+            type1_enable = True
+            type2_enable = False
+
+            one_stop_in_region = True
+
+            account_management = 'Fix'
             management_ratio = 1
 
-            self.strategy = RangeRegion(market, data, symbol, range_candle_threshold, up_timeframe, stop_target_margin, account_management, management_ratio)
+            risk_free_enable = True
+            risk_free_price_percent = 100
+            risk_free_volume_percent = 50
+
+            if params is not None:
+                range_candle_threshold = params['RangeCandleThreshold']
+                up_timeframe = params['UpTimeFrame']
+                stop_target_margin = params['StopTargetMargin']
+                type1_enable = params['Type1Enable']
+                type2_enable = params['Type2Enable']
+                one_stop_in_region = params['OneStopInRegion']
+
+                account_management = params['AccountManagement']
+                management_ratio = params['ManagementRatio']
+                risk_free_enable = params['RiskFreeEnable']
+                risk_free_price_percent = params['RiskFreePricePercent']
+                risk_free_volume_percent = params['RiskFreeVolumePercent']
+
+            self.strategy = RangeRegion(market, data, symbol, range_candle_threshold, up_timeframe, stop_target_margin,
+                                        type1_enable, type2_enable, one_stop_in_region, account_management,
+                                        management_ratio, risk_free_enable, risk_free_price_percent,
+                                        risk_free_volume_percent)

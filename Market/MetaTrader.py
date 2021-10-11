@@ -25,13 +25,19 @@ class MetaTrader(Market):
     def close_all(self, symbol, price):
         self.online_manger._zmq._DWX_MTX_CLOSE_ALL_TRADES_()
 
-    def get_open_buy_positions(self):
+    def get_open_buy_positions(self, symbol):
+        return self.online_manger.open_buy_trades[symbol]
+
+    def get_open_sell_positions(self, symbol):
+        return self.online_manger.open_sell_trades[symbol]
+
+    def get_all_open_buy_positions(self):
         open_buy_positions = []
         for symbol in self.online_manger.open_buy_trades.keys():
             open_buy_positions += self.online_manger.open_buy_trades[symbol]
         return open_buy_positions
 
-    def get_open_sell_positions(self):
+    def get_all_open_sell_positions(self):
         open_sell_positions = []
         for symbol in self.online_manger.open_sell_trades.keys():
             open_sell_positions += self.online_manger.open_sell_trades[symbol]
@@ -39,8 +45,8 @@ class MetaTrader(Market):
 
     # return tuple( type('Buy','Sell') , position )
     def get_position(self, ticket):
-        open_buy_positions = self.get_open_buy_positions()
-        open_sell_positions = self.get_open_sell_positions()
+        open_buy_positions = self.get_all_open_buy_positions()
+        open_sell_positions = self.get_all_open_sell_positions()
         for position in open_buy_positions:
             if ticket == position['Ticket']:
                 return 'Buy', position

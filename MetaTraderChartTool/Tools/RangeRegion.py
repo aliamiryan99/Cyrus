@@ -8,7 +8,8 @@ from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 
 class RangeRegion(Tool):
 
-    def __init__(self, symbol, data, range_candle_threshold, up_timeframe, stop_target_margin):
+    def __init__(self, symbol, data, range_candle_threshold, up_timeframe, stop_target_margin, type1_enable,
+                 type2_enable, one_stop_in_region):
         super().__init__(data)
 
         # diff_time = data[1]['Time'] - data[0]['Time']
@@ -31,7 +32,8 @@ class RangeRegion(Tool):
         get_proximal_region(self.data, self.extend_results)
 
         stop_target_margin *= 10 ** -Config.symbols_pip[symbol]
-        self.breakouts_result = get_breakouts2(self.data, self.extend_results, stop_target_margin)
+        self.breakouts_result = get_breakouts2(self.data, self.extend_results, stop_target_margin, type1_enable,
+                                               type2_enable, one_stop_in_region)
 
     def draw(self, chart_tool: BasicChartTools):
 

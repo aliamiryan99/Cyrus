@@ -38,12 +38,12 @@ class IchimokuAlgorithm(Algorithm):
 
     def on_tick(self):
         if self.buy_trigger:
-            if self.data[-1]['Close'] >= self.buy_limit_price:
+            if self.data[-1]['High'] >= self.buy_limit_price:
                 self.buy_trigger = False
                 self.pre_signal = 1
                 return 1, self.buy_limit_price
         elif self.sell_trigger:
-            if self.data[-1]['Close'] <= self.sell_limit_price:
+            if self.data[-1]['Low'] <= self.sell_limit_price:
                 self.sell_trigger = False
                 self.pre_signal = -1
                 return -1, self.sell_limit_price
@@ -154,5 +154,17 @@ class IchimokuAlgorithm(Algorithm):
                     self.sell_limit_price = self.data[-1]['Low']
 
         self.data.append(candle)
+
+        if self.buy_trigger:
+            if self.data[-1]['High'] >= self.buy_limit_price:
+                self.buy_trigger = False
+                self.pre_signal = 1
+                return 1, self.buy_limit_price
+        elif self.sell_trigger:
+            if self.data[-1]['Low'] <= self.sell_limit_price:
+                self.sell_trigger = False
+                self.pre_signal = -1
+                return -1, self.sell_limit_price
+
         return signal, price
 

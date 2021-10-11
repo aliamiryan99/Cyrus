@@ -11,7 +11,7 @@ class ChartConfig:
                  "RangeRegion"]
     tool_name = 'RangeRegion'
 
-    def __init__(self, symbol, data, tool_name):
+    def __init__(self, symbol, data, tool_name, params=None):
 
         if tool_name == "PivotPoints":
             from MetaTraderChartTool.Tools.PivotPoints import PivotPoints
@@ -89,4 +89,18 @@ class ChartConfig:
             up_timeframe = "D1"
             stop_target_margin = 50
 
-            self.tool = RangeRegion(symbol, data, range_candle_threshold, up_timeframe, stop_target_margin)
+            type1_enable = True
+            type2_enable = True
+
+            one_stop_in_region = False
+
+            if params is not None:
+                range_candle_threshold = params['RangeCandleThreshold']
+                up_timeframe = params['UpTimeFrame']
+                stop_target_margin = params['StopTargetMargin']
+                type1_enable = params['Type1Enable']
+                type2_enable = params['Type2Enable']
+                one_stop_in_region = params['OneStopInRegion']
+
+            self.tool = RangeRegion(symbol, data, range_candle_threshold, up_timeframe, stop_target_margin,
+                                    type1_enable, type2_enable, one_stop_in_region)

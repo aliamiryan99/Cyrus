@@ -153,7 +153,7 @@ def init_outputs(profits, positions, simulation, balance_history, equity_history
                 largest_loss_trade_pip = position[12]
         if size > max_pos_size:
             max_pos_size = size
-        if position[1] == 'buy':
+        if position[1] == 'Buy':
             long_trades += 1
             if position[11] > 0:
                 won_long_trade += 1

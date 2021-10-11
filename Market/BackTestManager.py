@@ -22,7 +22,11 @@ data = {}
 
 class BackTestManager:
 
-    def __init__(self):
+    def __init__(self, params=None):
+        if params is not None:
+            MarketConfig.symbols = [params['Symbol']]
+            MarketConfig.time_frame = params['TimeFrame']
+
         self.symbols = MarketConfig.symbols
 
         self.start_indexes, self.end_indexes, self.algorithm_data_total, self.algorithm_start_indexes, \
@@ -33,7 +37,7 @@ class BackTestManager:
             self.algorithm_histories, self.trailing_histories, self.buy_open_positions_lens,\
             self.sell_open_positions_lens, self.last_buy_closed, self.last_sell_closed,\
             self.trade_buy_in_candle_counts, self.trade_sell_in_candle_counts, self.virtual_buys, self.virtual_sells, \
-            self.recovery_trades = self.initialize_algorithms()
+            self.recovery_trades = self.initialize_algorithms(params)
 
     def run(self):
         # Back Test
@@ -126,7 +130,7 @@ class BackTestManager:
         return start_indexes, end_indexes, algorithm_data, algorithm_start_indexes, algorithm_end_indexes, \
             trailing_data, trailing_start_indexes, trailing_end_indexes
 
-    def initialize_algorithms(self):
+    def initialize_algorithms(self, params):
         global data
         algorithm_data = {}
         trailing_data = {}
@@ -149,7 +153,7 @@ class BackTestManager:
             algo_data = \
                 algorithm_data[symbol][self.algorithm_start_indexes[symbol] -
                                                      MarketConfig.history_size:self.algorithm_start_indexes[symbol]]
-            configs[symbol] = MarketConfig(market, symbol, algo_data, MarketConfig.strategy_name)
+            configs[symbol] = MarketConfig(market, symbol, algo_data, MarketConfig.strategy_name, params)
 
         strategies = {}
         for symbol in symbols:

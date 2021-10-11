@@ -14,7 +14,12 @@ import pandas as pd
 
 class ChartLauncher:
 
-    def __init__(self):
+    def __init__(self, params=None):
+
+        if params is not None:
+            ChartConfig.symbol = params['Symbol']
+            ChartConfig.time_frame = params['TimeFrame']
+            ChartConfig.backtest[0] = params['TimeFrame']
 
         if ChartConfig.with_back_test:
             backtest = ChartConfig.backtest
@@ -32,7 +37,7 @@ class ChartLauncher:
         data_show_paths = ["Data/" + Config.categories_list[ChartConfig.symbol] + "/" + ChartConfig.symbol +
                            "/" + ChartConfig.time_frame + ".csv"]
         self.data_df = ut.csv_to_df(data_show_paths, date_format=ChartConfig.date_format)[0]
-        self.start_index = Outputs.index_date(self.data_df, start_time) - 200
+        self.start_index = Outputs.index_date(self.data_df, start_time) - 1000
         self.end_index = Outputs.index_date(self.data_df, end_time) + 50
         self.data_df = self.data_df.iloc[self.start_index:self.end_index + 1]
 
@@ -52,7 +57,7 @@ class ChartLauncher:
 
             positions_df = pd.DataFrame(self.positions)
 
-        self.ChartConfig = ChartConfig(self.data, ChartConfig.visualizer)
+        self.ChartConfig = ChartConfig(self.data, ChartConfig.visualizer, params=params)
 
         output_dir = "Visualization/Outputs/" + ChartConfig.visualizer + "/" + ChartConfig.time_frame + "/"
         if not os.path.isdir(output_dir):

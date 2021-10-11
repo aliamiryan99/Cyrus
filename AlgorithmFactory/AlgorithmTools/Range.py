@@ -94,7 +94,7 @@ def get_breakouts(data, range_results):
     return up_breaks, down_breaks, results_type
 
 
-def get_breakouts2(data, range_results, stop_target_margin):
+def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_enable, one_stop_in_region):
     bottom, top = get_bottom_top(data)
     x = 0
     y = 0
@@ -106,32 +106,33 @@ def get_breakouts2(data, range_results, stop_target_margin):
             break_out_type = 0
             break_out_direction = 0
             for j in range(start, mono_result['End']+1):
-                if data[j]['Open'] < mono_result['TopRegion'] < data[j]['Close']:
+                if type1_enable and data[j]['Open'] < mono_result['TopRegion'] < data[j]['Close']:
                     break_out_direction = 1
                     break_out_type = 1
                     x = j
                     break
-                elif data[j]['Close'] < mono_result['BottomRegion'] < data[j]['Open']:
+                elif type1_enable and data[j]['Close'] < mono_result['BottomRegion'] < data[j]['Open']:
                     break_out_direction = -1
                     break_out_type = 1
                     x = j
                     break
-                # elif data[j]['High'] > mono_result['TopRegion'] > data[j]['Open']:
-                #     break_out_direction = 1
-                #     if data[j]['Close'] < data[j]['Open']:
-                #         break_out_type = 2
-                #     else:
-                #         break_out_type = 1
-                #     x = j
-                #     break
-                # elif data[j]['Low'] < mono_result['BottomRegion'] < data[j]['Open']:
-                #     break_out_direction = -1
-                #     if data[j]['Open'] < data[j]['Close']:
-                #         break_out_type = 2
-                #     else:
-                #         break_out_type = 1
-                #     x = j
-                #     break
+                elif type2_enable and data[j]['High'] > mono_result['TopRegion'] > data[j]['Open']:
+                    break_out_direction = 1
+                    if data[j]['Close'] < data[j]['Open']:
+                        break_out_type = 2
+                    else:
+                        break_out_type = 1
+                    x = j
+                    break
+                elif type2_enable and data[j]['Low'] < mono_result['BottomRegion'] < data[j]['Open']:
+                    break_out_direction = -1
+                    if data[j]['Open'] < data[j]['Close']:
+                        break_out_type = 2
+                    else:
+                        break_out_type = 1
+                    x = j
+                    break
+            is_stop_hit = False
             if break_out_type == 0:
                 results.append(None)
             elif break_out_type == 1:
@@ -157,6 +158,8 @@ def get_breakouts2(data, range_results, stop_target_margin):
                         for j in range(x+1, len(data)):
                             if data[j]['Low'] <= target_price or data[j]['High'] >= stop_price:
                                 y = j
+                                if data[j]['High'] >= stop_price:
+                                    is_stop_hit = True
                                 break
                         results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
                 elif break_out_direction == -1:
@@ -181,6 +184,8 @@ def get_breakouts2(data, range_results, stop_target_margin):
                         for j in range(x+1, len(data)):
                             if data[j]['High'] >= target_price or data[j]['Low'] <= stop_price:
                                 y = j
+                                if data[j]['Low'] <= stop_price:
+                                    is_stop_hit = True
                                 break
                         results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
 
@@ -196,6 +201,8 @@ def get_breakouts2(data, range_results, stop_target_margin):
                     for j in range(x+1, len(data)):
                         if data[j]['Low'] <= target_price or data[j]['High'] >= stop_price:
                             y = j
+                            if data[j]['High'] >= stop_price:
+                                is_stop_hit = True
                             break
                     results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
                 elif break_out_direction == -1:
@@ -209,6 +216,8 @@ def get_breakouts2(data, range_results, stop_target_margin):
                     for j in range(x+1, len(data)):
                         if data[j]['High'] >= target_price or data[j]['Low'] <= stop_price:
                             y = j
+                            if data[j]['Low'] <= stop_price:
+                                is_stop_hit = True
                             break
                     results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
             if results[-1] is None:
@@ -218,6 +227,8 @@ def get_breakouts2(data, range_results, stop_target_margin):
                 if abs(results[-1]['TargetPrice'] - results[-1]['StartPrice']) / abs(results[-1]['StopPrice'] - results[-1]['StartPrice']) < 1:
                     start = results[-1]['X'] + 1
                     results[-1] = None
+                elif one_stop_in_region and is_stop_hit:
+                    start = mono_result['End'] + 1
     return results
 
 

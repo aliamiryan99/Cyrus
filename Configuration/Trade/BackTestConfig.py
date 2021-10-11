@@ -10,11 +10,11 @@ class Config:
     # in point
     spreads = {'EURUSD': 10, 'GBPUSD': 20, 'NZDUSD': 30, 'USDCAD': 30, 'USDCHF': 20, 'USDJPY': 20,
                'AUDUSD': 20, 'XAUUSD': 30, 'XAGUSD': 30, 'US30USD': 60, 'USATECHUSD': 100, 'US500USD': 100,
-               'INDEXUSD': 80, 'BTCUSD': 5000, 'OILUSD': 80}
+               'INDEXUSD': 80, 'BTCUSD': 500, 'OILUSD': 80}
 
     volume_digit = 2    # for example 2 -> at least 0.01 lot
     max_volume = 200
-    start_date = "01.01.2019 00:00:00.000"
+    start_date = "01.01.2020 00:00:00.000"
     end_date = "01.10.2021 00:00:00.000"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
 

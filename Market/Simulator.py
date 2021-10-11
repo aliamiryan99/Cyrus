@@ -49,11 +49,19 @@ class Simulator(Market):
         self.simulation.close_all_symbol('buy', symbol, self.time, price)
         self.simulation.close_all_symbol('sell', symbol, self.time, price)
 
-    def get_open_buy_positions(self):
-        return self.simulation.open_buy_positions
+    def get_open_buy_positions(self, symbol):
+        open_buys = []
+        for position in self.simulation.open_buy_positions:
+            if position['Symbol'] == symbol:
+                open_buys.append(position)
+        return open_buys
 
-    def get_open_sell_positions(self):
-        return self.simulation.open_sell_positions
+    def get_open_sell_positions(self, symbol):
+        open_sells = []
+        for position in self.simulation.open_sell_positions:
+            if position['Symbol'] == symbol:
+                open_sells.append(position)
+        return open_sells
 
     # return tuple( type('Buy','Sell') , position )
     def get_position(self, ticket):

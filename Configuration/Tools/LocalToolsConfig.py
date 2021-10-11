@@ -3,7 +3,7 @@
 class ChartConfig:
 
     symbol = "EURUSD"
-    time_frame = ""
+    time_frame = "H1"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "01.04.2019 00:00:00.000"
     end_date = "21.09.2020 22:00:00.000"
@@ -14,9 +14,9 @@ class ChartConfig:
     visualizer = 'RangeRegion'
 
     with_back_test = True
-    backtest = ["H4", "RangeRegion", "RangeRegion GBPUSD"]
+    backtest = ["H1", "RangeRegion", "RangeRegion"]
 
-    def __init__(self, data, visualizer):
+    def __init__(self, data, visualizer, params=None):
 
         if visualizer == 'Divergence':
             from Visualization.DivergenceVisualizer import DivergenceVisualizer
@@ -69,8 +69,8 @@ class ChartConfig:
             ma_enable = False
             ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 14, 'color': '#2364d1', 'width': 1}]
             ichimoku_enable = True
-            tenkan = 9
-            kijun = 26
+            tenkan = 9 * 16
+            kijun = 26 * 16
 
             self.visualizer = IndicatorVisualizer(data, indicator_names, heikin_data_level, extremum_enable,
                                                   extremum_window, extremum_mode, ma_enable, ma_list, ichimoku_enable,
@@ -105,4 +105,18 @@ class ChartConfig:
             up_timeframe = "D1"
             stop_target_margin = 50
 
-            self.visualizer = RangeRegion(self.symbol, data, range_candle_threshold, up_timeframe, stop_target_margin)
+            type1_enable = True
+            type2_enable = False
+
+            one_stop_in_region = True
+
+            if params is not None:
+                range_candle_threshold = params['RangeCandleThreshold']
+                up_timeframe = params['UpTimeFrame']
+                stop_target_margin = params['StopTargetMargin']
+                type1_enable = params['Type1Enable']
+                type2_enable = params['Type2Enable']
+                one_stop_in_region = params['OneStopInRegion']
+
+            self.visualizer = RangeRegion(self.symbol, data, range_candle_threshold, up_timeframe, stop_target_margin,
+                                          type1_enable, type2_enable, one_stop_in_region)

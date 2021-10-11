@@ -28,11 +28,19 @@ class Market:
         pass
 
     @abstractmethod
-    def get_open_buy_positions(self):
+    def get_open_buy_positions(self, symbol):
         pass
 
     @abstractmethod
-    def get_open_sell_positions(self):
+    def get_open_sell_positions(self, symbol):
+        pass
+
+    @abstractmethod
+    def get_all_open_buy_positions(self):
+        pass
+
+    @abstractmethod
+    def get_all_open_sell_positions(self):
         pass
 
     @abstractmethod

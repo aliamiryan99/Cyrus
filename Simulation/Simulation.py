@@ -1007,7 +1007,7 @@ def show_candlestick(name, df, positions_df, df_balance, df_equity, start, trend
 
 
 def get_output(simulation, trends=None, extends=None, backtest_with_market=False):
-    global output_dir
+    global output_dir, predict, balance_history, equity_history, margin_history, free_margin_history, equity_percent_history, profit_history, predicts, positions
     output_dir = "Outputs/" + InstanceConfig.algorithm_name + "/" + InstanceConfig.algorithm_time_frame +\
                  "_" + InstanceConfig.trailing_time_frame + "_" + Config.time_frame + "/" + InstanceConfig.tag + "/"
     if backtest_with_market:
@@ -1049,6 +1049,16 @@ def get_output(simulation, trends=None, extends=None, backtest_with_market=False
             show_candlestick(symbol + " " + time_frame_show, data_shows[symbols_dict[symbol]].iloc[start:end + 5],
                              positions_df.loc[positions_df['Symbol'] == symbol],
                              df_balance_history, df_equity_history, start, trends, extends)
+
+    predict = []
+    balance_history = []
+    equity_history = []
+    margin_history = []
+    free_margin_history = []
+    equity_percent_history = []
+    profit_history = []
+    predicts = []
+    positions = []
 
 def run():
     global predicts, positions

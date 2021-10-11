@@ -25,7 +25,8 @@ class MetaTraderChartToolsManager(BasicChartTools):
                  _wbreak =100,
                  _delay=0.1,
                  _broker_gmt=3,
-                 _verbose=False):
+                 _verbose=False,
+                 params=None):
 
         super().__init__([],  # Registers itself as handler of pull Data via self.onPullData()
                          [],  # Registers itself as handler of sub Data via self.onSubData()
@@ -68,7 +69,7 @@ class MetaTraderChartToolsManager(BasicChartTools):
             item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
         print(pd.DataFrame(self.history))
 
-        chart_config = ChartConfig(symbol, self.history, ChartConfig.tool_name)
+        chart_config = ChartConfig(symbol, self.history, ChartConfig.tool_name, params)
 
         chart_config.tool.draw(self)
 
