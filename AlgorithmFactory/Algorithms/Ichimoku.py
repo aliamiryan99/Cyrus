@@ -134,7 +134,7 @@ class IchimokuAlgorithm(Algorithm):
                     self.signal_trigger = 0
                     self.last_time_id = time_id
 
-            if self.role == 8:
+            if self.role == 8 or self.role == 9:
                 max_cloud, min_cloud = max(self.ich_result["SenkouSpanA"][-self.senkou_span_projection],
                                            self.ich_result["SenkouSpanB"][-self.senkou_span_projection]),\
                                        min(self.ich_result["SenkouSpanA"][-self.senkou_span_projection],
@@ -148,10 +148,16 @@ class IchimokuAlgorithm(Algorithm):
                     self.buy_trigger = True
                     self.buy_limit_price = self.data[-1]['High']
 
+                if self.role == 9 and self.ich_result['TenkanSen'][-1] < self.ich_result['KijunSen'][-1]:
+                    self.buy_trigger = False
+
                 elif self.data[-1]['Close'] < min_cloud and min_cloud < self.data[-2]['Close']:
                     self.buy_trigger = False
                     self.sell_trigger = True
                     self.sell_limit_price = self.data[-1]['Low']
+
+                if self.role == 9 and self.ich_result['TenkanSen'][-1] > self.ich_result['KijunSen'][-1]:
+                    self.sell_trigger = False
 
         self.data.append(candle)
 

@@ -9,7 +9,7 @@ class ChartConfig:
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
                  "RangeRegion"]
-    tool_name = 'RangeRegion'
+    tool_name = 'Harmonics'
 
     def __init__(self, symbol, data, tool_name, params=None):
 
@@ -75,7 +75,7 @@ class ChartConfig:
             price_range_alpha = 1
             alpha = 0.8
             beta = 0.25
-            save_result = False
+            save_result = True
 
             self.tool = Harmonics(data, extremum_window, time_range, price_range_alpha, name, alpha, beta, fibo_tolerance, pattern_direction, harmonic_list, save_result)
         if tool_name == "Indicator":

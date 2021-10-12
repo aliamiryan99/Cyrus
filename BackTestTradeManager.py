@@ -19,11 +19,17 @@ data = {}
 
 class BackTestLauncher:
 
-    def __init__(self):
+    def __init__(self, params=None):
+
+        if params is not None:
+            InstanceConfig.symbols = [params['Symbol']]
+            InstanceConfig.algorithm_time_frame = params['TimeFrame']
+            InstanceConfig.trailing_time_frame = params['TimeFrame']
+
         self.symbols = InstanceConfig.symbols
         self.start_indexes, self.end_indexes, self.configs, self.algorithm_data_total, self.algorithm_start_indexes, \
             self.algorithm_end_indexes, self.trailing_data_total, self.trailing_start_indexes,\
-            self.trailing_end_indexes = self.initialize_data()
+            self.trailing_end_indexes = self.initialize_data(params)
 
         self.algorithm_data, self.trailing_data, self.history_size, self.algorithms, self.re_entrance_algorithms,\
             self.recovery_algorithms, self.close_modes, self.tp_sl_tools, self.trailing_tools,\
@@ -50,8 +56,8 @@ class BackTestLauncher:
                 tick_candle = Functions.item_data_list_to_dic(data[symbol], i)
 
                 # Debug Section
-                if data_time == datetime(year=2020, month=1, day=2, hour=14, minute=35):
-                    print(data_time)
+                # if data_time == datetime(year=2020, month=1, day=2, hour=14, minute=35):
+                #     print(data_time)
 
                 # Ignore Holidays
                 if tick_candle['Volume'] == 0:
@@ -93,7 +99,7 @@ class BackTestLauncher:
         return self.market
 
     @staticmethod
-    def initialize_data():
+    def initialize_data(params):
         # Simulation init
         Variables.config = Config
         global data
@@ -153,7 +159,7 @@ class BackTestLauncher:
                                              InstanceConfig.repairment_name, InstanceConfig.recovery_name,
                                              InstanceConfig.close_mode, InstanceConfig.tp_sl_name,
                                              InstanceConfig.trailing_name, InstanceConfig.account_management_name,
-                                             symbols_ratio[i])
+                                             symbols_ratio[i], params=params)
         for symbol in symbols:
             data[symbol] = data_total[Config.symbols_dict[symbol]]
 

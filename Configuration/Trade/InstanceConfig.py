@@ -18,12 +18,12 @@ account_management_list = ['Balance', 'Risk', 'Fix']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['US30USD']
+    symbols = ['EURUSD']
     management_ratio = [2]
     history_size = 400
-    algorithm_time_frame = "M5"
-    trailing_time_frame = "M5"
-    tag = "Role1 US30USD M5-M80"
+    algorithm_time_frame = "H4"
+    trailing_time_frame = "H4"
+    tag = "Role9 EURUSD H4"
 
     algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'
@@ -34,7 +34,7 @@ class InstanceConfig:
     account_management_name = 'Balance'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
-                 tp_sl_name, trailing_name, account_management_name, management_ratio):
+                 tp_sl_name, trailing_name, account_management_name, management_ratio, params=None):
 
         # Options
         self.re_entrance_enable = False  # re entrance strategy
@@ -49,7 +49,7 @@ class InstanceConfig:
         self.max_volume_enable = True   # if True then max allowed lot size for algorithm trade is max volume value
         self.max_volume_value = 50
 
-        self.algorithm = self.select_algorithm(symbol, data, algorithm_name)
+        self.algorithm = self.select_algorithm(symbol, data, algorithm_name, params)
 
         # ReEntrance Section
         if repairment_name == 'ReEntrance':
@@ -193,9 +193,9 @@ class InstanceConfig:
         elif trailing_name == "ReverseSignal":
             from AlgorithmFactory.AlgorithmsOfExit.Trailings.ReverseSignalTrailing import ReverseSignalTrailing
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 1
-            tenkan = 9 * 16
-            kijun = 26 * 16
+            role = 2
+            tenkan = 9
+            kijun = 26
             senkou_span_projection = 26
             range_filter_enable = False
             n = 9 * 16
@@ -203,6 +203,15 @@ class InstanceConfig:
             time_frame = "H4"
             sequential_trade = False
             komu_cloud_filter = False
+
+            if params is not None:
+                role = params['Role']
+                tenkan = params['Tenkan']
+                kijun = params['Kijun']
+                senkou_span_projection = params['SenkouSpanProjection']
+                range_filter_enable = params['RangeFilterEnable']
+                sequential_trade = params['SequentialTrade']
+                komu_cloud_filter = params['KomuCloudFilter']
 
             trailing_algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter, senkou_span_projection)
 
@@ -222,7 +231,7 @@ class InstanceConfig:
             self.account_management = FixVolume(self.management_ratio)
 
     @staticmethod
-    def select_algorithm(symbol, data, algorithm_name):
+    def select_algorithm(symbol, data, algorithm_name, params):
         # Select Algorithm
         data = copy.deepcopy(data)
         if algorithm_name == 'SimpleIdea':
@@ -466,9 +475,9 @@ class InstanceConfig:
                                              extremum_window_step, extremum_mode, check_window, alpha, beta)
         elif algorithm_name == "Ichimoku":
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 1
-            tenkan = 9 * 16
-            kijun = 26 * 16
+            role = 9
+            tenkan = 9
+            kijun = 26
             senkou_span_projection = 26
             range_filter_enable = False
             n = 9*16
@@ -476,6 +485,15 @@ class InstanceConfig:
             time_frame = "H4"
             sequential_trade = False
             komu_cloud_filter = False
+
+            if params is not None:
+                role = params['Role']
+                tenkan = params['Tenkan']
+                kijun = params['Kijun']
+                senkou_span_projection = params['SenkouSpanProjection']
+                range_filter_enable = params['RangeFilterEnable']
+                sequential_trade = params['SequentialTrade']
+                komu_cloud_filter = params['KomuCloudFilter']
 
             algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter, senkou_span_projection)
 

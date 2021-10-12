@@ -174,16 +174,21 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
             a = high[local_max[j]]
 
             # Check regression Boundary of X and A
+            # print('leg XA')
             rng = [local_min[i], local_max[j]]
             is_regression_cond = check_in_bound_price(middle, low, high, harmonic_name, alpha, beta,
                                                       np.arange(rng[0], rng[-1] + 1))
 
+
+
+
             # is_regression_cond = True
             if is_regression_cond and rng[1] - rng[0] > min_candle_diff:
+                # print('Have Regression Condition of XA')
                 for k in range(tmp_b, len(local_min)):
                     # check for the range of the XB
-                    if local_min[k] - local_min[i] > max_candle_diff:
-                        break
+                    #if check_the_leg_length(local_min[k] - local_min[i],max_candle_diff):
+                    #    break
 
                     # range of AB leg
                     rng = [local_max[j], local_min[k]]
@@ -199,6 +204,7 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                         cond_len_ab = True
                     else:
                         cond_len_ab = False
+                    # print(cond_len_ab)
                     # check the XB wave ratio
                     if ((x_b_ratio_target[0] <= x_b_ratio) and (x_b_ratio_target[-1] >= x_b_ratio)) and \
                             (rng[1] - rng[0] > min_candle_diff) and cond_len_ab:
@@ -207,6 +213,7 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                             continue
 
                         # check price channel of AB leg
+                        # print('leg AB')
                         is_regression_cond = check_in_bound_price(middle, low, high, harmonic_name, alpha, beta,
                                                                   np.arange(rng[0], rng[-1] + 1))
 
@@ -226,7 +233,7 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                         for p in range(tmp_c, len(local_max)):
                             # Check the Patterns Trend
                             if ab > 0 and trend_direction == 'Bearish':
-                                # print('ab > 0 and trend_direction == Bearish')
+                                print('ab > 0 and trend_direction == Bearish')
                                 break
                             elif ab < 0 and trend_direction == 'Bullish':
                                 # print('ab < 0 and trend_direction == Bullish')
@@ -257,6 +264,7 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                                     continue
 
                                 # check price channel of BC leg
+                                # print('leg BC')
                                 is_regression_cond = check_in_bound_price(middle, low, high, harmonic_name, alpha, beta,
                                                                           np.arange(rng[0], rng[-1] + 1))
                                 # is_regression_cond = True
@@ -328,6 +336,7 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
                                             continue
 
                                         # check price channel of CD leg
+                                        # print('leg CD')
                                         is_regression_cond = check_in_bound_price(middle, low, high, harmonic_name,
                                                                                   alpha, beta,
                                                                                   np.arange(rng[0], rng[-1] + 1))
@@ -364,7 +373,6 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_max,
         else:
             return 0
 
-
 # check the Fibonacci ratio
 def check_fibo_ratio(ref_fibo, target_fibo, tol):
     fib_tr = [ref_fibo * (1 - tol), ref_fibo, ref_fibo * (1 + tol)]
@@ -374,6 +382,12 @@ def check_fibo_ratio(ref_fibo, target_fibo, tol):
     else:
         return False
 
+# check the length of a leg
+def check_the_leg_length(rng,max_length_tr):
+    if rng>max_length_tr:
+        return False
+    else:
+        return True
 
 # check Regression Condition function
 def regression_check(middle, rng, reg_tol):
@@ -392,8 +406,6 @@ def regression_check(middle, rng, reg_tol):
     return np.sum(np.abs(p2 - p) < abs(p * reg_tol)) == len(p)
 
     # evaluate Slope and intersect with regression
-
-
 def regression_fit(rng, middle):
     n = rng[1] - rng[0] + 1
 
@@ -409,17 +421,17 @@ def regression_fit(rng, middle):
     p2 = (np.sum(middle) / n) - p1 * ((rng[1] + rng[0]) / 2)
     return np.array([p1, p2])
 
-
 # -------------------- || check if the price move around the leg || --------------------
 # -- filter Based on percentage of line
-def check_in_bound_price(middle, low, high, harmonic_name, alpha, beta, rng):
-    boundery_mode = 'rotationary'
-    high = middle
-    low = middle
+def check_in_bound_price(middle, high, low, harmonic_name, alpha, beta, rng):
+
+    boundary_mode = 'TopBottom_rotation'  # STD_rotation  TopBottom_rotation body_average
 
     # find boundary of the legs
-    lower_bound, upper_bound = find_boundery(boundery_mode, middle, high, low, rng, alpha)
+    lower_bound, upper_bound = find_boundary(boundary_mode, middle, high, low, rng, alpha)
 
+    high = middle
+    low = middle
     # check the satisfaction conditions of boundaries
     situation = np.sum(np.logical_and(lower_bound < low[rng], high[rng] < upper_bound)) >= rng.size * beta
     if harmonic_name == 'ABCD':
@@ -428,37 +440,129 @@ def check_in_bound_price(middle, low, high, harmonic_name, alpha, beta, rng):
     return situation
 
 
-def find_boundery(boundery_mode, middle, high, low, x, alpha):  # alpha = .50
+def find_boundary(boundary_mode, middle, high, low, x, alpha):  # alpha = .50
     # find boundary based on two approach
     # first approach works based on the rotation of line and a percent of the average price of that line
     # second approach define base on the percent of the body average
+    is_plot_the_channel = False
 
     p = np.polyfit([x[0], x[-1]], [middle[x[0]], middle[x[-1]]], 1)
     y = np.polyval(p, x)
 
-    if boundery_mode == 'body_average':
+    if boundary_mode == 'body_average':
         candle_avg = np.mean(high - low)
         deg = (np.pi / 2) - (np.abs(middle[x[-1]] - middle[x[0]]) / (x[-1] - x[0]))
         h = alpha * candle_avg * np.sin(deg)
         upper_bound_hat = y + h
         lower_bound_hat = y - h
 
-    elif boundery_mode == 'rotationary':
+    elif boundary_mode == 'STD_rotation':
         # ------------------ find the rotation degree
-        slope = np.rad2deg(np.arctan(np.abs(middle[x[-1]] - middle[x[0]]) / (x[-1] - x[0])))
+        slope = np.rad2deg(np.arctan((middle[x[-1]] - middle[x[0]]) / (x[-1] - x[0])))
 
         # ------------------ rotate line
         x_hat, y_hat_line = rotate_line(x, y, -slope)
         x_hat, y_hat = rotate_line(x, middle[x], -slope)
-        # ------------------ find bound of line \
-        # upper_bound = y_hat + (1 + alpha) * np.std(middle[x])
-        # lower_bound = y_hat - (1 + alpha) * np.std(middle[x])
+
+        # ------------------ find bound of line
         upper_bound = y_hat_line + (1 + alpha) * np.std(y_hat)
         lower_bound = y_hat_line - (1 + alpha) * np.std(y_hat)
 
         # ------------------ de - rotate boundary lines
-        _, upper_bound_hat = rotate_line(x_hat, upper_bound, slope)
-        _, lower_bound_hat = rotate_line(x_hat, lower_bound, slope)
+        upper_bound_hat_x, upper_bound_hat = rotate_line(x_hat, upper_bound, slope)
+        lower_bound_hat_x, lower_bound_hat = rotate_line(x_hat, lower_bound, slope)
+
+        if is_plot_the_channel:
+            fig = plt.figure()
+            ax = plt.axes()
+            fig = plt.figure()
+            ax = plt.axes()
+
+            # ----- original points
+            shift_val = 15  # shift value between three graph
+            rng = np.arange(x[0], x[-1] + 1)
+            yText = np.max(middle[rng]) + (np.max(middle[rng]) - np.min(middle[rng])) / 5
+            x_original = x - np.min(x) + shift_val
+            plt.plot(x_original, y, 'k--', linewidth=1.0)
+            plt.scatter(x_original, middle[rng], marker='s', s=8, c='black', alpha=1)
+            plt.text(np.min(x_original), yText, "Original Chart", fontsize=8)
+
+            # ----- rotated point
+            x_rotated_point = np.max(x_original) - np.min(x_hat) + x_hat + shift_val
+            plt.plot(x_rotated_point, upper_bound, 'r:', linewidth=1.0)
+            plt.plot(x_rotated_point, lower_bound, 'g:', linewidth=1.0)
+            plt.plot(x_rotated_point, y_hat_line, 'k:', linewidth=1.0)
+            plt.scatter(x_rotated_point, y_hat, marker='o', s=10, c='blue', alpha=1)
+            plt.text(np.min(x_rotated_point), yText, "Rotation Degree:" + str(np.round(slope, 2)) + "\nSTD= 0.9",
+                     fontsize=8)
+
+            # ----- de rotated lines
+            x_de_rotate = np.max(x_rotated_point) - np.min(upper_bound_hat_x) + upper_bound_hat_x + shift_val
+            plt.plot(x_de_rotate, upper_bound_hat, 'r--', linewidth=1.0)
+            plt.plot(x_de_rotate, lower_bound_hat, 'g--', linewidth=1.0)
+            plt.scatter(x_de_rotate, middle[rng], marker='s', s=8, c='black', alpha=1)
+            plt.text(np.min(x_de_rotate), yText, "Boundary on Original chart ", fontsize=8)
+            plt.show()
+
+    elif boundary_mode == 'TopBottom_rotation':
+        sort_diff = np.sort(np.array(high - low))
+        body_width = np.mean(sort_diff[-20:-1])
+        beta = 0.6 #0.3
+        X = np.linspace(4, len(x) + 4, len(x) + 4)
+        coff = np.log10(X)
+        coff -= np.min(coff)
+        coff = coff[len(x)]
+        # ------------------ find the rotation degree
+        slope = np.rad2deg(np.arctan((middle[x[-1]] - middle[x[0]]) / (x[-1] - x[0])))
+
+        # ------------------ rotate line
+        x_hat, y_hat_line = rotate_line(x, y, -slope)
+        x_hat, y_hat = rotate_line(x, middle[x], -slope)
+
+        # ------------------ find bound of line
+        upper_bound = y_hat_line + beta * coff * body_width
+        lower_bound = y_hat_line - beta * coff * body_width
+
+        # ------------------ de - rotate boundary lines
+        upper_bound_hat_x, upper_bound_hat = rotate_line(x_hat, upper_bound, slope)
+        lower_bound_hat_x, lower_bound_hat = rotate_line(x_hat, lower_bound, slope)
+
+        # plot the rotation boundary
+        if is_plot_the_channel:
+            fig = plt.figure()
+            ax = plt.axes()
+            fig = plt.figure()
+            ax = plt.axes()
+
+            # ----- original points
+            shift_val = 15  # shift value between three graph
+            rng = np.arange(x[0], x[-1] + 1)
+            yText = np.max(middle[rng]) + (np.max(middle[rng]) - np.min(middle[rng])) / 5
+            x_original = x - np.min(x) + shift_val
+            plt.plot(x_original, y, 'k--', linewidth=1.0)
+            plt.scatter(x_original, middle[rng], marker='s', s=8, c='black', alpha=1)
+            plt.text(np.min(x_original), yText, "Original Chart", fontsize=8)
+
+            # ----- rotated point
+            x_rotated_point = np.max(x_original) - np.min(x_hat) + x_hat + shift_val
+            plt.plot(x_rotated_point, upper_bound, 'r:', linewidth=1.0)
+            plt.plot(x_rotated_point, lower_bound, 'g:', linewidth=1.0)
+            plt.plot(x_rotated_point, y_hat_line, 'k:', linewidth=1.0)
+            plt.scatter(x_rotated_point, y_hat, marker='o', s=10, c='blue', alpha=1)
+            plt.text(np.min(x_rotated_point), yText, "Rotation Degree:" + str(np.round(slope, 2)) + \
+                     "\nCoefficient= " + str(np.round(coff, 2)) + \
+                     "\nCandle Number= " + str(np.round(len(x), 2)) + \
+                     "\nCandleBody Width= " + str(np.round(body_width, 2)) + \
+                     "\nChannel Width = " + str(np.round(beta * coff * body_width, 2)), fontsize=8)
+
+            # ----- de rotated lines
+            x_de_rotate = np.max(x_rotated_point) - np.min(upper_bound_hat_x) + upper_bound_hat_x + shift_val
+            plt.plot(x_de_rotate, upper_bound_hat, 'r--', linewidth=1.0)
+            plt.plot(x_de_rotate, lower_bound_hat, 'g--', linewidth=1.0)
+            plt.scatter(x_de_rotate, middle[rng], marker='s', s=8, c='black', alpha=1)
+            plt.text(np.min(x_de_rotate), yText, "Boundary on Original chart ", fontsize=8)
+            plt.show()
+
 
     return lower_bound_hat, upper_bound_hat
 
@@ -468,19 +572,20 @@ def rotate_line(x, y, deg):  # Vertices matrix
     v_centre = np.mean(v, 0)  # Centre, of line
     vc = v - np.ones((v.shape[0], 1)) * v_centre  # Centering coordinates
     a_rad = ((deg * math.pi) / 180)  # Angle in radians
-    e = [0, 0, a_rad]  # Euler angles for X, Y, Z - axis rotations
+
+    e = np.array([0, 0, a_rad])  # Euler angles for X, Y, Z - axis rotations
 
     # Direction Cosines (rotation matrix) construction
     rx = np.array([[1, 0, 0],
-                   [0, math.cos(e[0]), -math.sin(e[0])],
-                   [0, math.sin(e[0]), -math.cos(e[0])]])  # X-Axis rotation
+                   [0, np.cos(e[0]), -np.sin(e[0])],
+                   [0, np.sin(e[0]), -np.cos(e[0])]])  # X-Axis rotation
 
-    ry = np.array([[math.cos(e[1]), 0, math.sin(e[1])],
+    ry = np.array([[np.cos(e[1]), 0, np.sin(e[1])],
                    [0, 1, 0],
-                   [-math.sin(e[1]), 0, math.cos(e[1])]])  # Y-axis rotation
+                   [-np.sin(e[1]), 0, np.cos(e[1])]])  # Y-axis rotation
 
-    rz = np.array([[math.cos(e[2]), -math.sin(e[2]), 0],
-                   [math.sin(e[2]), math.cos(e[2]), 0],
+    rz = np.array([[np.cos(e[2]), -np.sin(e[2]), 0],
+                   [np.sin(e[2]), np.cos(e[2]), 0],
                    [0, 0, 1]])  # Z-axis rotation
 
     r = rx.dot(ry.dot(rz))  # Rotation matrix

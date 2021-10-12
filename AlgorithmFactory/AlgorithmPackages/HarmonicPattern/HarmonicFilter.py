@@ -11,9 +11,9 @@ def filter_results(high, low, res, middle, harmonic_name, trend_direction, alpha
 
     # define Candle Size
     res = get_pattern_size(res)  # 1 to 5 from very small to very large.very small, small, medium, large, very large
-    filter_mode = 'Percent'
-    res = eliminate_duplicate_patterns(res, trend_direction)
 
+    res = eliminate_duplicate_patterns(res, trend_direction)
+    filter_mode = 'non'
     if filter_mode == 'std':
         res = eliminate_high_std_patterns(res, middle)
     elif filter_mode == 'Percent':
@@ -98,7 +98,7 @@ def eliminate_out_of_bound_patterns(res, middle, low, high, harmonic_name, alpha
     mean_of_candle = np.mean(high - low)
 
     high = middle
-    low = middle
+    low  = middle
 
     x_idx = 0
     a_idx = 1
@@ -158,10 +158,10 @@ def get_the_coefficient_of_bound(rng1, rng2):
         beta = .92
     elif rng2 - rng1 >= tr1 and rng2 - rng1 < tr2:
         alpha = .63
-        beta = .92
+        beta  = .92
     elif rng2 - rng1 >= tr2 and rng2 - rng1 < tr3:
         alpha = .64
-        beta = .92
+        beta  = .92
     elif rng2 - rng1 >= tr3 and rng2 - rng1 < tr4:
         alpha = .65
         beta = .92
@@ -222,34 +222,100 @@ def rotate_line(x, y, deg): # Vertices matrix
     return x, y
 
 
+
 # eliminate duplicate pattern with common D point
 def eliminate_duplicate_patterns(res, trend_direction):
+    x_idx = 0
+    a_idx = 1
+    b_idx = 2
+    c_idx = 3
     d_idx = 4
+
     x_val_idx = 5
     a_val_idx = 6
     b_val_idx = 7
     c_val_idx = 8
+    d_val_idx = 9
 
-    ascending = [True, False, True, False]
+    direction = [True, False, True, False]
     if trend_direction == 'Bearish':
-        ascending = [True, False, True, False]
+        direction = [True, False, True, False]
     elif trend_direction == 'Bullish':
-        ascending = [False, True, False, True]
+        direction = [False, True, False, True]
 
     if len(res) == 0:
         return []
 
     res = np.array(res)
+
+    # -------------- ||  check the duplicate pattern in D point
+    if trend_direction == 'Bearish':
+        direction = [True, False, True, False]
+    elif trend_direction == 'Bullish':
+        direction = [False, True, False, True]
     unique_mem = np.unique(res[:, d_idx])
     unique_patterns = np.zeros((res.shape[1], unique_mem.size))
-
+    # sort based on the common d point IDX
     for i in range(len(unique_mem)):
         unique_idx = unique_mem[i] == res[:, d_idx]
         res_df = pd.DataFrame(res[unique_idx, :])
         # -------- select best patterns, Bullish Patterns
-        b = res_df.sort_values(by=[c_val_idx, x_val_idx, a_val_idx, b_val_idx], ascending=ascending).to_numpy()
+        b = res_df.sort_values(by=[c_val_idx, x_val_idx, a_val_idx, b_val_idx], ascending=direction).to_numpy()
         unique_patterns[:, i] = b[0, :]
-    return unique_patterns.transpose().tolist()
+    unique_patterns = unique_patterns.transpose()
+
+    # -------------- || check the duplicate pattern in X point
+    if trend_direction == 'Bearish':
+        direction = [False, True, False]
+    elif trend_direction == 'Bullish':
+        direction = [True, False, True]
+
+    unique_mem = np.unique(unique_patterns[:, x_idx])
+    final_unique_patterns = np.zeros((res.shape[1], unique_mem.size))
+    # sort based on the common d point IDX
+    for i in range(len(unique_mem)):
+        unique_idx = unique_mem[i] == unique_patterns[:, x_idx]
+        res_df2 = pd.DataFrame(unique_patterns[unique_idx, :])
+        # -------- select best patterns, Bullish Patterns
+        b = res_df2.sort_values(by=[d_val_idx, a_val_idx, b_val_idx], ascending=direction).to_numpy()
+        final_unique_patterns[:, i] = b[0, :]
+    final_unique_patterns = final_unique_patterns.transpose()
+
+    # -------------- || check the duplicate pattern in B point
+    if trend_direction == 'Bearish':
+        direction = [False, False, True]
+    elif trend_direction == 'Bullish':
+        direction = [True, True, False]
+
+    unique_mem = np.unique(final_unique_patterns[:, b_idx])
+    final3_unique_patterns = np.zeros((res.shape[1], unique_mem.size))
+    # sort based on the common b point IDX
+    for i in range(len(unique_mem)):
+        unique_idx = unique_mem[i] == unique_patterns[:, b_idx]
+        res_df2 = pd.DataFrame(unique_patterns[unique_idx, :])
+        # -------- select best patterns, Bullish Patterns
+        b = res_df2.sort_values(by=[d_val_idx, x_val_idx, c_val_idx], ascending=direction).to_numpy()
+        final3_unique_patterns[:, i] = b[0, :]
+    final3_unique_patterns = final3_unique_patterns.transpose()
+
+    # -------------- || check the duplicate pattern in A point
+    if trend_direction == 'Bearish':
+        direction = [False, False, False]
+    elif trend_direction == 'Bullish':
+        direction = [True, True, True]
+
+    unique_mem = np.unique(unique_patterns[:, a_idx])
+    final2_unique_patterns = np.zeros((final3_unique_patterns.shape[1], unique_mem.size))
+    # sort based on the common d point IDX
+    for i in range(len(unique_mem)):
+        unique_idx = unique_mem[i] == unique_patterns[:, a_idx]
+        res_df2 = pd.DataFrame(unique_patterns[unique_idx, :])
+        # -------- select best patterns, Bullish Patterns
+        b = res_df2.sort_values(by=[d_val_idx, x_val_idx, b_val_idx], ascending=direction).to_numpy()
+        final2_unique_patterns[:, i] = b[0, :]
+
+    final2_unique_patterns = final2_unique_patterns.transpose()
+    return final2_unique_patterns
 
 
 def check_vertex(harmonic_name, res):
@@ -266,3 +332,4 @@ def check_vertex(harmonic_name, res):
 # ---
 def check_the_fibbo_ratio(res, harmonic_name, trend_direction):
     return res
+

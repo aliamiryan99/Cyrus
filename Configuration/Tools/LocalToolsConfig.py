@@ -3,18 +3,18 @@
 class ChartConfig:
 
     symbol = "EURUSD"
-    time_frame = "H1"
+    time_frame = "H4"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
-    start_date = "01.04.2019 00:00:00.000"
-    end_date = "21.09.2020 22:00:00.000"
+    start_date = "01.05.2021 00:00:00.000"
+    end_date = "21.09.2021 22:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression',
-                      'Channel', 'RangeRegion']
-    visualizer = 'RangeRegion'
+                      'Channel', 'RangeRegion', 'RsiPattern']
+    visualizer = 'Indicator'
 
     with_back_test = True
-    backtest = ["H1", "RangeRegion", "RangeRegion"]
+    backtest = ["H4_H4_M1", "Ichimoku", "Role9 EURUSD H4"]
 
     def __init__(self, data, visualizer, params=None):
 
@@ -69,8 +69,8 @@ class ChartConfig:
             ma_enable = False
             ma_list = [{'ma_type': 'EMA', 'price_type': 'Close', 'window': 14, 'color': '#2364d1', 'width': 1}]
             ichimoku_enable = True
-            tenkan = 9 * 16
-            kijun = 26 * 16
+            tenkan = 9
+            kijun = 26
 
             self.visualizer = IndicatorVisualizer(data, indicator_names, heikin_data_level, extremum_enable,
                                                   extremum_window, extremum_mode, ma_enable, ma_list, ichimoku_enable,
@@ -120,3 +120,8 @@ class ChartConfig:
 
             self.visualizer = RangeRegion(self.symbol, data, range_candle_threshold, up_timeframe, stop_target_margin,
                                           type1_enable, type2_enable, one_stop_in_region)
+        elif visualizer == "RsiPattern":
+            from Visualization.RsiPattern import RsiPattern
+            indicator_params = {'Name': 'RSI', 'Window': 14}
+
+            self.visualizer = RsiPattern(data, indicator_params)

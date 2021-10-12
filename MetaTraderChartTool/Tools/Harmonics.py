@@ -53,10 +53,14 @@ class Harmonics:
                 self.calculate_harmonic(harmonic_name)
 
             result_file = open("MetaTraderChartTool/Tools/Save Results/Harmonic.pkl", "wb+")
+            data_file = open("MetaTraderChartTool/Tools/Save Results/HarmonicData.pkl", "wb+")
             pickle.dump(self.result, result_file)
+            pickle.dump(self.data, data_file)
         else:
             result_file = open("MetaTraderChartTool/Tools/Save Results/Harmonic.pkl", "rb")
+            data_file = open("MetaTraderChartTool/Tools/Save Results/HarmonicData.pkl", "rb")
             self.result = pickle.load(result_file)
+            self.data = pickle.load(data_file)
 
     def calculate_harmonic(self, harmonic_name):
         if self.pattern_direction=='both':
