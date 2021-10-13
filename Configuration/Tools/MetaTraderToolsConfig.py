@@ -9,7 +9,7 @@ class ChartConfig:
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
                  "RangeRegion"]
-    tool_name = 'Harmonics'
+    tool_name = 'RangeRegion'
 
     def __init__(self, symbol, data, tool_name, params=None):
 
@@ -85,9 +85,11 @@ class ChartConfig:
 
         if tool_name == "RangeRegion":
             from MetaTraderChartTool.Tools.RangeRegion import RangeRegion
-            range_candle_threshold = 3
-            up_timeframe = "H4"
+            range_candle_threshold = 1
+            up_timeframe = "D1"
             stop_target_margin = 50
+            candle_breakout_threshold = 1
+            max_candles = 1
 
             type1_enable = True
             type2_enable = True
@@ -103,4 +105,4 @@ class ChartConfig:
                 one_stop_in_region = params['OneStopInRegion']
 
             self.tool = RangeRegion(symbol, data, range_candle_threshold, up_timeframe, stop_target_margin,
-                                    type1_enable, type2_enable, one_stop_in_region)
+                                    type1_enable, type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles)

@@ -9,7 +9,7 @@ from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 class RangeRegion(Tool):
 
     def __init__(self, symbol, data, range_candle_threshold, up_timeframe, stop_target_margin, type1_enable,
-                 type2_enable, one_stop_in_region):
+                 type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles):
         super().__init__(data)
 
         # diff_time = data[1]['Time'] - data[0]['Time']
@@ -25,7 +25,7 @@ class RangeRegion(Tool):
 
         self.next_data = aggregate_data(data, next_time_frame)
 
-        self.results, self.results_type = detect_range_region(self.next_data, range_candle_threshold)
+        self.results, self.results_type = detect_range_region(self.next_data, range_candle_threshold, candle_breakout_threshold, max_candles)
 
         self.extend_results = get_new_result_index(self.results, self.next_data, self.data, next_time_frame)
 

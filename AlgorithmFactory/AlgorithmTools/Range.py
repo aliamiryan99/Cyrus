@@ -3,12 +3,13 @@ from AlgorithmFactory.AlgorithmTools.CandleTools import *
 from Converters.Tools import *
 
 
-def detect_range_region(data, range_candle_threshold):
+def detect_range_region(data, range_candle_threshold, candle_break_threshold, max_candle=100):
 
     open, high, low, close = get_ohlc(data)
     bottom, top = get_bottom_top(data)
 
     in_range_candles = 1
+    candle_break_cnt = 0
     top_region = high[0]
     bottom_region = low[0]
 
@@ -28,16 +29,23 @@ def detect_range_region(data, range_candle_threshold):
                 top_region = high[i]
                 bottom_region = low[i]
         else:
-            if top_region < close[i] or close[i] < bottom_region:
-                results.append({'Start': i-in_range_candles, 'End': i+1, 'BottomRegion': bottom_region, 'TopRegion': top_region})
-                if top_region < close[i]:
-                    result_types.append("Up")
+            if top_region < close[i] or close[i] < bottom_region or in_range_candles == max_candle:
+                candle_break_cnt += 1
+                if candle_break_cnt == candle_break_threshold or in_range_candles == max_candle:
+                    results.append({'Start': i-in_range_candles, 'End': i+1, 'BottomRegion': bottom_region, 'TopRegion': top_region})
+                    if top_region < close[i]:
+                        result_types.append("Up")
+                    else:
+                        result_types.append("Down")
+                    in_range_candles = 1
+                    top_region = high[i]
+                    bottom_region = low[i]
+                    if in_range_candles == max_candle:
+                        candle_break_cnt = 0
                 else:
-                    result_types.append("Down")
-                in_range_candles = 1
-                top_region = high[i]
-                bottom_region = low[i]
+                    in_range_candles += 1
             else:
+                candle_break_cnt = 0
                 in_range_candles += 1
     if in_range_candles >= 3:
         results.append({'Start': len(data) - in_range_candles, 'End': len(data)+1, 'BottomRegion': bottom_region, 'TopRegion': top_region})
@@ -49,7 +57,7 @@ def get_new_result_index(results, origin_data, target_data, origin_time_frame):
     new_results = []
     j = 0
     for i in range(len(results)):
-        while target_data[j]['Time'] < origin_data[results[i]['Start']]['Time']:
+        while target_data[j]['Time'] < origin_data[results[i]['Start']-1]['Time']:
             j += 1
         start = j
         if results[i]['End'] == len(origin_data)+1:
