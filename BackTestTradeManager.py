@@ -26,6 +26,8 @@ class BackTestLauncher:
             InstanceConfig.algorithm_time_frame = params['TimeFrame']
             InstanceConfig.trailing_time_frame = params['TimeFrame']
 
+        global data
+        data = {}
         self.symbols = InstanceConfig.symbols
         self.start_indexes, self.end_indexes, self.configs, self.algorithm_data_total, self.algorithm_start_indexes, \
             self.algorithm_end_indexes, self.trailing_data_total, self.trailing_start_indexes,\

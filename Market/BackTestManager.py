@@ -34,10 +34,9 @@ class BackTestManager:
             self.trailing_end_indexes = self.initialize_data()
 
         self.configs, self.market, self.algorithm_data, self.trailing_data, self.history_size, self.strategies, self.simulation, self.last_ticket, self.last_algorithm_signal_ticket,\
-            self.algorithm_histories, self.trailing_histories, self.buy_open_positions_lens,\
+            self.algorithm_histories, self.algorithm_ask_histories, self.buy_open_positions_lens,\
             self.sell_open_positions_lens, self.last_buy_closed, self.last_sell_closed,\
-            self.trade_buy_in_candle_counts, self.trade_sell_in_candle_counts, self.virtual_buys, self.virtual_sells, \
-            self.recovery_trades = self.initialize_algorithms(params)
+            self.trade_buy_in_candle_counts, self.trade_sell_in_candle_counts = self.initialize_algorithms(params)
 
     def run(self):
         # Back Test
@@ -56,7 +55,7 @@ class BackTestManager:
                 # Select Symbol Configuration
                 tick_candle = Functions.item_data_list_to_dic(data[symbol], i)
 
-                #Debug Section
+                # Debug Section
                 # if data_time == datetime(year=2020, month=9, day=21, hour=22, minute=0):
                 #     print(data_time)
 
@@ -146,41 +145,25 @@ class BackTestManager:
         end_time = datetime.strptime(Config.end_date, Config.date_format)
         simulation = Simulation.Simulation(Config.leverage, Config.balance, start_time, end_time)
         market = Simulator(simulation, start_time)
-        configs = {}
-        symbols = MarketConfig.symbols
-        for i in range(len(symbols)):
-            symbol = symbols[i]
-            algo_data = \
-                algorithm_data[symbol][self.algorithm_start_indexes[symbol] -
-                                                     MarketConfig.history_size:self.algorithm_start_indexes[symbol]]
-            configs[symbol] = MarketConfig(market, symbol, algo_data, MarketConfig.strategy_name, params)
-
-        strategies = {}
-        for symbol in symbols:
-            strategies[symbol] = configs[symbol].strategy
 
         # OnlineLauncher Requirement
         last_ticket = 0
         last_algorithm_signal_ticket = {}
         algorithm_histories = {}
-        trailing_histories = {}
+        algorithm_ask_histories = {}
         buy_open_positions_lens = {}
         sell_open_positions_lens = {}
         last_buy_closed = {}
         last_sell_closed = {}
         trade_buy_in_candle_counts = {}
         trade_sell_in_candle_counts = {}
-        virtual_buys = {}
-        virtual_sells = {}
-        recovery_trades = {}
         for symbol in self.symbols:
 
             algorithm_histories[symbol] =\
                 algorithm_data[symbol][self.algorithm_start_indexes[symbol] -
                                        history_size:self.algorithm_start_indexes[symbol]]
-            trailing_histories[symbol] = \
-                trailing_data[symbol][self.trailing_start_indexes[symbol] -
-                                      history_size:self.trailing_start_indexes[symbol]]
+
+            algorithm_ask_histories[symbol] = self.add_spread(algorithm_histories[symbol], symbol)
 
             buy_open_positions_lens[symbol] = 0
             sell_open_positions_lens[symbol] = 0
@@ -188,32 +171,60 @@ class BackTestManager:
             trade_buy_in_candle_counts[symbol] = 0
             trade_sell_in_candle_counts[symbol] = 0
 
-            virtual_buys[symbol] = []
-            virtual_sells[symbol] = []
+        configs = {}
+        symbols = MarketConfig.symbols
+        for i in range(len(symbols)):
+            symbol = symbols[i]
+            configs[symbol] = MarketConfig(market, symbol, algorithm_histories[symbol], algorithm_ask_histories[symbol], MarketConfig.strategy_name, params)
 
-            recovery_trades[symbol] = []
+        strategies = {}
+        for symbol in symbols:
+            strategies[symbol] = configs[symbol].strategy
 
         return configs, market, algorithm_data, trailing_data, history_size, strategies, simulation, last_ticket,\
-            last_algorithm_signal_ticket, algorithm_histories, trailing_histories, buy_open_positions_lens,\
+            last_algorithm_signal_ticket, algorithm_histories, algorithm_ask_histories, buy_open_positions_lens,\
             sell_open_positions_lens, last_buy_closed, last_sell_closed, trade_buy_in_candle_counts,\
-            trade_sell_in_candle_counts, virtual_buys, virtual_sells, recovery_trades
+            trade_sell_in_candle_counts
 
     def update_history(self, tick_candle, symbol):
         # Algorithm Time ID
         current_time = Functions.get_time_id(tick_candle['Time'], self.configs[symbol].time_frame)
         last_candle_time = Functions.get_time_id(self.algorithm_histories[symbol][-1]['Time'], self.configs[symbol].time_frame)
+        s = Config.spreads[symbol]
         if current_time != last_candle_time:
             # New Candle Open Section
             last_candle = {"Time": tick_candle['Time'], "Open": tick_candle['Open'], "High": tick_candle['High'],
                            "Low": tick_candle['Low'], "Close": tick_candle['Close'], "Volume": tick_candle['Volume']}
+            last_ask_candle = {"Time": tick_candle['Time'], "Open": tick_candle['Open']+s, "High": tick_candle['High']+s,
+                                "Low": tick_candle['Low']+s, "Close": tick_candle['Close']+s, "Volume": tick_candle['Volume']}
             self.algorithm_histories[symbol].append(last_candle)
             self.algorithm_histories[symbol].pop(0)
-            self.strategies[symbol].on_data(self.algorithm_histories[symbol][-1])
+            self.algorithm_ask_histories[symbol].append(last_ask_candle)
+            self.algorithm_ask_histories[symbol].pop(0)
+            self.strategies[symbol].on_data(self.algorithm_histories[symbol][-1], self.algorithm_ask_histories[symbol][-1])
         else:
             # Update Last Candle Section
             self.algorithm_histories[symbol][-1]['High'] = max(self.algorithm_histories[symbol][-1]['High'],tick_candle['High'])
             self.algorithm_histories[symbol][-1]['Low'] = min(self.algorithm_histories[symbol][-1]['Low'], tick_candle['Low'])
             self.algorithm_histories[symbol][-1]['Close'] = tick_candle['Close']
             self.algorithm_histories[symbol][-1]['Volume'] += tick_candle['Volume']
+
+            self.algorithm_ask_histories[symbol][-1]['High'] = max(self.algorithm_ask_histories[symbol][-1]['High'],
+                                                               tick_candle['High']+s)
+            self.algorithm_ask_histories[symbol][-1]['Low'] = min(self.algorithm_ask_histories[symbol][-1]['Low'],
+                                                              tick_candle['Low']+s)
+            self.algorithm_ask_histories[symbol][-1]['Close'] = tick_candle['Close']+s
+            self.algorithm_ask_histories[symbol][-1]['Volume'] += tick_candle['Volume']
             # Signal Section
             self.strategies[symbol].on_tick()
+
+    @staticmethod
+    def add_spread(history, symbol):
+        ask_history = []
+        for i in range(len(history)):
+            candle = history[i]
+            s = Config.spreads[symbol]
+            ask_history.append({"Time": candle['Time'], "Open": candle['Open'] + s, "High": candle['High'] + s,
+                                "Low": candle['Low'] + s, "Close": candle['Close'] + s, "Volume": candle['Volume']})
+        return ask_history
+

@@ -1,25 +1,29 @@
 from Market.Market import Market
 
+import copy
 
 class MarketConfig:
 
-    market = "Simulator"    # 'Simulator' , 'MetaTrader'
+    market = "MetaTrader"    # 'Simulator' , 'MetaTrader'
 
-    symbols = ["EURUSD"]
+    symbols = ["EURUSD.I"]
     tag = "RangeRegion"
 
-    time_frame = "H1"
+    time_frame = "M1"
     history_size = 1000
 
     strategies = ['NeuralNetwork', 'SimpleIdea', 'RangeRegion']
-    strategy_name = 'RangeRegion'
+    strategy_name = 'SimpleIdea'
 
-    def __init__(self, market: Market, symbol, data, strategy_name, params=None):
+    def __init__(self, market: Market, symbol, bid_data, ask_data, strategy_name, params=None):
+
+        bid_data = copy.deepcopy(bid_data)
+        ask_data = copy.deepcopy(ask_data)
 
         if strategy_name == "NeuralNetwork":
             from Strategies.NeuralNetwork import NeuralNetwork
 
-            self.strategy = NeuralNetwork(market, data)
+            self.strategy = NeuralNetwork(market, bid_data, ask_data)
         if strategy_name == "SimpleIdea":
             from Strategies.SimpleIdea import SimpleIdea
 
@@ -34,7 +38,7 @@ class MarketConfig:
             si_alpha = 3
             si_impulse_threshold = 1000
 
-            self.strategy = SimpleIdea(market, data, symbol, si_win_inc, si_win_dec, si_shadow_threshold,
+            self.strategy = SimpleIdea(market, bid_data, ask_data, symbol, si_win_inc, si_win_dec, si_shadow_threshold,
                                         si_body_threshold, si_mode, si_mean_window,
                                         si_extremum_window, si_extremum_mode, si_alpha,
                                         si_impulse_threshold)
@@ -44,6 +48,8 @@ class MarketConfig:
             range_candle_threshold = 3
             up_timeframe = "D1"
             stop_target_margin = 50
+            candle_breakout_threshold = 1
+            max_candles = 1000
 
             type1_enable = True
             type2_enable = False
@@ -71,7 +77,7 @@ class MarketConfig:
                 risk_free_price_percent = params['RiskFreePricePercent']
                 risk_free_volume_percent = params['RiskFreeVolumePercent']
 
-            self.strategy = RangeRegion(market, data, symbol, range_candle_threshold, up_timeframe, stop_target_margin,
-                                        type1_enable, type2_enable, one_stop_in_region, account_management,
-                                        management_ratio, risk_free_enable, risk_free_price_percent,
-                                        risk_free_volume_percent)
+            self.strategy = RangeRegion(market, bid_data, ask_data, symbol, range_candle_threshold, up_timeframe, stop_target_margin,
+                                        type1_enable, type2_enable, one_stop_in_region, candle_breakout_threshold,
+                                        max_candles, account_management, management_ratio, risk_free_enable,
+                                        risk_free_price_percent, risk_free_volume_percent)

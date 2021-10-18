@@ -72,6 +72,7 @@ class OnlineManager(DWX_ZMQ_Strategy):
 
         self.configs = {}
         self._histories = {}
+        self._ask_histories = {}
         self._strategies = {}
         self._time_identifiers = {}
         self._trailing_time_identifiers = {}
@@ -106,7 +107,10 @@ class OnlineManager(DWX_ZMQ_Strategy):
             if time_frame != self.time_frame:
                 self._histories[symbol] = self.aggregate_data(self._histories[symbol], self.time_frame)
 
-            market_config = MarketConfig(symbol, self._histories[symbol], MarketConfig.strategy_name)
+            self._ask_histories[symbol] = self.add_spread(self._histories[symbol], symbol)
+
+            market_config = MarketConfig(self.market, symbol, self._histories[symbol], self._ask_histories[symbol],
+                                         MarketConfig.strategy_name)
             self._strategies[symbol] = market_config.strategy
             self._time_identifiers[symbol] = Functions.get_time_id(self._histories[symbol][-1]['Time'],
                                                                    self.time_frame)
@@ -234,34 +238,43 @@ class OnlineManager(DWX_ZMQ_Strategy):
         time = datetime.strptime(time, Config.tick_date_format)
 
         # Update History
-        self.update_history(time, symbol, bid)
+        self.update_history(time, symbol, bid, ask)
 
         # Check TP_SL
         self.check_tp_sl(symbol, bid, ask)
 
     ##########################################################################
 
-    def update_history(self, time, symbol, bid):
-        time_identifier = Functions.get_time_id(time, self.algorithm_time_frame)
+    def update_history(self, time, symbol, bid, ask):
+        time_identifier = Functions.get_time_id(time, self.time_frame)
 
         if self._time_identifiers[symbol] != time_identifier:
             # New Candle Open Section
             self._time_identifiers[symbol] = time_identifier
             last_candle = {"Time": time, "Open": bid, "High": bid,
                            "Low": bid, "Close": bid, "Volume": 1}
+            last_ask_candle = {"Time": time, "Open": ask, "High": ask,
+                                "Low": ask, "Close": ask, "Volume": 1}
             self._histories[symbol].append(last_candle)
             self._histories[symbol].pop(0)
-            self._strategies[symbol].on_data(self._histories[symbol][-1], self.balance)
+            self._ask_histories[symbol].append(last_ask_candle)
+            self._ask_histories[symbol].pop(0)
+            self._strategies[symbol].on_data(self._histories[symbol][-1], self._ask_histories[symbol][-1])
             self._reporting._get_balance()
             self._reporting._get_equity()
             self.trade_buy_in_candle_counts[symbol] = 0
             self.trade_sell_in_candle_counts[symbol] = 0
             print(symbol)
+            print("BID")
             print(pd.DataFrame(self._histories[symbol][-2:-1]))
+            print("________________________________________________________________________________")
+            print("ASK")
+            print(pd.DataFrame(self._ask_histories[symbol][-2:-1]))
             print("________________________________________________________________________________")
         else:
             # Update Last Candle Section
             self.update_candle_with_tick(self._histories[symbol][-1], bid)
+            self.update_candle_with_tick(self._ask_histories[symbol][-1], ask)
             # Signal Section
             self._strategies[symbol].on_tick()
 
@@ -420,3 +433,13 @@ class OnlineManager(DWX_ZMQ_Strategy):
                 # Release lock
                 self._lock.release()
                 sleep(self._delay)
+
+    @staticmethod
+    def add_spread(history, symbol):
+        ask_history = []
+        for i in range(len(history)):
+            candle = history[i]
+            s = Config.spreads[symbol]
+            ask_history.append({"Time": candle['Time'], "Open": candle['Open'] + s, "High": candle['High'] + s,
+                                "Low": candle['Low'] + s, "Close": candle['Close'] + s, "Volume": candle['Volume']})
+        return ask_history

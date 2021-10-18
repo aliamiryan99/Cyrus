@@ -10,7 +10,7 @@ from Visualization.BaseChart import *
 class RangeRegion(Visualizer):
 
     def __init__(self, symbol, data, range_candle_threshold, up_timeframe, stop_target_margin, type1_enable,
-                 type2_enable, one_stop_in_region):
+                 type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles):
         self.data = data
 
         next_time_frame = up_timeframe
@@ -20,7 +20,8 @@ class RangeRegion(Visualizer):
         self.last_next_candle = self.next_data[-1]
         self.next_data = self.next_data[:-1]
 
-        self.results, self.results_type = detect_range_region(self.next_data, range_candle_threshold)
+        self.results, self.results_type = detect_range_region(self.next_data, range_candle_threshold,
+                                                              candle_breakout_threshold, max_candles)
 
         self.extend_results = get_new_result_index(self.results, self.next_data, self.data, next_time_frame)
 
@@ -29,6 +30,10 @@ class RangeRegion(Visualizer):
         stop_target_margin *= 10 ** -Config.symbols_pip[symbol]
         self.breakouts_result = get_breakouts2(self.data, self.extend_results, stop_target_margin, type1_enable,
                                                type2_enable, one_stop_in_region)
+
+        avg_pip, avg_percent = get_statistics_of_breakouts(self.data, self.breakouts_result)
+
+        print(f"{avg_pip * 10 ** Config.symbols_pip[symbol] / 10} pip , {avg_percent*100} %")
 
     def draw(self, fig, height):
         # Range Box
@@ -48,8 +53,4 @@ class RangeRegion(Visualizer):
                            result['StartPrice']], alpha=0.5, color="blue")
 
         show(fig)
-
-
-
-
 

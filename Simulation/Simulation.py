@@ -726,6 +726,9 @@ def initialize():
         this method get all config properties from inputs file
     """
     global data, data_shows, start_date, end_date, date_format, risk, time_frame_input, time_frame_show, initial_balance
+
+    global output_dir, predict, balance_history, equity_history, margin_history, free_margin_history,\
+        equity_percent_history, profit_history, predicts, positions
     data_paths = []
     data_shows_paths = []
     time_frame_input = Config.time_frame
@@ -745,6 +748,16 @@ def initialize():
 
     data = ut.csv_to_df(data_paths, date_format=date_format)
     data_shows = ut.csv_to_df(data_shows_paths, date_format=date_format)
+
+    predict = []
+    balance_history = []
+    equity_history = []
+    margin_history = []
+    free_margin_history = []
+    equity_percent_history = []
+    profit_history = []
+    predicts = []
+    positions = []
 
     for i in range(len(data)):
         data[i] = data[i].to_dict("list")
@@ -1059,6 +1072,7 @@ def get_output(simulation, trends=None, extends=None, backtest_with_market=False
     profit_history = []
     predicts = []
     positions = []
+
 
 def run():
     global predicts, positions

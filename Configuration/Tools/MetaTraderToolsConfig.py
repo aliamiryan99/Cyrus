@@ -9,7 +9,7 @@ class ChartConfig:
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
                  "RangeRegion"]
-    tool_name = 'RangeRegion'
+    tool_name = 'Elliot'
 
     def __init__(self, symbol, data, tool_name, params=None):
 
@@ -89,7 +89,7 @@ class ChartConfig:
             up_timeframe = "D1"
             stop_target_margin = 50
             candle_breakout_threshold = 1
-            max_candles = 1
+            max_candles = 1000
 
             type1_enable = True
             type2_enable = True

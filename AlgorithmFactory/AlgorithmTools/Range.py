@@ -169,7 +169,7 @@ def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_
                                 if data[j]['High'] >= stop_price:
                                     is_stop_hit = True
                                 break
-                        results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+                        results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price, 'IsStopHit': is_stop_hit})
                 elif break_out_direction == -1:
                     start_price = data[x]['High']
                     stop_price = data[x]['Low'] - stop_target_margin
@@ -195,7 +195,7 @@ def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_
                                 if data[j]['Low'] <= stop_price:
                                     is_stop_hit = True
                                 break
-                        results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+                        results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price, 'IsStopHit': is_stop_hit})
 
             elif break_out_type == 2:
                 if break_out_direction == 1:
@@ -212,7 +212,7 @@ def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_
                             if data[j]['High'] >= stop_price:
                                 is_stop_hit = True
                             break
-                    results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+                    results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price, 'IsStopHit': is_stop_hit})
                 elif break_out_direction == -1:
                     stop_price = data[x]['Low'] - stop_target_margin
                     start_price = data[x]['Close']
@@ -227,7 +227,7 @@ def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_
                             if data[j]['Low'] <= stop_price:
                                 is_stop_hit = True
                             break
-                    results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price})
+                    results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price, 'IsStopHit': is_stop_hit})
             if results[-1] is None:
                 start = mono_result['End']+1
             else:
@@ -238,6 +238,40 @@ def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_
                 elif one_stop_in_region and is_stop_hit:
                     start = mono_result['End'] + 1
     return results
+
+
+def get_statistics_of_breakouts(data, results):
+
+    sum_pip_in_profit = 0
+    sum_percent_in_profit = 0
+    cnt_pip_in_profit = 0
+
+    for result in results:
+        if result is not None and result['IsStopHit']:
+            x, y = result['X'], result['Y']
+            if result['TargetPrice'] - result['StartPrice'] > 0:
+                max_price = data[x+1]['High']
+                for i in range(x+1, y+1):
+                    if data[i]['High'] > max_price:
+                        max_price = data[i]['High']
+                cnt_pip_in_profit += 1
+                sum_pip_in_profit += max_price - result['StartPrice']
+                sum_percent_in_profit += (max_price - result['StartPrice']) /\
+                                         (result['StartPrice'] - result['StopPrice'])
+            else:
+                min_price = data[x+1]['Low']
+                for i in range(x+1, y + 1):
+                    if data[i]['Low'] < min_price:
+                        min_price = data[i]['Low']
+                cnt_pip_in_profit += 1
+                sum_pip_in_profit += result['StartPrice'] - min_price
+                sum_percent_in_profit += (result['StartPrice'] - min_price) / \
+                                         (result['StopPrice'] - result['StartPrice'])
+
+    avg_pip_in_profit = sum_pip_in_profit / cnt_pip_in_profit
+    avg_percent_in_profit = sum_percent_in_profit / cnt_pip_in_profit
+
+    return avg_pip_in_profit, avg_percent_in_profit
 
 
 def get_proximal_region(data, results):

@@ -12,7 +12,7 @@ class Elliot(Tool):
     def __init__(self, data):
         super().__init__(data)
 
-        monowave_list, polywave_list, prediction_list = elliott.calculate(pd.DataFrame(data), price_type="neo", timeframe="H4", step=6)
+        monowave_list, polywave_list, prediction_list = elliott.calculate(pd.DataFrame(data), price_type="neo", timeframe="H1", step=4)
         # TODO : if neo_wo_merge was True Then polywave_lsit = []
         self.result_final = {}
         results = []
