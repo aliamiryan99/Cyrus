@@ -579,7 +579,11 @@ class Simulation:
             time = self.adjust_time(position['OpenTime'], time_frame_input)
             if time < row['Time'] and position['SL'] != 0:
                 if row['Low'] <= position['SL']:
-                    self.close(row['Time'], position['SL'], position['Volume'],
+                    close_price = position['SL']
+                    # For gap support
+                    if row['High'] <= position['SL']:
+                        close_price = row['Open']
+                    self.close(row['Time'], close_price, position['Volume'],
                                position['Ticket'], 'Stop Loss')
 
         open_sell_positions_origin = copy.copy(self.open_sell_positions)
@@ -589,7 +593,11 @@ class Simulation:
             time = self.adjust_time(position['OpenTime'], time_frame_input)
             if time < row['Time'] and position['SL'] != 0:
                 if row['High'] + spreads[position['Symbol']] >= position['SL']:
-                    self.close(row['Time'], position['SL'] - spreads[position['Symbol']] , position['Volume'],
+                    close_price = position['SL']
+                    # For gap support
+                    if row['Low'] + spreads[position['Symbol']] >= position['SL']:
+                        close_price = row['Open']
+                    self.close(row['Time'], close_price - spreads[position['Symbol']], position['Volume'],
                                position['Ticket'], 'Stop Loss')
 
     def take_profit_check(self):
@@ -603,8 +611,12 @@ class Simulation:
             row = Functions.item_data_list_to_dic(data[symbols_dict[position['Symbol']]], i)
             time = self.adjust_time(position['OpenTime'], time_frame_input)
             if time <= row['Time'] and position['TP'] != 0:
-                if row['High'] > position['TP']:
-                    self.close(row['Time'], position['TP'], position['Volume'],
+                if row['High'] >= position['TP']:
+                    close_price = position['TP']
+                    # For gap support
+                    if row['Low'] >= position['TP']:
+                        close_price = row['Open']
+                    self.close(row['Time'], close_price, position['Volume'],
                                position['Ticket'], 'Take Profit')
         open_sell_positions_origin = copy.copy(self.open_sell_positions)
         for position in open_sell_positions_origin:
@@ -613,7 +625,11 @@ class Simulation:
             time = self.adjust_time(position['OpenTime'], time_frame_input)
             if time <= row['Time'] and position['TP'] != 0:
                 if row['Low'] + spreads[position['Symbol']] <= position['TP']:
-                    self.close(row['Time'], position['TP'] - spreads[position['Symbol']], position['Volume'],
+                    close_price = position['TP']
+                    # For gap support
+                    if row['High'] + spreads[position['Symbol']] <= position['TP']:
+                        close_price = row['Open']
+                    self.close(row['Time'], close_price - spreads[position['Symbol']], position['Volume'],
                                position['Ticket'], 'Take Profit')
 
     def pending_orders_check(self):

@@ -30,7 +30,8 @@ def detect_range_region(data, range_candle_threshold, candle_break_threshold, ma
                 bottom_region = low[i]
         else:
             if top_region < close[i] or close[i] < bottom_region or in_range_candles == max_candle:
-                candle_break_cnt += 1
+                if in_range_candles != max_candle:
+                    candle_break_cnt += 1
                 if candle_break_cnt == candle_break_threshold or in_range_candles == max_candle:
                     results.append({'Start': i-in_range_candles, 'End': i+1, 'BottomRegion': bottom_region, 'TopRegion': top_region})
                     if top_region < close[i]:
@@ -40,8 +41,7 @@ def detect_range_region(data, range_candle_threshold, candle_break_threshold, ma
                     in_range_candles = 1
                     top_region = high[i]
                     bottom_region = low[i]
-                    if in_range_candles == max_candle:
-                        candle_break_cnt = 0
+                    candle_break_cnt = 0
                 else:
                     in_range_candles += 1
             else:
@@ -57,7 +57,7 @@ def get_new_result_index(results, origin_data, target_data, origin_time_frame):
     new_results = []
     j = 0
     for i in range(len(results)):
-        while target_data[j]['Time'] < origin_data[results[i]['Start']-1]['Time']:
+        while target_data[j]['Time'] < origin_data[results[i]['Start']]['Time']:
             j += 1
         start = j
         if results[i]['End'] == len(origin_data)+1:
@@ -73,6 +73,7 @@ def get_new_result_index(results, origin_data, target_data, origin_time_frame):
             while j < len(target_data)-1 and target_data[j]['Time'] < origin_data[results[i]['End']]['Time']:
                 j += 1
             end = j
+        j = start
         new_results.append({'Start': start, 'End': end, 'BottomRegion': results[i]['BottomRegion'], 'TopRegion': results[i]['TopRegion']})
     return new_results
 
@@ -196,7 +197,6 @@ def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_
                                     is_stop_hit = True
                                 break
                         results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price, 'IsStopHit': is_stop_hit})
-
             elif break_out_type == 2:
                 if break_out_direction == 1:
                     stop_price = data[x]['High'] + stop_target_margin
@@ -228,13 +228,16 @@ def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_
                                 is_stop_hit = True
                             break
                     results.append({'X': x, 'Y': y, 'StartPrice': start_price, 'StopPrice': stop_price, 'TargetPrice': target_price, 'IsStopHit': is_stop_hit})
+
             if results[-1] is None:
                 start = mono_result['End']+1
             else:
-                start = results[-1]['Y'] + 1
+                start = results[-1]['X'] + 1
                 if abs(results[-1]['TargetPrice'] - results[-1]['StartPrice']) / abs(results[-1]['StopPrice'] - results[-1]['StartPrice']) < 1:
                     start = results[-1]['X'] + 1
                     results[-1] = None
+                elif results[-2] is not None and results[-1]['X'] < results[-2]['Y']:
+                    results.pop()
                 elif one_stop_in_region and is_stop_hit:
                     start = mono_result['End'] + 1
     return results
@@ -268,8 +271,12 @@ def get_statistics_of_breakouts(data, results):
                 sum_percent_in_profit += (result['StartPrice'] - min_price) / \
                                          (result['StopPrice'] - result['StartPrice'])
 
-    avg_pip_in_profit = sum_pip_in_profit / cnt_pip_in_profit
-    avg_percent_in_profit = sum_percent_in_profit / cnt_pip_in_profit
+    if cnt_pip_in_profit != 0:
+        avg_pip_in_profit = sum_pip_in_profit / cnt_pip_in_profit
+        avg_percent_in_profit = sum_percent_in_profit / cnt_pip_in_profit
+    else:
+        avg_pip_in_profit = 0
+        avg_percent_in_profit = 0
 
     return avg_pip_in_profit, avg_percent_in_profit
 
