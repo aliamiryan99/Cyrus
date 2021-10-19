@@ -20,10 +20,10 @@ class InstanceConfig:
     # Hyper Parameters
     symbols = ['EURUSD']
     management_ratio = [2]
-    history_size = 400
+    history_size = 500
     algorithm_time_frame = "H4"
     trailing_time_frame = "H4"
-    tag = "Role9 EURUSD H4"
+    tag = "Ichimoku"
 
     algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'
@@ -193,7 +193,7 @@ class InstanceConfig:
         elif trailing_name == "ReverseSignal":
             from AlgorithmFactory.AlgorithmsOfExit.Trailings.ReverseSignalTrailing import ReverseSignalTrailing
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 2
+            role = 1
             tenkan = 9
             kijun = 26
             senkou_span_projection = 26
@@ -205,13 +205,13 @@ class InstanceConfig:
             komu_cloud_filter = False
 
             if params is not None:
-                role = params['Role']
-                tenkan = params['Tenkan']
-                kijun = params['Kijun']
-                senkou_span_projection = params['SenkouSpanProjection']
-                range_filter_enable = params['RangeFilterEnable']
-                sequential_trade = params['SequentialTrade']
-                komu_cloud_filter = params['KomuCloudFilter']
+                role = params['Role2']
+                tenkan = params['Tenkan2']
+                kijun = params['Kijun2']
+                senkou_span_projection = params['SenkouSpanProjection2']
+                range_filter_enable = params['RangeFilterEnable2']
+                sequential_trade = params['SequentialTrade2']
+                komu_cloud_filter = params['KomuCloudFilter2']
 
             trailing_algorithm = IchimokuAlgorithm(data, role, tenkan, kijun, range_filter_enable, n, m, time_frame, sequential_trade, komu_cloud_filter, senkou_span_projection)
 
@@ -475,7 +475,7 @@ class InstanceConfig:
                                              extremum_window_step, extremum_mode, check_window, alpha, beta)
         elif algorithm_name == "Ichimoku":
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 9
+            role = 1
             tenkan = 9
             kijun = 26
             senkou_span_projection = 26

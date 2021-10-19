@@ -14,12 +14,15 @@ import pandas as pd
 
 class ChartLauncher:
 
-    def __init__(self, params=None):
+    def __init__(self, params=None, with_market=False):
 
         if params is not None:
             ChartConfig.symbol = params['Symbol']
             ChartConfig.time_frame = params['TimeFrame']
-            ChartConfig.backtest[0] = params['TimeFrame']
+            if with_market:
+                ChartConfig.backtest[0] = params['TimeFrame']
+            else:
+                ChartConfig.backtest[0] = f"{params['TimeFrame']}_{params['TimeFrame']}_M1"
 
         if ChartConfig.with_back_test:
             backtest = ChartConfig.backtest

@@ -11,10 +11,10 @@ class ChartConfig:
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression',
                       'Channel', 'RangeRegion', 'RsiPattern']
-    visualizer = 'RangeRegion'
+    visualizer = 'Indicator'
 
-    with_back_test = False
-    backtest = ["H4_H4_M1", "Ichimoku", "Role9 EURUSD H4"]
+    with_back_test = True
+    backtest = ["H4_H4_M1", "Ichimoku", "Ichimoku"]
 
     def __init__(self, data, visualizer, params=None):
 
@@ -71,10 +71,15 @@ class ChartConfig:
             ichimoku_enable = True
             tenkan = 9
             kijun = 26
+            senkou_span_projection = 26
+            if params is not None:
+                tenkan = params['Tenkan']
+                kijun = params['Kijun']
+                senkou_span_projection = params['SenkouSpanProjection']
 
             self.visualizer = IndicatorVisualizer(data, indicator_names, heikin_data_level, extremum_enable,
                                                   extremum_window, extremum_mode, ma_enable, ma_list, ichimoku_enable,
-                                                  tenkan, kijun)
+                                                  tenkan, kijun, senkou_span_projection)
         elif visualizer == 'MinMax':
             from Visualization.MinMaxVisualizer import MinMaxVisualizer
             extremum_window = 1

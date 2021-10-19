@@ -17,7 +17,7 @@ from Visualization.BaseChart import *
 class IndicatorVisualizer(Visualizer):
 
     def __init__(self, data, indicator_names, heikin_data_level, extremum_enable, extremum_window, extremum_mode,
-                 ma_enable, ma_list, ichimoku_enable, tenkan, kijun):
+                 ma_enable, ma_list, ichimoku_enable, tenkan, kijun, senkou_span_projection):
         self.data = data
         self.hikin_data_level = heikin_data_level
         self.indicator_names = indicator_names
@@ -93,7 +93,7 @@ class IndicatorVisualizer(Visualizer):
             for ma in ma_list:
                 self.ma_indicators.append(MovingAverage(data, ma['ma_type'], ma['price_type'], ma['window']))
         if self.ichimoku_enable:
-            ichimoku = Ichimoku(data, tenkan, kijun)
+            ichimoku = Ichimoku(data, tenkan, kijun, senkou_span_projection=senkou_span_projection)
             self.ichimoku_result = ichimoku.result
 
 
