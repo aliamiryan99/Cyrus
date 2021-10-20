@@ -5,7 +5,7 @@ class ChartConfig:
     symbol = "EURUSD"
     time_frame = "H1"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
-    start_date = "01.05.2020 00:00:00.000"
+    start_date = "12.06.2020 00:00:00.000"
     end_date = "21.09.2021 22:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
@@ -13,8 +13,8 @@ class ChartConfig:
                       'Channel', 'RangeRegion', 'RsiPattern']
     visualizer = 'RangeRegion'
 
-    with_back_test = False
-    backtest = ["H4_H4_M1", "Ichimoku", "Ichimoku"]
+    with_back_test = True
+    backtest = ["H1", "RangeRegion", "RangeRegion"]
 
     def __init__(self, data, visualizer, params=None):
 
@@ -115,12 +115,14 @@ class ChartConfig:
             type1_enable = True
             type2_enable = True
 
-            one_stop_in_region = True
+            one_stop_in_region = False
 
             if params is not None:
                 range_candle_threshold = params['RangeCandleThreshold']
                 up_timeframe = params['UpTimeFrame']
                 stop_target_margin = params['StopTargetMargin']
+                candle_breakout_threshold = params['CandlesBreakoutThreshold']
+                max_candles = params['MaxCandles']
                 type1_enable = params['Type1Enable']
                 type2_enable = params['Type2Enable']
                 one_stop_in_region = params['OneStopInRegion']

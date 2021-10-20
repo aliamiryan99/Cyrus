@@ -40,8 +40,8 @@ class ChartLauncher:
         data_show_paths = ["Data/" + Config.categories_list[ChartConfig.symbol] + "/" + ChartConfig.symbol +
                            "/" + ChartConfig.time_frame + ".csv"]
         self.data_df = ut.csv_to_df(data_show_paths, date_format=ChartConfig.date_format)[0]
-        self.start_index = Outputs.index_date(self.data_df, start_time) - 1000
-        self.end_index = Outputs.index_date(self.data_df, end_time) + 50
+        self.start_index = Outputs.index_date(self.data_df, start_time)
+        self.end_index = Outputs.index_date(self.data_df, end_time)
         self.data_df = self.data_df.iloc[self.start_index:self.end_index + 1]
 
         if not ChartConfig.holidays_show:

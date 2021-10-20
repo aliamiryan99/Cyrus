@@ -506,7 +506,7 @@ def get_back_test_fig(df, position_df, name, start):
     # Finalise the figure
     fig.x_range.js_on_change('start', callback)
 
-    curstate().file['title'] = name
+    curstate().file.title = name
     return fig
 
 

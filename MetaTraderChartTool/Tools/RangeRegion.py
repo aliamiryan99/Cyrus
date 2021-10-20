@@ -9,7 +9,7 @@ from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 class RangeRegion(Tool):
 
     def __init__(self, symbol, data, range_candle_threshold, up_timeframe, stop_target_margin, type1_enable,
-                 type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles):
+                 type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles, fib_enable):
         super().__init__(data)
 
         # diff_time = data[1]['Time'] - data[0]['Time']
@@ -20,6 +20,8 @@ class RangeRegion(Tool):
         # for i in range(len(keys)-1):
         #     if time_frame == keys[i]:
         #         next_time_frame = keys[i+1]
+
+        self.fib_enable = fib_enable
 
         next_time_frame = up_timeframe
 
@@ -55,21 +57,22 @@ class RangeRegion(Tool):
         chart_tool.rectangle(names, times1, prices1, times2, prices2)
 
         # Fibo Ranges
-        names, times1, prices1, times2, prices2 = [], [], [], [], []
-        for i in range(len(self.extend_results)):
-            if self.results_type[i] != "Unknown":
-                extend_result = self.extend_results[i]
-                names.append(f"RangeRegionFibo{i}")
-                times1.append(self.data[extend_result['Start']]['Time'])
-                times2.append(self.data[extend_result['End']]['Time'])
-                if self.results_type[i] == "Up":
-                    prices1.append(extend_result['ProximalTop'])
-                    prices2.append(extend_result['ProximalBottom'])
-                elif self.results_type[i] == "Down":
-                    prices1.append(extend_result['ProximalBottom'])
-                    prices2.append(extend_result['ProximalTop'])
+        if self.fib_enable:
+            names, times1, prices1, times2, prices2 = [], [], [], [], []
+            for i in range(len(self.extend_results)):
+                if self.results_type[i] != "Unknown":
+                    extend_result = self.extend_results[i]
+                    names.append(f"RangeRegionFibo{i}")
+                    times1.append(self.data[extend_result['Start']]['Time'])
+                    times2.append(self.data[extend_result['End']]['Time'])
+                    if self.results_type[i] == "Up":
+                        prices1.append(extend_result['ProximalTop'])
+                        prices2.append(extend_result['ProximalBottom'])
+                    elif self.results_type[i] == "Down":
+                        prices1.append(extend_result['ProximalBottom'])
+                        prices2.append(extend_result['ProximalTop'])
 
-        chart_tool.fibonacci_retracement(names, times1, prices1, times2, prices2, color="0,0,0")
+            chart_tool.fibonacci_retracement(names, times1, prices1, times2, prices2, color="0,0,0")
 
         # Total Braekouts Marker
         # names, times1, prices1,  = [], [], []

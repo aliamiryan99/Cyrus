@@ -20,9 +20,12 @@ class Ui(QtWidgets.QMainWindow):
         self.candles_tr_spin = self.findChild(QtWidgets.QSpinBox, 'candles_threshold_spin')
         self.higher_time_frame_cmb = self.findChild(QtWidgets.QComboBox, 'higher_time_frame_cmb')
         self.tp_sl_margin_spin = self.findChild(QtWidgets.QSpinBox, 'tp_sl_margin_spin')
+        self.candles_breakout_threshold_spin = self.findChild(QtWidgets.QSpinBox, 'candles_breakout_threshold_spin')
+        self.max_candles_spin = self.findChild(QtWidgets.QSpinBox, 'max_candles_spin')
         self.type1_enable_ckb = self.findChild(QtWidgets.QCheckBox, 'type1_enable_ckb')
         self.type2_enable_ckb = self.findChild(QtWidgets.QCheckBox, 'type2_enable_ckb')
         self.one_stop_loss_allowed_ckb = self.findChild(QtWidgets.QCheckBox, 'one_stop_loss_allowed_ckb')
+
 
         self.symbol_cmb = self.findChild(QtWidgets.QComboBox, 'symbol_cmb')
         self.time_frame_cmb = self.findChild(QtWidgets.QComboBox, 'time_frame_cmb')
@@ -31,6 +34,8 @@ class Ui(QtWidgets.QMainWindow):
         self.risk_free_enable_ckb = self.findChild(QtWidgets.QCheckBox, 'risk_free_enable_ckb')
         self.risk_free_price_percent_spin = self.findChild(QtWidgets.QSpinBox, 'risk_free_price_percent_spin')
         self.risk_free_volume_percent_spin = self.findChild(QtWidgets.QSpinBox, 'risk_free_volume_percent_spin')
+
+        self.fib_enable_ckb = self.findChild(QtWidgets.QCheckBox, 'fib_enable_ckb')
 
         self.message_lbl = self.findChild(QtWidgets.QLabel, 'message_lbl')
 
@@ -43,9 +48,12 @@ class Ui(QtWidgets.QMainWindow):
     def plot(self):
         params = {'RangeCandleThreshold': self.candles_tr_spin.value(),
                   'UpTimeFrame': self.higher_time_frame_cmb.currentText(),
+                  'CandlesBreakoutThreshold': self.candles_breakout_threshold_spin.value(),
+                  'MaxCandles': self.max_candles_spin.value(),
                   'StopTargetMargin': self.tp_sl_margin_spin.value(), 'Type1Enable': self.type1_enable_ckb.isChecked(),
                   'Type2Enable': self.type2_enable_ckb.isChecked(),
-                  'OneStopInRegion': self.one_stop_loss_allowed_ckb.isChecked()}
+                  'OneStopInRegion': self.one_stop_loss_allowed_ckb.isChecked(),
+                  'FibEnable': self.fib_enable_ckb.isChecked()}
         launcher = MetaTraderChartToolsManager(params=params)
         if not launcher.meta_trader_connection:
             self.message_lbl.setText("Meta Trader Connection Problem")
@@ -66,6 +74,8 @@ class Ui(QtWidgets.QMainWindow):
         # Back Test
         params = {'RangeCandleThreshold': self.candles_tr_spin.value(),
                   'UpTimeFrame': self.higher_time_frame_cmb.currentText(),
+                  'CandlesBreakoutThreshold': self.candles_breakout_threshold_spin.value(),
+                  'MaxCandles': self.max_candles_spin.value(),
                   'StopTargetMargin': self.tp_sl_margin_spin.value(), 'Type1Enable': self.type1_enable_ckb.isChecked(),
                   'Type2Enable': self.type2_enable_ckb.isChecked(),
                   'OneStopInRegion': self.one_stop_loss_allowed_ckb.isChecked(),
@@ -79,7 +89,7 @@ class Ui(QtWidgets.QMainWindow):
         market_executed = launcher.run()
         Simulation.get_output(market_executed, backtest_with_market=True)
         # Reason
-        launcher = ChartLauncher(params)
+        launcher = ChartLauncher(params, with_market=True)
         launcher.launch()
 
         self.clear_btn.setEnabled(True)

@@ -47,7 +47,7 @@ def detect_range_region(data, range_candle_threshold, candle_break_threshold, ma
             else:
                 candle_break_cnt = 0
                 in_range_candles += 1
-    if in_range_candles >= 3:
+    if in_range_candles >= candle_break_threshold:
         results.append({'Start': len(data) - in_range_candles, 'End': len(data)+1, 'BottomRegion': bottom_region, 'TopRegion': top_region})
         result_types.append("Unknown")
     return results, result_types
@@ -231,12 +231,13 @@ def get_breakouts2(data, range_results, stop_target_margin, type1_enable, type2_
 
             if results[-1] is None:
                 start = mono_result['End']+1
+                results.pop()
             else:
                 start = results[-1]['X'] + 1
-                if abs(results[-1]['TargetPrice'] - results[-1]['StartPrice']) / abs(results[-1]['StopPrice'] - results[-1]['StartPrice']) < 1:
+                if len(results) >= 2 and results[-1]['X'] < results[-2]['Y']:
+                    results.pop()
+                elif abs(results[-1]['TargetPrice'] - results[-1]['StartPrice']) / abs(results[-1]['StopPrice'] - results[-1]['StartPrice']) < 1:
                     start = results[-1]['X'] + 1
-                    results[-1] = None
-                elif results[-2] is not None and results[-1]['X'] < results[-2]['Y']:
                     results.pop()
                 elif one_stop_in_region and is_stop_hit:
                     start = mono_result['End'] + 1

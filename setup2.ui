@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>993</width>
-    <height>862</height>
+    <height>756</height>
    </rect>
   </property>
   <property name="palette">
@@ -170,7 +170,7 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>300</y>
+      <y>100</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -192,7 +192,7 @@
     <property name="geometry">
      <rect>
       <x>330</x>
-      <y>360</y>
+      <y>160</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -235,7 +235,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>290</y>
+      <y>90</y>
       <width>311</width>
       <height>51</height>
      </rect>
@@ -320,7 +320,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>350</y>
+      <y>150</y>
       <width>311</width>
       <height>51</height>
      </rect>
@@ -405,7 +405,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>410</y>
+      <y>210</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -490,7 +490,7 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>420</y>
+      <y>220</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -511,8 +511,8 @@
    <widget class="QCheckBox" name="type1_enable_ckb">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>480</y>
+      <x>400</x>
+      <y>420</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -540,8 +540,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>470</y>
+      <x>40</x>
+      <y>410</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -625,8 +625,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QCheckBox" name="type2_enable_ckb">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>550</y>
+      <x>400</x>
+      <y>490</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -654,8 +654,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>540</y>
+      <x>40</x>
+      <y>480</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -739,8 +739,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QCheckBox" name="one_stop_loss_allowed_ckb">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>610</y>
+      <x>400</x>
+      <y>550</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -768,8 +768,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_10">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>600</y>
+      <x>40</x>
+      <y>540</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -853,8 +853,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QSpinBox" name="management_ratio_spin">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>430</y>
+      <x>840</x>
+      <y>280</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -875,8 +875,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_11">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>360</y>
+      <x>520</x>
+      <y>210</y>
       <width>271</width>
       <height>51</height>
      </rect>
@@ -960,8 +960,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_12">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>420</y>
+      <x>520</x>
+      <y>270</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -1045,20 +1045,15 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QComboBox" name="account_management_cmb">
     <property name="geometry">
      <rect>
-      <x>830</x>
-      <y>370</y>
+      <x>820</x>
+      <y>220</y>
       <width>141</width>
       <height>31</height>
      </rect>
     </property>
     <property name="currentText">
-     <string>Fix</string>
+     <string>Balance</string>
     </property>
-    <item>
-     <property name="text">
-      <string>Fix</string>
-     </property>
-    </item>
     <item>
      <property name="text">
       <string>Balance</string>
@@ -1069,12 +1064,17 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
       <string>Risk</string>
      </property>
     </item>
+    <item>
+     <property name="text">
+      <string>Fix</string>
+     </property>
+    </item>
    </widget>
    <widget class="QCheckBox" name="risk_free_enable_ckb">
     <property name="geometry">
      <rect>
-      <x>890</x>
-      <y>520</y>
+      <x>880</x>
+      <y>370</y>
       <width>21</width>
       <height>31</height>
      </rect>
@@ -1102,8 +1102,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_13">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>510</y>
+      <x>520</x>
+      <y>360</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -1187,8 +1187,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QSpinBox" name="risk_free_price_percent_spin">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>580</y>
+      <x>840</x>
+      <y>430</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -1209,8 +1209,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_14">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>570</y>
+      <x>520</x>
+      <y>420</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -1294,8 +1294,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QSpinBox" name="risk_free_volume_percent_spin">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>640</y>
+      <x>840</x>
+      <y>490</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -1316,8 +1316,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_15">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>630</y>
+      <x>520</x>
+      <y>480</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -1401,8 +1401,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="message_lbl">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>710</y>
+      <x>170</x>
+      <y>610</y>
       <width>651</width>
       <height>51</height>
      </rect>
@@ -1496,8 +1496,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QComboBox" name="symbol_cmb">
     <property name="geometry">
      <rect>
-      <x>830</x>
-      <y>240</y>
+      <x>820</x>
+      <y>90</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -1559,8 +1559,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_17">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>230</y>
+      <x>520</x>
+      <y>80</y>
       <width>221</width>
       <height>51</height>
      </rect>
@@ -1644,8 +1644,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QComboBox" name="time_frame_cmb">
     <property name="geometry">
      <rect>
-      <x>830</x>
-      <y>290</y>
+      <x>820</x>
+      <y>140</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -1697,8 +1697,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_18">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>280</y>
+      <x>520</x>
+      <y>130</y>
       <width>221</width>
       <height>51</height>
      </rect>
@@ -1779,11 +1779,11 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
      <enum>Qt::PlainText</enum>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>790</y>
+      <x>300</x>
+      <y>690</y>
       <width>371</width>
       <height>41</height>
      </rect>
@@ -1827,254 +1827,333 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QLabel" name="label_16">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>71</y>
-      <width>484</width>
-      <height>161</height>
+      <x>30</x>
+      <y>270</y>
+      <width>251</width>
+      <height>51</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="palette">
-        <palette>
-         <active>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </active>
-         <inactive>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </inactive>
-         <disabled>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>120</red>
-             <green>120</green>
-             <blue>120</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>120</red>
-             <green>120</green>
-             <blue>120</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </disabled>
-        </palette>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>In this setup we're going to detect range regions and it's breakouts. </string>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::PlainText</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_4">
-       <property name="palette">
-        <palette>
-         <active>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </active>
-         <inactive>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </inactive>
-         <disabled>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>120</red>
-             <green>120</green>
-             <blue>120</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>120</red>
-             <green>120</green>
-             <blue>120</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </disabled>
-        </palette>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>To see the range region and it's breakouts signals click plot button.</string>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::PlainText</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_16">
-       <property name="palette">
-        <palette>
-         <active>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </active>
-         <inactive>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>255</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </inactive>
-         <disabled>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>120</red>
-             <green>120</green>
-             <blue>120</blue>
-            </color>
-           </brush>
-          </colorrole>
-          <colorrole role="Text">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>120</red>
-             <green>120</green>
-             <blue>120</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </disabled>
-        </palette>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>To get back test result and it's reasons click back test button.</string>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::PlainText</enum>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <property name="palette">
+     <palette>
+      <active>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </active>
+      <inactive>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </inactive>
+      <disabled>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </disabled>
+     </palette>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Candles breakout threshold</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::PlainText</enum>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="candles_breakout_threshold_spin">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>280</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of candles in higher time frame&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="minimum">
+     <number>1</number>
+    </property>
+    <property name="maximum">
+     <number>10</number>
+    </property>
+    <property name="value">
+     <number>1</number>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="max_candles_spin">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>350</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of candles in higher time frame&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="minimum">
+     <number>1</number>
+    </property>
+    <property name="maximum">
+     <number>1000</number>
+    </property>
+    <property name="value">
+     <number>1000</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_19">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>340</y>
+      <width>251</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="palette">
+     <palette>
+      <active>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </active>
+      <inactive>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </inactive>
+      <disabled>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </disabled>
+     </palette>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Max candles in range</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::PlainText</enum>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="fib_enable_ckb">
+    <property name="geometry">
+     <rect>
+      <x>880</x>
+      <y>550</y>
+      <width>31</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);
+font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>32</width>
+      <height>32</height>
+     </size>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_20">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>540</y>
+      <width>251</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="palette">
+     <palette>
+      <active>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </active>
+      <inactive>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </inactive>
+      <disabled>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </disabled>
+     </palette>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Fib enable in plot</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::PlainText</enum>
+    </property>
    </widget>
   </widget>
  </widget>

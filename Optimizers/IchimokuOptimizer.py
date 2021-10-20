@@ -1,4 +1,9 @@
 
+import pandas as pd
+import os
+from tqdm import tqdm
+
+base_directory = "Ichimoku"
 
 param_list = {
     'Symbol': ['EURUSD', 'GBPUSD', 'XAUUSD'],
@@ -11,3 +16,18 @@ param_list = {
     'SequentialTrade': [False, True],
     'KomuCloudFilter': [False, True]
 }
+
+
+if __name__ == "__main__":
+
+    results = {'Symbol': [], 'TimeFrame': [], 'Role': [], 'Tenkan': [], 'Kijun': [], 'SenkouSpanProjection': [],
+               'RangeFilterEnable': [], 'SequentialTrade': [], 'KomuCloudFilter': [], 'Profit': []}
+    file_list = os.listdir(base_directory)
+    for file_name in tqdm(file_list):
+        result = pd.read_csv(base_directory + "/" + file_name)
+        result = result.to_dict('list')
+        for key in result.keys():
+            results[key] += result[key]
+    df = pd.DataFrame(results)
+    df = df.sort_values(['Profit'], ascending=False)
+    df.to_csv("IchimokuOptimizersResults.csv", index=False)

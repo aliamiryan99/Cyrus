@@ -762,6 +762,8 @@ def initialize():
     start_date = datetime.strptime(Config.start_date, date_format)
     end_date = datetime.strptime(Config.end_date, date_format)
 
+    print("Loading...")
+
     data = ut.csv_to_df(data_paths, date_format=date_format)
     data_shows = ut.csv_to_df(data_shows_paths, date_format=date_format)
 
@@ -779,6 +781,8 @@ def initialize():
         data[i] = data[i].to_dict("list")
         data_shows[i] = data_shows[i][data_shows[i].Volume != 0]
         data_shows[i] = data_shows[i].to_dict("Records")
+
+    print("Loading Completed")
 
     initial_balance = balance
     simulation = Simulation(leverage, balance)
