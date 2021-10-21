@@ -20,7 +20,7 @@ class PivotPoints(RealTimeTool):
 
         self.draw_local_extremum(self.local_min, self.local_max)
 
-    def on_tick(self):
+    def on_tick(self, time, bid, ask):
         pass
 
     def on_data(self, candle):

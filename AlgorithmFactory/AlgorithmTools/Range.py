@@ -47,7 +47,7 @@ def detect_range_region(data, range_candle_threshold, candle_break_threshold, ma
             else:
                 candle_break_cnt = 0
                 in_range_candles += 1
-    if in_range_candles >= candle_break_threshold:
+    if in_range_candles >= range_candle_threshold:
         results.append({'Start': len(data) - in_range_candles, 'End': len(data)+1, 'BottomRegion': bottom_region, 'TopRegion': top_region})
         result_types.append("Unknown")
     return results, result_types

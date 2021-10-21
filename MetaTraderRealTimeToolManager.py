@@ -78,10 +78,10 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
         ask = float(ask)
         time = datetime.strptime(time, Config.tick_date_format)
 
-        self.update_history(time, symbol, bid)
+        self.update_history(time, symbol, bid, ask)
         ##########################################################################
 
-    def update_history(self, time, symbol, bid):
+    def update_history(self, time, symbol, bid, ask):
         time_identifier = Functions.get_time_id(time, self.time_frame)
 
         if self._time_identifier != time_identifier:
@@ -99,7 +99,7 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
             # Update Last Candle Section
             self.update_candle_with_tick(self.history[-1], bid)
             # Signal Section
-            self.tool.on_tick()
+            self.tool.on_tick(time, bid, ask)
 
     @staticmethod
     def update_candle_with_tick(candle, tick):

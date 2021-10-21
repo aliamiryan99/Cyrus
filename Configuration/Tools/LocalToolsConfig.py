@@ -6,15 +6,15 @@ class ChartConfig:
     time_frame = "H1"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "12.06.2020 00:00:00.000"
-    end_date = "21.09.2021 22:00:00.000"
+    end_date = "19.09.2021 23:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression',
                       'Channel', 'RangeRegion', 'RsiPattern']
-    visualizer = 'RangeRegion'
+    visualizer = 'Indicator'
 
     with_back_test = True
-    backtest = ["H1", "RangeRegion", "RangeRegion"]
+    backtest = ["H1", "Ichimoku", "Ichimoku"]
 
     def __init__(self, data, visualizer, params=None):
 
@@ -106,11 +106,11 @@ class ChartConfig:
                                                  extremum_mode, check_window, alpha, extend_number)
         elif visualizer == "RangeRegion":
             from Visualization.RangeRegion import RangeRegion
-            range_candle_threshold = 1
+            range_candle_threshold = 3
             up_timeframe = "D1"
             stop_target_margin = 50
             candle_breakout_threshold = 1
-            max_candles = 1
+            max_candles = 1000
 
             type1_enable = True
             type2_enable = True

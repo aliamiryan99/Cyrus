@@ -46,11 +46,11 @@ class MarketConfig:
         if strategy_name == "RangeRegion":
             from Strategies.RangeRegion import RangeRegion
 
-            range_candle_threshold = 1
+            range_candle_threshold = 3
             up_timeframe = "D1"
             stop_target_margin = 50
             candle_breakout_threshold = 1
-            max_candles = 1
+            max_candles = 1000
 
             type1_enable = True
             type2_enable = True

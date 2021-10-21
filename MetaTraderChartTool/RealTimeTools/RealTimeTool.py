@@ -10,7 +10,7 @@ class RealTimeTool:
         self.data = data
 
     @abstractmethod
-    def on_tick(self):
+    def on_tick(self, time, bid, ask):
         pass
 
     @abstractmethod
