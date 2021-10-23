@@ -92,20 +92,6 @@ class IchimokuAlgorithm(Algorithm):
                     self.sell_trigger = True
                     self.sell_limit_price = self.data[-1]['Low']
 
-                if self.sequential_trade:
-                    if self.role == 2 and self.pre_signal == 1:
-                        if self.data[-2]['Close'] < self.ichimoku.result['TenkanSen'][-2] and \
-                                self.ichimoku.result['TenkanSen'][-1] < self.data[-1]['Close']:
-                            self.sell_trigger = False
-                            self.buy_trigger = True
-                            self.buy_limit_price = self.data[-1]['High']
-                    if self.role == 3 and self.pre_signal == -1:
-                        if self.data[-1]['Close'] < self.ichimoku.result['TenkanSen'][-1] and \
-                                self.ichimoku.result['TenkanSen'][-2] < self.data[-2]['Close']:
-                            self.buy_trigger = False
-                            self.sell_trigger = True
-                            self.sell_limit_price = self.data[-1]['Low']
-
             # Role 3
             if self.role == 3 or self.role == 6:
                 # Lower to Upper
@@ -151,13 +137,27 @@ class IchimokuAlgorithm(Algorithm):
                 if self.role == 9 and self.ich_result['TenkanSen'][-1] < self.ich_result['KijunSen'][-1]:
                     self.buy_trigger = False
 
-                elif self.data[-1]['Close'] < min_cloud and min_cloud < self.data[-2]['Close']:
+                if self.data[-1]['Close'] < min_cloud and min_cloud < self.data[-2]['Close']:
                     self.buy_trigger = False
                     self.sell_trigger = True
                     self.sell_limit_price = self.data[-1]['Low']
 
                 if self.role == 9 and self.ich_result['TenkanSen'][-1] > self.ich_result['KijunSen'][-1]:
                     self.sell_trigger = False
+
+            if self.sequential_trade:
+                if self.role != 1 and self.pre_signal == 1:
+                    if self.data[-2]['Close'] < self.ichimoku.result['TenkanSen'][-2] and \
+                            self.ichimoku.result['TenkanSen'][-1] < self.data[-1]['Close']:
+                        self.sell_trigger = False
+                        self.buy_trigger = True
+                        self.buy_limit_price = self.data[-1]['High']
+                if self.role != 1 and self.pre_signal == -1:
+                    if self.data[-1]['Close'] < self.ichimoku.result['TenkanSen'][-1] and \
+                            self.ichimoku.result['TenkanSen'][-2] < self.data[-2]['Close']:
+                        self.buy_trigger = False
+                        self.sell_trigger = True
+                        self.sell_limit_price = self.data[-1]['Low']
 
         self.data.append(candle)
 
@@ -171,6 +171,9 @@ class IchimokuAlgorithm(Algorithm):
                 self.sell_trigger = False
                 self.pre_signal = -1
                 return -1, self.sell_limit_price
+
+        if signal != 0:
+            self.pre_signal = signal
 
         return signal, price
 

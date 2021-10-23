@@ -18,18 +18,18 @@ account_management_list = ['Balance', 'Risk', 'Fix']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['EURUSD']
+    symbols = ['GBPUSD']
     management_ratio = [2]
     history_size = 500
     algorithm_time_frame = "H4"
     trailing_time_frame = "H4"
-    tag = "Ichimoku"
+    tag = "ExtremumTrendBreak"
 
-    algorithm_name = 'Ichimoku'
+    algorithm_name = 'Doji'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
-    close_mode = 'trailing'
-    tp_sl_name = 'Fix'
+    close_mode = 'tp_sl'
+    tp_sl_name = 'Body'
     trailing_name = 'ReverseSignal'
     account_management_name = 'Balance'
 
@@ -133,7 +133,7 @@ class InstanceConfig:
             alpha = 2
             mode = 1  # 1: body candle, 2: total candle
             tp_disable = False
-            sl_disable = True
+            sl_disable = False
 
             self.tp_sl_tool = Body(window, alpha, mode, tp_disable, sl_disable)
         elif tp_sl_name == 'Extremum':
@@ -220,6 +220,10 @@ class InstanceConfig:
         # # Account Management Section
         # IF Risk : 1% loss per trade if 1 , IF Balance : 0.01 LOT for each 1000 dollar if 1 , IF Fix : 1 lot if 1
         self.management_ratio = management_ratio
+        if params is not None:
+            account_management_name = params['AccountManagement']
+            self.management_ratio = params['ManagementRatio']
+
         if account_management_name == 'Balance':
             from AlgorithmFactory.AccountManagment.BalanceManagement import BalanceManagement
             self.account_management = BalanceManagement(self.management_ratio)
@@ -475,7 +479,7 @@ class InstanceConfig:
                                              extremum_window_step, extremum_mode, check_window, alpha, beta)
         elif algorithm_name == "Ichimoku":
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 1
+            role = 9
             tenkan = 9
             kijun = 26
             senkou_span_projection = 26
@@ -483,7 +487,7 @@ class InstanceConfig:
             n = 9*16
             m = 0.4
             time_frame = "H4"
-            sequential_trade = False
+            sequential_trade = True
             komu_cloud_filter = False
 
             if params is not None:
