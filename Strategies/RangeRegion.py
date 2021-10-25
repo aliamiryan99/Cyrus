@@ -5,14 +5,17 @@ from Shared.Variables import Variables
 from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 from AlgorithmFactory.AlgorithmTools.Range import *
 
+from Indicators.MA import MovingAverage
+
 from Converters.Tools import *
 import copy
 
 
 class RangeRegion(Strategy):
     def __init__(self, market, bid_data, ask_data, symbol, range_candle_threshold, up_timeframe, stop_target_margin, type1_enable,
-                 type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles, account_management,
-                 management_ratio, risk_free_enable, risk_free_price_percent, risk_free_volume_percent):
+                 type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles, ma_filter_enable, ma_period,
+                 ma_type, account_management, management_ratio, risk_free_enable, risk_free_price_percent,
+                 risk_free_volume_percent,):
         super().__init__(market, bid_data, ask_data)
         self.symbol = symbol
         self.next_time_frame = up_timeframe
@@ -25,6 +28,8 @@ class RangeRegion(Strategy):
         self.risk_free_enable = risk_free_enable
         self.risk_free_price_percent = risk_free_price_percent
         self.risk_free_volume_percent = risk_free_volume_percent
+        self.ma_filter_enable = ma_filter_enable
+        self.ma_period = ma_period
 
         self.buy_position_triggered = False
         self.sell_position_triggered = False
@@ -40,6 +45,8 @@ class RangeRegion(Strategy):
         elif account_management == "Fix":
             from AlgorithmFactory.AccountManagment.FixVolume import FixVolume
             self.account_management = FixVolume(management_ratio)
+
+        self.ma_o = MovingAverage(self.bid_data[:-1], ma_type, "Close", ma_period)
 
         self.next_data = aggregate_data(bid_data, self.next_time_frame)[:-1]
 
@@ -93,6 +100,9 @@ class RangeRegion(Strategy):
         self.last_next_candle['Close'] = self.bid_data[-1]['Close']
         self.last_next_candle['Volume'] += self.bid_data[-1]['Volume']
 
+        if self.ma_filter_enable:
+            self.ma_o.update(self.bid_data)
+
         self.extend_results = get_new_result_index(self.results, self.next_data, self.bid_data, self.next_time_frame)
         get_proximal_region(self.bid_data, self.extend_results)
 
@@ -109,25 +119,31 @@ class RangeRegion(Strategy):
                 volume = self.account_management.calculate(self.market.get_balance(), self.symbol, price,
                                                            self.breakouts_result[-1]['StopPrice'])
                 if self.breakouts_result[-1]['TargetPrice'] > self.breakouts_result[-1]['StartPrice']:
-                    if self.risk_free_enable:
-                        tp1 = sl * (self.risk_free_price_percent/100)
-                        volume1 = volume * (self.risk_free_volume_percent/100)
-                        volume2 = volume - volume1
-                        self.market.buy(price, self.symbol, tp1, sl, volume1)
-                        self.market.buy(price, self.symbol, tp, sl, volume2)
-                        self.buy_position_triggered = True
+                    if self.ma_filter_enable and self.ma_o.values[-1] > self.bid_data[-1]['Close']:
+                        pass
                     else:
-                        self.market.buy(price, self.symbol, tp, sl, volume)
+                        if self.risk_free_enable:
+                            tp1 = sl * (self.risk_free_price_percent/100)
+                            volume1 = volume * (self.risk_free_volume_percent/100)
+                            volume2 = volume - volume1
+                            self.market.buy(price, self.symbol, tp1, sl, volume1)
+                            self.market.buy(price, self.symbol, tp, sl, volume2)
+                            self.buy_position_triggered = True
+                        else:
+                            self.market.buy(price, self.symbol, tp, sl, volume)
                 else:
-                    if self.risk_free_enable:
-                        tp1 = sl * (self.risk_free_price_percent / 100)
-                        volume1 = volume * (self.risk_free_volume_percent / 100)
-                        volume2 = volume - volume1
-                        self.market.sell(price, self.symbol, tp1, sl, volume1)
-                        self.market.sell(price, self.symbol, tp, sl, volume2)
-                        self.sell_position_triggered = True
+                    if self.ma_filter_enable and self.ma_o.values[-1] < self.bid_data[-1]['Close']:
+                        pass
                     else:
-                        self.market.sell(price, self.symbol, tp, sl, volume)
+                        if self.risk_free_enable:
+                            tp1 = sl * (self.risk_free_price_percent / 100)
+                            volume1 = volume * (self.risk_free_volume_percent / 100)
+                            volume2 = volume - volume1
+                            self.market.sell(price, self.symbol, tp1, sl, volume1)
+                            self.market.sell(price, self.symbol, tp, sl, volume2)
+                            self.sell_position_triggered = True
+                        else:
+                            self.market.sell(price, self.symbol, tp, sl, volume)
 
         # Update next data and detect range_regions
         new_id = get_time_id(bid_candle['Time'], self.next_time_frame)

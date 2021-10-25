@@ -4,16 +4,22 @@ from Visualization.Visualizer import Visualizer
 from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 from AlgorithmFactory.AlgorithmTools.Range import *
 
+from Indicators.MA import MovingAverage
+
 from Visualization.BaseChart import *
 
 
 class RangeRegion(Visualizer):
 
     def __init__(self, symbol, data, range_candle_threshold, up_timeframe, stop_target_margin, type1_enable,
-                 type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles):
+                 type2_enable, one_stop_in_region, candle_breakout_threshold, max_candles, ma_enable, ma_type,
+                 ma_period):
         self.data = data
+        self.ma_enable = ma_enable
 
         next_time_frame = up_timeframe
+
+        self.ma_o = MovingAverage(self.data, ma_type, "Close", ma_period)
 
         self.next_data = aggregate_data(data, next_time_frame)
 
@@ -51,6 +57,10 @@ class RangeRegion(Visualizer):
                 fig.patch([result['X'], result['X'], result['Y'], result['Y']],
                           [result['StartPrice'], result['TargetPrice'], result['TargetPrice'],
                            result['StartPrice']], alpha=0.5, color="blue")
+
+        # Moving Average
+        if self.ma_enable:
+            fig.line(x=list(np.arange(len(self.data))), y=self.ma_o.values, color="blue", width=1)
 
         show(fig)
 

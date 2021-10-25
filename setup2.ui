@@ -170,7 +170,7 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>100</y>
+      <y>80</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -192,7 +192,7 @@
     <property name="geometry">
      <rect>
       <x>330</x>
-      <y>160</y>
+      <y>120</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -235,7 +235,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>90</y>
+      <y>70</y>
       <width>311</width>
       <height>51</height>
      </rect>
@@ -320,7 +320,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>150</y>
+      <y>110</y>
       <width>311</width>
       <height>51</height>
      </rect>
@@ -405,7 +405,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>210</y>
+      <y>150</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -490,7 +490,7 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>220</y>
+      <y>160</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -511,8 +511,8 @@
    <widget class="QCheckBox" name="type1_enable_ckb">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>420</y>
+      <x>390</x>
+      <y>290</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -540,8 +540,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>410</y>
+      <x>30</x>
+      <y>280</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -625,8 +625,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QCheckBox" name="type2_enable_ckb">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>490</y>
+      <x>390</x>
+      <y>340</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -654,8 +654,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>480</y>
+      <x>30</x>
+      <y>330</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -739,8 +739,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QCheckBox" name="one_stop_loss_allowed_ckb">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>550</y>
+      <x>390</x>
+      <y>380</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -768,8 +768,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="label_10">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>540</y>
+      <x>30</x>
+      <y>370</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -1401,8 +1401,8 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
    <widget class="QLabel" name="message_lbl">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>610</y>
+      <x>180</x>
+      <y>630</y>
       <width>651</width>
       <height>51</height>
      </rect>
@@ -1831,7 +1831,7 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>270</y>
+      <y>190</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -1916,7 +1916,7 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>280</y>
+      <y>200</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -1938,7 +1938,7 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>350</y>
+      <y>240</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -1960,7 +1960,7 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>340</y>
+      <y>230</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -2153,6 +2153,335 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
     </property>
     <property name="textFormat">
      <enum>Qt::PlainText</enum>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="ma_filter_ckb">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>420</y>
+      <width>31</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);
+font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>32</width>
+      <height>32</height>
+     </size>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_21">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>410</y>
+      <width>251</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="palette">
+     <palette>
+      <active>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </active>
+      <inactive>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </inactive>
+      <disabled>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </disabled>
+     </palette>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Moving average filter</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::PlainText</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_22">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>450</y>
+      <width>311</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="palette">
+     <palette>
+      <active>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </active>
+      <inactive>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </inactive>
+      <disabled>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </disabled>
+     </palette>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Moving average type</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::PlainText</enum>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="ma_type_cmb">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>460</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="currentText">
+     <string>SMA</string>
+    </property>
+    <item>
+     <property name="text">
+      <string>SMA</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>EMA</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label_23">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>500</y>
+      <width>251</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="palette">
+     <palette>
+      <active>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </active>
+      <inactive>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </inactive>
+      <disabled>
+       <colorrole role="WindowText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="Text">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>120</red>
+          <green>120</green>
+          <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+      </disabled>
+     </palette>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Moving average period</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::PlainText</enum>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="ma_period_spin">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>510</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of candles in higher time frame&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="minimum">
+     <number>1</number>
+    </property>
+    <property name="maximum">
+     <number>1000</number>
+    </property>
+    <property name="value">
+     <number>100</number>
     </property>
    </widget>
   </widget>

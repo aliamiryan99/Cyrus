@@ -54,8 +54,10 @@ class MarketConfig:
 
             type1_enable = True
             type2_enable = True
-
             one_stop_in_region = False
+            ma_filter_enable = True
+            ma_type = "SMA"
+            ma_period = 200
 
             account_management = 'Risk'
             management_ratio = 1
@@ -73,6 +75,9 @@ class MarketConfig:
                 type1_enable = params['Type1Enable']
                 type2_enable = params['Type2Enable']
                 one_stop_in_region = params['OneStopInRegion']
+                ma_filter_enable = params['MaFilterEnable']
+                ma_type = params['MaType']
+                ma_period = params['MaPeriod']
 
                 account_management = params['AccountManagement']
                 management_ratio = params['ManagementRatio']
@@ -82,5 +87,6 @@ class MarketConfig:
 
             self.strategy = RangeRegion(market, bid_data, ask_data, symbol, range_candle_threshold, up_timeframe, stop_target_margin,
                                         type1_enable, type2_enable, one_stop_in_region, candle_breakout_threshold,
-                                        max_candles, account_management, management_ratio, risk_free_enable,
-                                        risk_free_price_percent, risk_free_volume_percent)
+                                        max_candles, ma_filter_enable, ma_period, ma_type, account_management,
+                                        management_ratio, risk_free_enable, risk_free_price_percent,
+                                        risk_free_volume_percent)

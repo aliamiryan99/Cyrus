@@ -25,6 +25,9 @@ class Ui(QtWidgets.QMainWindow):
         self.type1_enable_ckb = self.findChild(QtWidgets.QCheckBox, 'type1_enable_ckb')
         self.type2_enable_ckb = self.findChild(QtWidgets.QCheckBox, 'type2_enable_ckb')
         self.one_stop_loss_allowed_ckb = self.findChild(QtWidgets.QCheckBox, 'one_stop_loss_allowed_ckb')
+        self.ma_filter_ckb = self.findChild(QtWidgets.QCheckBox, 'ma_filter_ckb')
+        self.ma_type_cmb = self.findChild(QtWidgets.QComboBox, 'ma_type_cmb')
+        self.ma_period_spin = self.findChild(QtWidgets.QSpinBox, 'ma_period_spin')
 
 
         self.symbol_cmb = self.findChild(QtWidgets.QComboBox, 'symbol_cmb')
@@ -79,6 +82,9 @@ class Ui(QtWidgets.QMainWindow):
                   'StopTargetMargin': self.tp_sl_margin_spin.value(), 'Type1Enable': self.type1_enable_ckb.isChecked(),
                   'Type2Enable': self.type2_enable_ckb.isChecked(),
                   'OneStopInRegion': self.one_stop_loss_allowed_ckb.isChecked(),
+                  'MaFilterEnable': self.ma_filter_ckb.isChecked(),
+                  'MaType': self.ma_type_cmb.currentText(),
+                  'MaPeriod': self.ma_period_spin.value(),
                   'AccountManagement': self.account_management_cmb.currentText(),
                   'ManagementRatio': self.management_ratio_spin.value(),
                   'RiskFreeEnable': self.risk_free_enable_ckb.isChecked(),

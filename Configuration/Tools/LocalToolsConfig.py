@@ -114,8 +114,10 @@ class ChartConfig:
 
             type1_enable = True
             type2_enable = True
-
             one_stop_in_region = False
+            ma_enable = True
+            ma_type = "SMA"
+            ma_period = 200
 
             if params is not None:
                 range_candle_threshold = params['RangeCandleThreshold']
@@ -126,10 +128,13 @@ class ChartConfig:
                 type1_enable = params['Type1Enable']
                 type2_enable = params['Type2Enable']
                 one_stop_in_region = params['OneStopInRegion']
+                ma_enable = params['MaFilterEnable']
+                ma_type = params['MaType']
+                ma_period = params['MaPeriod']
 
             self.visualizer = RangeRegion(self.symbol, data, range_candle_threshold, up_timeframe, stop_target_margin,
                                           type1_enable, type2_enable, one_stop_in_region, candle_breakout_threshold,
-                                          max_candles)
+                                          max_candles, ma_enable, ma_type, ma_period)
         elif visualizer == "RsiPattern":
             from Visualization.RsiPattern import RsiPattern
             indicator_params = {'Name': 'RSI', 'Window': 14}

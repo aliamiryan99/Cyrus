@@ -23,12 +23,12 @@ class InstanceConfig:
     history_size = 500
     algorithm_time_frame = "H4"
     trailing_time_frame = "H4"
-    tag = "ExtremumTrendBreak"
+    tag = "Ichimoku"
 
-    algorithm_name = 'Doji'
+    algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
-    close_mode = 'tp_sl'
+    close_mode = 'trailing'
     tp_sl_name = 'Body'
     trailing_name = 'ReverseSignal'
     account_management_name = 'Balance'
