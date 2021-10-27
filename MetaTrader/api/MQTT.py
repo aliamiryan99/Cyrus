@@ -277,6 +277,8 @@ class DWX_ZeroMQ_Connector():
 
     # Convenience functions to permit easy trading via underlying functions.
 
+
+
     # OPEN ORDER
     def _DWX_MTX_NEW_TRADE_(self, _order=None):
 
@@ -381,6 +383,15 @@ class DWX_ZeroMQ_Connector():
                   '_ticket': 0})
 
     ##########################################################################
+
+    # Take Screen Shoot
+    def TAKE_SCREEN_SHOOT(self, _name, _symbol='EURUSD'):
+        _msg = "{};{};{}".format('TAKE_SCREEN_SHOOT',
+                                    _symbol,
+                                    _name)
+
+        # Send via PUSH Socket
+        self.remote_send(self._PUSH_SOCKET, _msg)
 
     """
     Function to construct messages for sending HIST commands to MetaTrader

@@ -18,11 +18,11 @@ account_management_list = ['Balance', 'Risk', 'Fix']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['GBPUSD']
-    management_ratio = [2]
+    symbols = ['GBPUSD.I', 'EURUSD.I', 'XAUUSD.I']
+    management_ratio = [2, 2, 2]
     history_size = 500
-    algorithm_time_frame = "H4"
-    trailing_time_frame = "H4"
+    algorithm_time_frame = "M1"
+    trailing_time_frame = "M1"
     tag = "Ichimoku"
 
     algorithm_name = 'Ichimoku'
@@ -479,7 +479,7 @@ class InstanceConfig:
                                              extremum_window_step, extremum_mode, check_window, alpha, beta)
         elif algorithm_name == "Ichimoku":
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 9
+            role = 3
             tenkan = 9
             kijun = 26
             senkou_span_projection = 26
@@ -487,7 +487,7 @@ class InstanceConfig:
             n = 9*16
             m = 0.4
             time_frame = "H4"
-            sequential_trade = True
+            sequential_trade = False
             komu_cloud_filter = False
 
             if params is not None:

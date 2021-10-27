@@ -5,7 +5,7 @@ class ChartConfig:
     symbol = "EURUSD"
     time_frame = "H1"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
-    start_date = "12.06.2020 00:00:00.000"
+    start_date = "29.08.2021 00:00:00.000"
     end_date = "19.09.2021 23:00:00.000"
     holidays_show = False
     secondary_fig_height = 300
@@ -13,7 +13,7 @@ class ChartConfig:
                       'Channel', 'RangeRegion', 'RsiPattern']
     visualizer = 'Indicator'
 
-    with_back_test = True
+    with_back_test = False
     backtest = ["H1", "Ichimoku", "Ichimoku"]
 
     def __init__(self, data, visualizer, params=None):
