@@ -8,7 +8,7 @@ from Configuration.Trade.OnlineConfig import Config
 # Other required imports
 #############################################################################
 
-from threading import Thread, Lock
+from threading import Lock
 from time import sleep
 from datetime import datetime
 import pandas as pd
@@ -66,11 +66,15 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
         # lock for acquire/release of ZeroMQ connector
         self._lock = Lock()
 
+        self.start_time = datetime.now()
+        self.spend_time = datetime.now() - datetime.now()
+
     def on_pull_data(self, msg):
-        pass
+        print(f"Pull {datetime.now()}")
 
     def on_sub_data(self, msg):
         # split msg to get topic and message
+        start_sub = datetime.now()
         symbol, data = msg.split("&")
         # print('Input on Topic={} with Message={}'.format(symbol, msg))
         time, bid, ask = data.split(';')
@@ -79,6 +83,7 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
         time = datetime.strptime(time, Config.tick_date_format)
 
         self.update_history(time, symbol, bid, ask)
+        self.spend_time += (datetime.now() - start_sub)
         ##########################################################################
 
     def update_history(self, time, symbol, bid, ask):
@@ -94,6 +99,10 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
             self.tool.on_data(self.history[-1])
             print(symbol)
             print(pd.DataFrame(self.history[-2:-1]))
+            print(f"Spend Time : {self.spend_time}")
+            print(f"Pull Spend Time : {self.connector.spend_time}")
+            print(f"Sleep Spend Time : {self.connector.sleep_time}")
+            print(f"Total Time : {datetime.now() - self.start_time}")
             print("________________________________________________________________________________")
         else:
             # Update Last Candle Section
@@ -165,4 +174,4 @@ if __name__ == "__main__":
 
     print('Chart tool is running...')
     while not launcher.is_finished():
-        sleep(1)
+        sleep(100)

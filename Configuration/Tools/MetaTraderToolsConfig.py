@@ -9,7 +9,7 @@ class ChartConfig:
     candles = 2000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
                  "RangeRegion"]
-    tool_name = 'RangeRegion'
+    tool_name = 'Channels'
 
     def __init__(self, symbol, data, tool_name, params=None):
 

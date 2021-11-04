@@ -18,12 +18,13 @@ account_management_list = ['Balance', 'Risk', 'Fix']
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['GBPUSD.I', 'EURUSD.I', 'XAUUSD.I']
-    management_ratio = [2, 2, 2]
+    symbols = ['GBPUSD.I', 'EURUSD.I', 'XAUUSD.I', 'AUDUSD.I', 'NZDUSD.I', 'USDCAD.I', 'USDCHF.I', 'USDJPY.I', 'BTC',
+               'US30.DEC1', 'LTC', 'ETH']
+    management_ratio = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     history_size = 500
-    algorithm_time_frame = "M1"
-    trailing_time_frame = "M1"
-    tag = "Ichimoku"
+    algorithm_time_frame = "H1"
+    trailing_time_frame = "H1"
+    tag = "Ichimoku : tenkan sen and kijun sen cross"
 
     algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'

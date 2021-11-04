@@ -26,7 +26,11 @@ class DWX_ZMQ_Strategy(object):
                  _broker_gmt=3,                 # Darwinex GMT offset
                  _pulldata_handlers=[],       # Handlers to process Data received through PULL port.
                  _subdata_handlers=[],        # Handlers to process Data received through SUB port.
-                 _verbose=False):               # Print ZeroMQ messages
+                 _verbose=False,
+                 _PUSH_PORT=32768,  # Port for Sending commands
+                 _PULL_PORT=32769,  # Port for Receiving responses
+                 _SUB_PORT=32770,
+                 ):               # Print ZeroMQ messages
                  
         self._name = _name
         self._symbols = _symbols
@@ -35,7 +39,11 @@ class DWX_ZMQ_Strategy(object):
         # Not entirely necessary here.
         self._zmq = DWX_ZeroMQ_Connector(_pulldata_handlers=_pulldata_handlers,
                                          _subdata_handlers=_subdata_handlers,
-                                         _verbose=_verbose)
+                                         _verbose=_verbose,
+                                         _PUSH_PORT=_PUSH_PORT,  # Port for Sending commands
+                                         _PULL_PORT=_PULL_PORT,  # Port for Receiving responses
+                                         _SUB_PORT=_SUB_PORT,
+                                         )
         
         # Modules
         self._execution = DWX_ZMQ_Execution(self._zmq)

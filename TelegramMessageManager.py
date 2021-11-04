@@ -50,7 +50,11 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
                          _broker_gmt,
                          [self],  # Registers itself as handler of pull Data via self.onPullData()
                          [self],  # Registers itself as handler of sub Data via self.onSubData()
-                         _verbose)
+                         _verbose,
+                         _PUSH_PORT=32771,  # Port for Sending commands
+                         _PULL_PORT=32772,  # Port for Receiving responses
+                         _SUB_PORT=32773,
+                         )
 
         # This strategy's variables
         self._symbols = _symbols
@@ -219,10 +223,37 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
                 if self.is_algorithm_signal[symbol] == 1:
                     print("Buy screen shoot taken")
                     print("________________________________________________________________________________")
-                    message = f"Buy \nSymbol : {symbol} \nTime : {time} \nPrice : {price} TP: {take_profit_buy} , SL: {stop_loss_buy}"
+                    message = f"Buy \nSymbol : {symbol} \nTime : {self.signal_time[symbol]} \nPrice : {self.signal_price[symbol]}\n"
+                    tp_sl_line = False
+                    if self.signal_tp[symbol] != 0:
+                        message += f"TP: {self.signal_tp[symbol]} "
+                        tp_sl_line = True
+                    if self.signal_sl[symbol] != 0:
+                        message += f"SL: {self.signal_sl[symbol]} "
+                        tp_sl_line = True
+                    if tp_sl_line:
+                        message += "\n"
+                    message += f"{InstanceConfig.tag}"
+                    sleep(2)
+                    self.send_telegram_photo(data['_name'])
                     self.send_telegram_message(message)
                 elif self.is_algorithm_signal[data['_symbol']] == -1:
-                    print("Sell")
+                    print("Sell screen shoot taken")
+                    print("________________________________________________________________________________")
+                    message = f"Sell \nSymbol : {symbol} \nTime : {self.signal_time[symbol]} \nPrice : {self.signal_price[symbol]}\n"
+                    tp_sl_line = False
+                    if self.signal_tp[symbol] != 0:
+                        message += f"TP: {self.signal_tp[symbol]} "
+                        tp_sl_line = True
+                    if self.signal_sl[symbol] != 0:
+                        message += f"SL: {self.signal_sl[symbol]} "
+                        tp_sl_line = True
+                    if tp_sl_line:
+                        message += "\n"
+                    message += f"{InstanceConfig.tag}"
+                    sleep(2)
+                    self.send_telegram_photo(data['_name'])
+                    self.send_telegram_message(message)
 
         else:
             print(data)
@@ -299,8 +330,6 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
             self.re_entrance_sent[symbol] = False
             self._trailing_tools[symbol].on_data(self._trailing_histories[symbol][:-1])
             self._re_entrance_algorithms[symbol].on_data()
-            self._reporting._get_balance()
-            self._reporting._get_equity()
         else:
             # Update Last Candle Section
             self.update_candle_with_tick(self._trailing_histories[symbol][-1], bid)
@@ -359,8 +388,13 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
                             print(f"Buy Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
                             print("________________________________________________________________________________")
                             self.is_algorithm_signal[symbol] = 1
+                            self.signal_time[symbol] = time
+                            self.signal_price[symbol] = price
+                            self.signal_tp[symbol] = take_profit_buy
+                            self.signal_sl[symbol] = stop_loss_buy
 
-                            self._zmq.TAKE_SCREEN_SHOOT("Test")
+                            name = f"{symbol}_{InstanceConfig.algorithm_name}"
+                            self._zmq.TAKE_SCREEN_SHOOT(name, _symbol=symbol)
 
                             # message = f"Buy \nSymbol : {symbol} \nTime : {time} \nPrice : {price} TP: {take_profit_buy} , SL: {stop_loss_buy}"
                             # self.send_telegram_message(message)
@@ -386,8 +420,13 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
                             print(f"Sell Order Sent [{symbol}], [{volume}], [{take_profit_buy}], [{stop_loss_buy}]")
                             print("________________________________________________________________________________")
                             self.is_algorithm_signal[symbol] = -1
+                            self.signal_time[symbol] = time
+                            self.signal_price[symbol] = price
+                            self.signal_tp[symbol] = take_profit_sell
+                            self.signal_sl[symbol] = stop_loss_sell
 
-                            self._zmq.TAKE_SCREEN_SHOOT("Test")
+                            name = f"{symbol}_{InstanceConfig.algorithm_name}"
+                            self._zmq.TAKE_SCREEN_SHOOT(name, _symbol=symbol)
 
                             # message = f"Sell \nSymbol : {symbol} \nTime : {time} \nPrice : {price} TP: {take_profit_sell} , SL: {stop_loss_sell}"
                             # self.send_telegram_message(message)

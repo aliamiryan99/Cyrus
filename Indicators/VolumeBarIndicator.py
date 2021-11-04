@@ -1,5 +1,6 @@
 
 import numpy as np
+import datetime
 
 
 class VolumeBar:
@@ -22,7 +23,9 @@ class VolumeBar:
         if self.cum_value == int(thr) or is_new_week:
 
             price_value = ((self.buffer_data['Ask'] + self.buffer_data['Bid'])/2)
-            time_value = self.buffer_data['Time'][0]
+            time_value = self.buffer_data['Time'][-1]
+            start_time = self.buffer_data['Time'][0]
+            middle_time = self.buffer_data['Time'][len(self.buffer_data['Time'])//2]
             open_value = price_value[0]
             high_value = np.max(price_value)
             low_value = np.min(price_value)
@@ -37,7 +40,8 @@ class VolumeBar:
                 self.base_time = time_value
                 x = 0
 
-            self.total_data.append({'Time': time_value, 'Open': open_value, 'High': high_value, 'Low': low_value,
+            self.total_data.append({'StartTime': start_time, 'MiddleTime': middle_time, 'Time': time_value,
+                                    'Open': open_value, 'High': high_value, 'Low': low_value,
                                     'Close': close_value, 'WAP': WAP, 'Volume': self.cum_value, 'CandleXCenter': x})
 
 
@@ -54,3 +58,12 @@ class VolumeBar:
 
         x = ((time - self.base_time) - (time_diff - self.base_diff)).total_seconds() / 3600
         return x
+
+    def get_time_of_candle_x_center(self, candle_x_cneter):
+        seconds = (candle_x_cneter * 3600)
+        hours = seconds // 3600
+        minutes = (seconds - seconds // 3600) // 60
+        seconds = seconds % 60
+        hours_added = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+        new_time = self.base_time + hours_added
+        return new_time

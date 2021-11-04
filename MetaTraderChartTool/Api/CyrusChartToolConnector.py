@@ -6,6 +6,7 @@ from threading import Thread
 
 # 30-07-2019 10:58 CEST
 from zmq.utils.monitor import recv_monitor_message
+from datetime import datetime
 
 
 class ChartToolConnector:
@@ -26,7 +27,7 @@ class ChartToolConnector:
                  _subdata_handlers=[],    # Handlers to process Data received through SUB port.
                  _verbose=True,             # String delimiter
                  _poll_timeout=1000,        # ZMQ Poller Timeout (ms)
-                 _sleep_delay=0.001,        # 1 ms for time.sleep()
+                 _sleep_delay=0.0001,        # 0.1 ms for time.sleep()
                  _monitor=False):           # Experimental ZeroMQ Socket Monitoring
 
         ######################################################################
@@ -122,6 +123,9 @@ class ChartToolConnector:
                                                self._poll_timeout,))
         self._MarketData_Thread.daemon = True
         self._MarketData_Thread.start()
+
+        self.spend_time = datetime.now() - datetime.now()
+        self.sleep_time = datetime.now() - datetime.now()
 
         ###########################################
         # Enable/Disable ZeroMQ Socket Monitoring #
@@ -367,10 +371,19 @@ class ChartToolConnector:
                            string_delimiter=';',
                            poll_timeout=1000):
 
+        sleep(0.01)
+
         while self._ACTIVE:
 
-            sleep(self._sleep_delay) # poll timeout is in ms, sleep() is s.
+            start_sleep = datetime.now()
 
+            j = 0
+            for i in range(1000):
+                j += 1
+
+            self.sleep_time += datetime.now() - start_sleep
+
+            start_time = datetime.now()
             sockets = dict(self._poller.poll(poll_timeout))
 
             # Process response to commands sent to MetaTrader
@@ -452,6 +465,8 @@ class ChartToolConnector:
                     pass # No Data returned, passing iteration.
                 except UnboundLocalError:
                     pass # _symbol may sometimes get referenced before being assigned.
+
+            self.spend_time += datetime.now() - start_time
 
         print("\n++ [KERNEL] _DWX_ZMQ_Poll_Data_() Signing Out ++")
 

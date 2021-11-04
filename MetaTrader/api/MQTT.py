@@ -17,6 +17,7 @@ import zmq
 from time import sleep
 from pandas import DataFrame, Timestamp
 from threading import Thread
+from datetime import datetime
 
 # 30-07-2019 10:58 CEST
 from zmq.utils.monitor import recv_monitor_message
@@ -37,8 +38,8 @@ class DWX_ZeroMQ_Connector():
                  _pulldata_handlers = [],   # Handlers to process Data received through PULL port.
                  _subdata_handlers = [],    # Handlers to process Data received through SUB port.
                  _verbose=True,             # String delimiter
-                 _poll_timeout=1000,        # ZMQ Poller Timeout (ms)
-                 _sleep_delay=0.001,        # 1 ms for time.sleep()
+                 _poll_timeout=10000,        # ZMQ Poller Timeout (ms)
+                 _sleep_delay=0.0001,        # 1 ms for time.sleep()
                  _monitor=False):           # Experimental ZeroMQ Socket Monitoring
 
         ######################################################################
@@ -137,6 +138,8 @@ class DWX_ZeroMQ_Connector():
                                                self._poll_timeout,))
         self._MarketData_Thread.daemon = True
         self._MarketData_Thread.start()
+
+        self.spend_time = datetime.now() - datetime.now()
 
         ###########################################
         # Enable/Disable ZeroMQ Socket Monitoring #
@@ -521,6 +524,7 @@ class DWX_ZeroMQ_Connector():
 
             sleep(self._sleep_delay) # poll timeout is in ms, sleep() is s.
 
+            start_time = datetime.now()
             sockets = dict(self._poller.poll(poll_timeout))
 
             # Process response to commands sent to MetaTrader
@@ -602,6 +606,8 @@ class DWX_ZeroMQ_Connector():
                     pass # No Data returned, passing iteration.
                 except UnboundLocalError:
                     pass # _symbol may sometimes get referenced before being assigned.
+
+            self.spend_time += datetime.now() - start_time
 
         print("\n++ [KERNEL] _DWX_ZMQ_Poll_Data_() Signing Out ++")
 
