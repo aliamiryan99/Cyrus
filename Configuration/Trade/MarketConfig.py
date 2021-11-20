@@ -8,13 +8,13 @@ class MarketConfig:
     market = "Simulator"    # 'Simulator' , 'MetaTrader'
 
     symbols = ["EURUSD"]
-    tag = "RangeRegion"
+    tag = "EURUSD"
 
-    time_frame = "H1"
-    history_size = 1000
+    time_frame = "M30"
+    history_size = 200
 
-    strategies = ['NeuralNetwork', 'SimpleIdea', 'RangeRegion']
-    strategy_name = 'RangeRegion'
+    strategies = ['NeuralNetwork', 'SimpleIdea', 'RangeRegion', 'DirectRLVPooyan']
+    strategy_name = 'DirectRLVPooyan'
 
     def __init__(self, market: Market, symbol, bid_data, ask_data, strategy_name, params=None):
 
@@ -90,3 +90,14 @@ class MarketConfig:
                                         max_candles, ma_filter_enable, ma_period, ma_type, account_management,
                                         management_ratio, risk_free_enable, risk_free_price_percent,
                                         risk_free_volume_percent)
+        if strategy_name == "DirectRLVPooyan":
+            from Strategies.DirectRLVPooyan import DirectRLVPooyan
+
+            input_shape = 8
+            weights = [0.009222261, -0.014876936, -0.011727244, 0.016797503, -0.026659025, -0.015411552, -0.001764283, 0.037169577]
+            # [-0.022754631, -0.012325789, -0.044426516, 0.022545825, 0.055269639, -0.027307641, -0.061036172, 0.120108635]
+            bias = -0.004313122
+            feedback_link = -0.000135494
+            data_std = 0.000591
+
+            self.strategy = DirectRLVPooyan(market, bid_data, ask_data, symbol, input_shape, weights, bias, feedback_link, data_std)

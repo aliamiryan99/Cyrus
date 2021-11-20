@@ -15,7 +15,7 @@ class Channels(Tool):
 
         if type == 'monotone':
             self.up_channels, self.down_channels = get_channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha)
-        elif type == 'parallel':
+        elif type == 'betweenness':
             self.up_channels, self.down_channels = get_parallel_channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha)
 
     def draw(self, chart_tool: BasicChartTools):

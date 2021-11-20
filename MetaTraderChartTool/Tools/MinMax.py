@@ -5,8 +5,10 @@ from AlgorithmFactory.AlgorithmTools.CandleTools import *
 
 from AlgorithmFactory.AlgorithmPackages.MinMaxTrend import MinMaxTrend
 
+from MetaTraderChartTool.Tools.Tool import Tool
 
-class MinMax:
+
+class MinMax(Tool):
 
     def __init__(self, data, extremum_window, extremum_mode, extremum_show):
         super().__init__(data)

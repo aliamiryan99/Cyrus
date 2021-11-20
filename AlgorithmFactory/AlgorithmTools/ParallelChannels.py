@@ -13,7 +13,7 @@ def get_parallel_channels(data, extremum_start_window, extremum_end_window, extr
         price_up, price_down = bottom, top
 
     up_channels, down_channels = [], []
-    for window in range(extremum_start_window, extremum_end_window, extremum_window_step):
+    for window in range(extremum_start_window, extremum_end_window+1, extremum_window_step):
         local_min, local_max = get_local_extermums(data, window, extremum_mode)
         min_pointer, max_pointer = check_window-1, check_window-1
         while min_pointer < len(local_min) and max_pointer < len(local_max):

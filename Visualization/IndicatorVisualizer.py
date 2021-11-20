@@ -148,25 +148,3 @@ class IndicatorVisualizer(Visualizer):
         figs = [fig]
         figs += indicator_fig_list
         show(column(figs, sizing_mode='stretch_both'))
-
-        plt.style.use('ggplot')
-        ohlc = data_df.loc[:, ['Time', 'Open', 'High', 'Low', 'Close']]
-        ohlc['Time'] = ohlc['Time'].apply(mpl_dates.date2num)
-        ohlc = ohlc.astype(float)
-        fig, ax = plt.subplots()
-        candlestick_ohlc(ax, ohlc.values, width=0.6, colorup='green', colordown='red', alpha=0.8)
-
-        ohlc['SMA5'] = ohlc['Close'].rolling(5).mean()
-        ax.plot(ohlc['Time'], ohlc['SMA5'], color='green', label='SMA5')
-
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Price')
-        fig.suptitle('Ichimoku')
-
-        date_format = mpl_dates.DateFormatter('%d-%m-%Y')
-        ax.xaxis.set_major_formatter(date_format)
-        fig.autofmt_xdate()
-        fig.tight_layout()
-
-        plt.show()
-        plt.imsave("Indicator.png")

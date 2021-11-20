@@ -1,0 +1,141 @@
+
+from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
+
+
+from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
+from AlgorithmFactory.AlgorithmTools.SR.SR_Levels_Functions import *
+from AlgorithmFactory.AlgorithmTools.SR.SR_Lines_Functions import *
+from AlgorithmFactory.AlgorithmTools.DataFormatters import dictionary_list_to_list_dictionary
+from Configuration.Trade.OnlineConfig import Config
+
+from AlgorithmFactory.AlgorithmTools.Channels import coordinate_lines
+
+
+class SR(RealTimeTool):
+
+    def __init__(self, chart_tool: BasicChartTools, data, symbol, tf1, tf2, tf3, mode):
+        super().__init__(chart_tool, data)
+
+        self.data = data
+        self.mode = mode
+        self.symbol = symbol
+        self.tf1, self.tf2, self.tf3 = tf1, tf2, tf3
+        self.cnt = 0
+        self.cnt_tr = 10
+
+        if mode == "Dynamic":
+            self.data2 = aggregate_data(self.data, tf2)
+            self.data3 = aggregate_data(self.data, tf3)
+
+            self.data1 = self.data[-len(self.data3):]
+            self.data2 = self.data2[-len(self.data3):]
+
+            self.sr_data1 = dictionary_list_to_list_dictionary(self.data1)
+            self.sr_data2 = dictionary_list_to_list_dictionary(self.data2)
+            self.sr_data3 = dictionary_list_to_list_dictionary(self.data3)
+
+            self.sr_levels = Dynamic_SR_levels(self.sr_data1, self.sr_data2, self.sr_data3,
+                                               10 ** -(Config.symbols_pip[symbol] - 1))
+            self.draw_lines()
+            self.pre_sr_levels = self.sr_levels
+        elif mode == "Static":
+            self.sr_data1 = dictionary_list_to_list_dictionary(self.data)
+
+            self.sr_levels = Static_SR_levels(self.sr_data1)[0]
+            self.draw_lines()
+            self.pre_sr_levels = self.sr_levels
+        elif mode == "OSR":
+            self.sr_data1 = dictionary_list_to_list_dictionary(self.data)
+
+            self.osr_lines = Oblique_channel_and_SRLines(self.sr_data1, 10 ** -(Config.symbols_pip[symbol] - 1))
+            self.draw_lines()
+            self.pre_osr_lines = self.osr_lines
+
+    def on_tick(self, time, bid, ask):
+        pass
+
+    def on_data(self, candle):
+        self.data.pop(0)
+
+        self.cnt += 1
+        self.delete_lines()
+        self.calculate()
+        self.draw_lines()
+
+        self.data.append(candle)
+
+    def calculate(self):
+        if self.mode == "Dynamic":
+            if self.cnt >= self.cnt_tr:
+                self.data2 = aggregate_data(self.data, self.tf2)
+                self.data3 = aggregate_data(self.data, self.tf3)
+
+                self.data1 = self.data[-len(self.data3):]
+                self.data2 = self.data2[-len(self.data3):]
+
+                self.sr_data1 = dictionary_list_to_list_dictionary(self.data1)
+                self.sr_data2 = dictionary_list_to_list_dictionary(self.data2)
+                self.sr_data3 = dictionary_list_to_list_dictionary(self.data3)
+
+                self.sr_levels = Dynamic_SR_levels(self.sr_data1, self.sr_data2, self.sr_data3,
+                                                   10 ** -(Config.symbols_pip[self.symbol] - 1))
+                self.cnt = 0
+        elif self.mode == "Static":
+            if self.cnt >= self.cnt_tr:
+                self.sr_data1 = dictionary_list_to_list_dictionary(self.data)
+
+                self.sr_levels = Static_SR_levels(self.sr_data1)[0]
+
+                self.pre_sr_levels = self.sr_levels
+        elif self.mode == "OSR":
+            self.sr_data1 = dictionary_list_to_list_dictionary(self.data)
+
+            self.osr_lines = Oblique_channel_and_SRLines(self.sr_data1, 10 ** -(Config.symbols_pip[self.symbol] - 1))
+
+            self.pre_osr_lines = self.osr_lines
+
+    def draw_lines(self):
+        if self.mode == "OSR":
+            self.coordinate_osr_lines()
+            names, times1, prices1, times2, prices2 = [], [], [], [], []
+            lines_coordinates = self.osr_lines[0]
+            for i in range(len(lines_coordinates)):
+                names.append(f"OSR Line {i}")
+                times1.append(lines_coordinates[i][0])
+                prices1.append(lines_coordinates[i][1])
+                times2.append(lines_coordinates[i][2])
+                prices2.append(lines_coordinates[i][3])
+            self.chart_tool.trend_line(names, times1, prices1, times2, prices2)
+        else:
+            names, prices = [], []
+            for i in range(len(self.sr_levels)):
+                names.append(f"{self.mode} SR Level {i}")
+                prices.append(self.sr_levels[i][1])
+
+    def delete_lines(self):
+        if self.mode == "OSR":
+            names = []
+            lines_coordinates = self.osr_lines[0]
+            for i in range(len(lines_coordinates)):
+                names.append(f"OSR Line {i}")
+            self.chart_tool.delete(names)
+        else:
+            names = []
+            for i in range(len(self.sr_levels)):
+                names.append(f"{self.mode} SR Level {i}")
+            self.chart_tool.delete(names)
+
+    def coordinate_osr_lines(self):
+        lines = self.osr_lines[0]
+        x1 = ((lines[0][2] - lines[0][0]).seconds + (lines[0][2] - lines[0][0]).days * 86400) / 8640000
+        y1 = lines[0][3]
+        m1 = (lines[0][3] - lines[0][1]) / (x1)
+
+        x2 = ((lines[1][2] - lines[0][0]).seconds + (lines[1][2] - lines[0][0]).days * 86400) / 8640000
+        y2 = lines[1][3]
+        m2 = (lines[1][3] - lines[1][1]) / (x2)
+
+        x3, y3 = coordinate_lines(x1, y1, m1, x2, y2, m2)
+        return x3, y3
+

@@ -3,11 +3,8 @@ from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
 
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
-from AlgorithmFactory.AlgorithmTools.Channels import get_channels
-from AlgorithmFactory.AlgorithmTools.ParallelChannels import get_parallel_channels
 
-
-class Channels(RealTimeTool):
+class PivotPoints(RealTimeTool):
 
     def __init__(self, chart_tool: BasicChartTools, data, window, mode):
         super().__init__(chart_tool, data)

@@ -24,7 +24,7 @@ class DWX_ZMQ_Reporting():
     ##########################################################################
     
     def _get_open_trades_(self, _trader='Trader_SYMBOL', 
-                          _delay=0.1, _wbreak=100):
+                          _delay=0.01, _wbreak=10):
         
         # Reset Data output
         self._zmq._set_response_(None)
@@ -60,7 +60,7 @@ class DWX_ZMQ_Reporting():
     
     ##########################################################################
 
-    def _get_balance(self, _delay=0.1, _wbreak=10):
+    def _get_balance(self, _delay=0.01, _wbreak=10):
         # Reset Data output
         self._zmq._set_response_(None)
 
@@ -89,7 +89,7 @@ class DWX_ZMQ_Reporting():
         # Default
         return 0
 
-    def _get_equity(self, _delay=0.1, _wbreak=10):
+    def _get_equity(self, _delay=0.01, _wbreak=10):
         # Reset Data output
         self._zmq._set_response_(None)
 

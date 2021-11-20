@@ -3,7 +3,7 @@ et-xmlfile==1.1.0
 matplotlib==3.4.3
 numpy==1.21.2
 openpyxl==3.0.9
-pandas==1.3.4
+pandas~=1.2.4
 Pillow==8.4.0
 PyQt5==5.15.5
 PyQt5-Qt5==5.15.2
@@ -19,3 +19,12 @@ tornado==6.1
 tqdm==4.62.3
 typing-extensions==3.10.0.2
 zmq==0.0.0
+GPy~=1.10.0
+scipy~=1.7.1
+future~=0.18.2
+PyAutoGUI~=0.9.53
+requests~=2.26.0
+torch~=1.10.0+cu113
+ZigZag~=0.2.2
+sklearn~=0.0
+scikit-learn~=1.0.1

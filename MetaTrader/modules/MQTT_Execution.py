@@ -27,8 +27,8 @@ class DWX_ZMQ_Execution():
     def _execute_(self,
                   _exec_dict,
                   _verbose=False, 
-                  _delay=0.1,
-                  _wbreak=40):
+                  _delay=0.01,
+                  _wbreak=50):
         
         _check = ''
         

@@ -140,6 +140,10 @@ class DWX_ZeroMQ_Connector():
         self._MarketData_Thread.start()
 
         self.spend_time = datetime.now() - datetime.now()
+        self.sleep_time = datetime.now() - datetime.now()
+        self.socket_time = datetime.now() - datetime.now()
+        self.receive_time = datetime.now() - datetime.now()
+        self.hnd_time = datetime.now() - datetime.now()
 
         ###########################################
         # Enable/Disable ZeroMQ Socket Monitoring #
@@ -519,13 +523,15 @@ class DWX_ZeroMQ_Connector():
     def _DWX_ZMQ_Poll_Data_(self,
                            string_delimiter=';',
                            poll_timeout=1000):
+        sleep(self._sleep_delay)
 
         while self._ACTIVE:
 
-            sleep(self._sleep_delay) # poll timeout is in ms, sleep() is s.
+            # poll timeout is in ms, sleep() is s.
 
             start_time = datetime.now()
             sockets = dict(self._poller.poll(poll_timeout))
+            self.socket_time += datetime.now() - start_time
 
             # Process response to commands sent to MetaTrader
             if self._PULL_SOCKET in sockets and sockets[self._PULL_SOCKET] == zmq.POLLIN:
@@ -534,6 +540,7 @@ class DWX_ZeroMQ_Connector():
 
                         # msg = self._PULL_SOCKET.recv_string(zmq.DONTWAIT)
                         msg = self.remote_recv(self._PULL_SOCKET)
+
 
                         # If Data is returned, store as pandas Series
                         if msg != '' and msg != None:
@@ -569,36 +576,35 @@ class DWX_ZeroMQ_Connector():
             if self._SUB_SOCKET in sockets and sockets[self._SUB_SOCKET] == zmq.POLLIN:
 
                 try:
+                    receive_start_time = datetime.now()
                     msg = self._SUB_SOCKET.recv_string(zmq.DONTWAIT)
 
                     if msg != "":
 
-                        _timestamp = str(Timestamp.now('UTC'))[:-6]
-                        _symbol, _data = msg.split("&")
-                        if len(_data.split(string_delimiter)) == 3:
-                            _time, _bid, _ask = _data.split(string_delimiter)
-
-                            if self._verbose:
-                                print("\n[" + _symbol + "] " + _timestamp + " (" + _bid + "/" + _ask + ") BID/ASK")
-
-                            # Update Market Input DB
-                            if _symbol not in self._Market_Data_DB.keys():
-                                self._Market_Data_DB[_symbol] = {}
-
-                            self._Market_Data_DB[_symbol][_timestamp] = (float(_bid), float(_ask))
-
-                        elif len(_data.split(string_delimiter)) == 8:
-                            _time, _open, _high, _low, _close, _tick_vol, _spread, _real_vol = _data.split(string_delimiter)
-                            if self._verbose:
-                                print("\n[" + _symbol + "] " + _timestamp + " (" + _time + "/" + _open + "/" + _high + "/" + _low + "/" + _close + "/" + _tick_vol + "/" + _spread + "/" + _real_vol + ") TIME/OPEN/HIGH/LOW/CLOSE/TICKVOL/SPREAD/VOLUME")
-                            # Update Market Rate DB
-                            if _symbol not in self._Market_Data_DB.keys():
-                                self._Market_Data_DB[_symbol] = {}
-                            self._Market_Data_DB[_symbol][_timestamp] = (int(_time), float(_open), float(_high), float(_low), float(_close), int(_tick_vol), int(_spread), int(_real_vol))
+                        # _symbol, _data = msg.split("&")
+                        # _data_tuple = _data.split(string_delimiter)
+                        # if len(_data_tuple) == 3:
+                        #     _time, _bid, _ask = _data_tuple
+                        #
+                        #     # Update Market Input DB
+                        #     if _symbol not in self._Market_Data_DB.keys():
+                        #         self._Market_Data_DB[_symbol] = {}
+                        #
+                        #     #self._Market_Data_DB[_symbol][_timestamp] = (float(_bid), float(_ask))
+                        #
+                        # elif len(_data_tuple) == 8:
+                        #     _time, _open, _high, _low, _close, _tick_vol, _spread, _real_vol = _data.split(string_delimiter)
+                        #     # Update Market Rate DB
+                        #     if _symbol not in self._Market_Data_DB.keys():
+                        #         self._Market_Data_DB[_symbol] = {}
+                        #     #self._Market_Data_DB[_symbol][_timestamp] = (int(_time), float(_open), float(_high), float(_low), float(_close), int(_tick_vol), int(_spread), int(_real_vol))
+                        self.receive_time += datetime.now() - receive_start_time
 
                         # invokes Data handlers on sub port
+                        hnd_t = datetime.now()
                         for hnd in self._subdata_handlers:
                             hnd.onSubData(msg)
+                        self.hnd_time += datetime.now() - hnd_t
 
                 except zmq.error.Again:
                     pass # resource temporarily unavailable, nothing to print

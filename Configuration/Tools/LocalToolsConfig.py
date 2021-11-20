@@ -2,7 +2,7 @@
 
 class ChartConfig:
 
-    symbol = "EURUSD"
+    symbol = "XAUUSD.I"
     time_frame = "H1"
     date_format = "%d.%m.%Y %H:%M:%S.%f"
     start_date = "29.08.2021 00:00:00.000"
@@ -13,8 +13,8 @@ class ChartConfig:
                       'Channel', 'RangeRegion', 'RsiPattern']
     visualizer = 'Indicator'
 
-    with_back_test = False
-    backtest = ["H1", "Ichimoku", "Ichimoku"]
+    with_back_test = True
+    backtest = ["H1_H1_M1", "Ichimoku", "Ichimoku"]
 
     def __init__(self, data, visualizer, params=None):
 
@@ -71,7 +71,7 @@ class ChartConfig:
             ichimoku_enable = True
             tenkan = 9
             kijun = 26
-            senkou_span_projection = 26
+            senkou_span_projection = 0
             if params is not None:
                 tenkan = params['Tenkan']
                 kijun = params['Kijun']

@@ -24,7 +24,6 @@ class Execution:
         self._zmq._set_response_(None)
 
         # Draw
-        print(f"Request {datetime.now()}")
         if _type == "DRAW":
             self._zmq.send_draw_request(params)
         elif _type == "DELETE":
@@ -39,7 +38,6 @@ class Execution:
 
             if (to_datetime('now') - _ws).total_seconds() > (_delay * _wbreak):
                 break
-        print(f"Response {datetime.now()}")
 
         # If Data received, return DataFrame
         if self._zmq._valid_response_('zmq'):

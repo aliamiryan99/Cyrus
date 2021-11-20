@@ -60,7 +60,7 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
 
         self._time_identifier = Functions.get_time_id(self.history[-1]['Time'], self.time_frame)
 
-        self.chart_config = ChartConfig(self, self.history, ChartConfig.tool_name)
+        self.chart_config = ChartConfig(self, self.history, symbol, ChartConfig.tool_name)
         self.tool = self.chart_config.tool
 
         # lock for acquire/release of ZeroMQ connector
@@ -70,7 +70,7 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
         self.spend_time = datetime.now() - datetime.now()
 
     def on_pull_data(self, msg):
-        print(f"Pull {datetime.now()}")
+        pass
 
     def on_sub_data(self, msg):
         # split msg to get topic and message
@@ -99,10 +99,13 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
             self.tool.on_data(self.history[-1])
             print(symbol)
             print(pd.DataFrame(self.history[-2:-1]))
-            print(f"Spend Time : {self.spend_time}")
-            print(f"Pull Spend Time : {self.connector.spend_time}")
-            print(f"Sleep Spend Time : {self.connector.sleep_time}")
-            print(f"Total Time : {datetime.now() - self.start_time}")
+            print(f"SpendTime {self.spend_time}")
+            print(f"ConnectorTime {self.connector.spend_time}")
+            print(f"SleepTime {self.connector.sleep_time}")
+            print(f"SocketTime {self.connector.socket_time}")
+            print(f"ReceiveTime {self.connector.receive_time}")
+            print(f"HndTime {self.connector.hnd_time}")
+            print(f"TotalTime {datetime.now() - self.start_time}")
             print("________________________________________________________________________________")
         else:
             # Update Last Candle Section

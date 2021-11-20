@@ -1,11 +1,12 @@
 from Converters.Tools import *
+from tqdm import tqdm
 import copy
 
 
 def aggregate_data(histories, time_frame):
     old_id = get_time_id(histories[0]['Time'], time_frame)
     new_history = [copy.deepcopy(histories[0])]
-    for i in range(1, len(histories)):
+    for i in tqdm(range(1, len(histories))):
         new_id = get_time_id(histories[i]['Time'], time_frame)
         if new_id != old_id:
             new_history.append(copy.deepcopy(histories[i]))
@@ -22,10 +23,10 @@ def aggregate_data(histories, time_frame):
     return new_history
 
 
-category = "CFD"
-symbol = "OILUSD"
-time_frame_source = "M5"
-time_frame_target = "M15"
+category = "Metal"
+symbol = "XAUUSD.I"
+time_frame_source = "D1"
+time_frame_target = "MN"
 
 data = read_data(category, symbol, time_frame_source)
 

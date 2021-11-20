@@ -145,6 +145,16 @@ class IchimokuAlgorithm(Algorithm):
                 if self.role == 9 and self.ich_result['TenkanSen'][-1] > self.ich_result['KijunSen'][-1]:
                     self.sell_trigger = False
 
+            if self.role == 10:
+                # Lower to Upper
+                if (self.ich_result['SenkouSpanA'][-2] <= self.ich_result['SenkouSpanB'][-2]) and \
+                        (self.ich_result['SenkouSpanA'][-1] > self.ich_result['SenkouSpanB'][-1]):
+                    signal, price = 1, candle['Open']
+                # Upper to Lower
+                elif (self.ich_result['SenkouSpanA'][-2] >= self.ich_result['SenkouSpanB'][-2]) and \
+                        (self.ich_result['SenkouSpanA'][-1] < self.ich_result['SenkouSpanB'][-1]):
+                    signal, price = -1, candle['Open']
+
             if self.sequential_trade:
                 if self.role != 1 and self.pre_signal == 1:
                     if self.data[-2]['Close'] < self.ichimoku.result['TenkanSen'][-2] and \

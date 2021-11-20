@@ -55,7 +55,7 @@ class MonoWave:
             # if curr_direction * next_direction > 0:
             #     j = j + 1
             price_range = abs(dataF_price_node[key][start] -
-                              dataF_price_node[key][j])
+                              dataF_price_node[key][j])+ 0.001
             time = j - start
             sl = np.degrees(np.arctan(price_range / time))
             direction = 1 if (curr_direction > 0) else -1
@@ -361,7 +361,7 @@ class MonoWave:
         if M2 is not None:
 
             if M2.MW_end_index < self.monowaves.shape[0]:
-                M1.Next_wave_retracement_ratio = M2.Price_range / M1.Price_range
+                M1.Next_wave_retracement_ratio = M2.Price_range / (M1.Price_range+0.001)
                 if (M1.Next_wave_retracement_ratio < (1 - fib_ratio)):
                     M1.Num_retracement_rule = 1
                 elif (M1.Next_wave_retracement_ratio < (fib_ratio - fib_ratio_precision)):
@@ -473,6 +473,9 @@ class MonoWave:
     def EW_rules(self, hyper_monowaves):
         for i in range(len(hyper_monowaves)):
             hyper_monowaves[i] = self.EW_rules_single_wave(hyper_monowaves, i)
+
+
+
 
     # region Eliottwave Rules
     def EW_R1a(self, hyper_monowaves, idx):
@@ -845,7 +848,7 @@ class MonoWave:
                         # ※ There may be a Complex formation where m0 is x
                         M0.Structure_list_label.append('x.c3')
                         M0.EW_structure.append('2c:Flat')
-                elif (M1.Price_range / M_1.Price_range >= 0.382):
+                elif (M1 is not None and M_1 is not None and M1.Price_range / M_1.Price_range >= 0.382):
                     # ※ There may be a Complex formation where m2 is x
                     M2.Structure_list_label.append('x.c3')
                     M2.EW_structure.append('2c:x-wave')
@@ -1082,7 +1085,7 @@ class MonoWave:
                             M1.Structure_list_label.append(':F3')
                             M1.EW_structure.append('3a:complex corrective pattern')
 
-                        if (M1.Price_range > max(M_1.Price_range, M_3.Price_range)
+                        if M_3 is not None and (M1.Price_range > max(M_1.Price_range, M_3.Price_range)
                                 and self.wave_breaking_trend(M_2.End_candle_index, M0.End_candle_index,
                                                              M1.End_candle_index, M2.End_candle_index)):
                             # ※ m1 may be the 5 of a 5x impulse pattern
@@ -1090,8 +1093,8 @@ class MonoWave:
                             M1.EW_structure.append('3a:wave5 of impulse')
 
         hyper_monowaves[idx] = M1
-        if (idx + 1 >= 0): hyper_monowaves[idx + 1] = M2
-        if (idx + 2 >= 0): hyper_monowaves[idx + 2] = M3
+        if (M2 is not None): hyper_monowaves[idx + 1] = M2
+        if (M3 is not None): hyper_monowaves[idx + 2] = M3
 
     def EW_R3b(self, hyper_monowaves, idx):
         n = len(hyper_monowaves)
@@ -1156,7 +1159,7 @@ class MonoWave:
                         # ※ m3 may complete a complex correction
                         M1.Structure_list_label.append(':5')
                         M1.EW_structure.append('3b:complex correction')
-                        if self.wave_retrace_beyond(M_1, M4, (M3.End_candle_index - M_1.Start_candle_index) // 2,
+                        if M_1 is not None and self.wave_retrace_beyond(M_1, M4, (M3.End_candle_index - M_1.Start_candle_index) // 2,
                                                     M4.Duration) \
                                 and M_1.Price_range / M1.Price_range <= 2.618:
                             # ※ m1 may be a part of a terminal impulse pattern
@@ -1295,7 +1298,7 @@ class MonoWave:
                         # ※ m3 may complete a terminal impulse
                         M1.Structure_list_label.append(':F3')
                         M1.EW_structure.append('3c:terminal impulse')
-                        if M_1.Price_range / M1.Price_range > 2.618 or M_1.Price_range / M1.Price_range < 1.382:
+                        if M_1 is not None and (M_1.Price_range / M1.Price_range > 2.618 or M_1.Price_range / M1.Price_range < 1.382):
                             # ※ m3 may complete a complex correction
                             M1.Structure_list_label.append('[:c3]')
                             M1.EW_structure.append('3c:complex correction')
@@ -2518,7 +2521,7 @@ class MonoWave:
                 M1.EW_structure.append('5d:3rd Extension Terminal pattern completing with m2')
                 sw = 1
             if 0.618 <= M3.Price_range / M2.Price_range <= 1:
-                if M4.Price_range / M0.Price_range < 0.618:
+                if M4 is not None and M4.Price_range / M0.Price_range < 0.618:
                     if M1.Duration < M0.Duration:
                         # ※ m1 may be an x-wave within a Complex Correction
                         M1.Structure_list_label.append('x.c3')
@@ -2751,7 +2754,7 @@ class MonoWave:
                 # ※ A Terminal pattern may have concluded with m2
                 M1.Structure_list_label.append(':sL3')
                 M1.EW_structure.append('6c:Terminal concluded with m2')
-        if 1.01 <= M3.Price_range / M2.Price_range <= 1.618:
+        if M3 is not None and M2 is not None and 1.01 <= M3.Price_range / M2.Price_range <= 1.618:
             # ※ There is the unlikely possibility that an Expanding Triangle is forming
             M1.Structure_list_label.append(':c3')
             M1.EW_structure.append('6c:Expanding Triangle')
@@ -2869,7 +2872,7 @@ class MonoWave:
                     # ※ m1 may be part of an Expanding Triangle
                     M1.Structure_list_label.append(':c3')
                     M1.EW_structure.append('7b:Expanding Triangle')
-                    if M4.Price_range / M3.Price_range >= 0.618:
+                    if M4 is not None and M4.Price_range / M3.Price_range >= 0.618:
                         M1.Structure_list_label.append(':F3')
                         M1.EW_structure.append('7b:-')
                 if M1.Price_range / M0.Price_range <= 0.618 \
@@ -3656,3 +3659,214 @@ class MonoWave:
     def save(self, path=".\\outputs\\"):
         self.monowaves.to_csv(path + 'monowaves.csv', index=False, encoding='utf-8', sep=';')
 
+    def Flat_prediction_zone_label_Mc(self, hyper_monowaves):
+        pred1_yc=[]
+        pred2_yc=[]
+        pred3_yc=[]
+        pred_xc=[]
+        pred_xb=[]
+        pred_yb=[]
+        hmw_index=[]
+        
+        for index in range(len(hyper_monowaves)-2):
+            Ma = hyper_monowaves[index]
+            Mb = hyper_monowaves[index + 1]
+        
+            if (check_subitem_in_list(Ma.Structure_list_label, '3') and check_subitem_in_list(Mb.Structure_list_label, '3')):
+                    xb = Mb.End_candle_index
+                    yb = Mb.End_price
+                    
+                    if Ma.Duration < Mb.Duration and Mb.Price_range > 0.618 * Ma.Price_range:
+                        if Ma.Duration + 1 >= Mb.Duration:
+                            xc = xb + Ma.Duration + Mb.Duration
+                            pred_xc.append(xc)
+                        else:
+                            xc = xb + int((Ma.Duration + Mb.Duration)/2)
+                            pred_xc.append(xc)
+                
+
+                        pred1_C_price_range = Ma.Price_range
+                        pred2_C_price_range = 1.618 * Ma.Price_range
+                        pred3_C_price_range = 2.618 * Ma.Price_range
+
+                        pred1_C_end_price = yb + (pred1_C_price_range * Ma.Direction)
+                        pred2_C_end_price = yb + (pred2_C_price_range * Ma.Direction)
+                        pred3_C_end_price = yb + (pred3_C_price_range * Ma.Direction)
+
+                        pred1_yc.append(pred1_C_end_price)
+                        pred2_yc.append(pred2_C_end_price)
+                        pred3_yc.append(pred3_C_end_price)
+                        pred_xb.append(xb)
+                        pred_yb.append(yb)
+
+                        hmw_index.append(index)
+                    
+        return hmw_index, pred_xb, pred_yb, pred_xc, pred1_yc, pred2_yc, pred3_yc 
+      
+      
+    def Zigzag_prediction_zone_label_Mc(self, hyper_monowaves):
+        pred1_yc=[]
+        pred2_yc=[]
+        pred3_yc=[]
+        pred_xc=[]
+        pred_xb=[]
+        pred_yb=[]
+        hmw_index=[]
+        
+        for index in range(len(hyper_monowaves)-2):
+            Ma = hyper_monowaves[index]
+            Mb = hyper_monowaves[index + 1]
+        
+            if (check_subitem_in_list(Ma.Structure_list_label, '5') and check_subitem_in_list(Mb.Structure_list_label, '3')):
+                    xb = Mb.End_candle_index
+                    yb = Mb.End_price
+                    ya = Ma.End_price
+                    
+                    if Ma.Duration <= Mb.Duration and Mb.Price_range <= 0.618 * Ma.Price_range:
+                        xc = xb + Mb.Duration
+                        pred_xc.append(xc)
+                
+
+                        pred1_C_price_range = 0.618 * Ma.Price_range
+                        pred2_C_price_range = Ma.Price_range
+                        pred3_C_price_range = 1.618 * Ma.Price_range
+                    
+                        pred1_C_end_price = yb + (pred1_C_price_range * Ma.Direction) 
+                        if Ma.Direction > 0 and ya > yb + (pred1_C_price_range * Ma.Direction):
+                            pred1_C_end_price = ya
+                        elif Ma.Direction < 0 and ya < yb + (pred1_C_price_range * Ma.Direction):
+                            pred1_C_end_price = ya    
+
+                        pred2_C_end_price = yb + (pred2_C_price_range * Ma.Direction)
+                        pred3_C_end_price = yb + (pred3_C_price_range * Ma.Direction)
+
+                        pred1_yc.append(pred1_C_end_price)
+                        pred2_yc.append(pred2_C_end_price)
+                        pred3_yc.append(pred3_C_end_price)
+                        pred_xb.append(xb)
+                        pred_yb.append(yb)
+
+                        hmw_index.append(index)
+                    
+        return hmw_index, pred_xb, pred_yb, pred_xc, pred1_yc, pred2_yc, pred3_yc 
+
+    def Impulse_In_prediction_zone_label_M4(self, hyper_monowaves, step):
+      
+        pred_y1=[]
+        pred_y2=[]
+        pred_y3=[]
+        pred_y4=[]
+        pred_x1=[]
+        pred_x2=[]
+        start_candle_index=[]
+        start_price=[]
+        hmw_index=[]
+        validation=[]
+        
+        for index in range(len(hyper_monowaves)-3):
+            if index==101:
+                y=1
+                
+            M1 = hyper_monowaves[index]
+            M2 = hyper_monowaves[index + 1]
+            M3 = hyper_monowaves[index + 2]
+        
+            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label, ':F3') 
+                 and (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label, ':s5'))):
+                    start_x=M1.Start_candle_index
+                    start_y=M1.Start_price
+                    x1 = M3.End_candle_index
+                    y1 = M3.End_price
+                    x2 = x1+ int(step/2)
+
+                    pred4_price_range1 = (1- M2.Price_range/M1.Price_range)*M3.Price_range
+                    pred4_price_range2 = 0.62 * M2.Price_range
+                    pred4_price_range3 = 0.236 * M3.Price_range
+                    pred4_price_range4 = 0.382 * abs(M3.End_price - M1.Start_price)
+                    
+                    
+                    
+                    # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [1.0, 1.62]])
+                    # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.382, 0.5, 0.618]])
+                    # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.236, 0.382, 0.5, 0.618]])
+                    # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [0.62, 1.00]])
+                    # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.236, 0.5]])
+                    # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382]])
+
+                    
+                    pred_x1.append(x1)
+                    pred_x2.append(x2)
+                    start_candle_index.append(start_x)
+                    start_price.append(start_y)
+                    hmw_index.append(index)
+                    # pred_y.append(pred4_end_price)
+                    if  pred4_price_range1 / M1.Price_range < 0.618:
+                        pred4_end_price1 = y1 - (pred4_price_range1 * M3.Direction)
+                        pred_y1.append(pred4_end_price1)
+                    else: pred_y1.append("none")
+
+                    if  pred4_price_range2 / M3.Price_range < (M2.Price_range / M1.Price_range):
+                        pred4_end_price2 = M3.End_price - M3.Direction * pred4_price_range2
+                        pred_y2.append(pred4_end_price2)
+                    else: pred_y2.append("none")
+
+                    if  pred4_price_range3 / M3.Price_range < (M2.Price_range / M1.Price_range):
+                        pred4_end_price3 = M3.End_price - M3.Direction * pred4_price_range3
+                        pred_y3.append(pred4_end_price3)
+                    else: pred_y3.append("none")
+
+                    if  pred4_price_range4 / M3.Price_range < (M2.Price_range / M1.Price_range):
+                        pred4_end_price4 = M3.End_price - M3.Direction * pred4_price_range4
+                        pred_y4.append(pred4_end_price4)
+                    else: pred_y4.append("none")
+                   
+                    
+                    # if pred4_price_range / M1.Price_range < 0.618:
+                    #     pred_y1.append(pred4_end_price)
+                    #     pred_x1.append(x1)
+                    #     pred_x2.append(x2)
+                    #     start_candle_index.append(start_x)
+                    #     start_price.append(start_y)
+                    #     hmw_index.append(index)
+                        
+        return hmw_index, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4
+    
+    def Impulse_In_prediction_zone_label_M5_truncated(self, hyper_monowaves, step):
+      
+        pred_y=[]
+        pred_x1=[]
+        pred_x2=[]
+        start_candle_index=[]
+        start_price=[]
+        hmw_index=[]
+        validation=[]
+        
+        for index in range(len(hyper_monowaves)-4):
+                            
+            M1 = hyper_monowaves[index]
+            M2 = hyper_monowaves[index + 1]
+            M3 = hyper_monowaves[index + 2]
+            M4 = hyper_monowaves[index + 2]
+        
+            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label, ':F3') and 
+                (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label, ':s5')) and
+                check_subitem_in_list(M3.Structure_list_label, ':F3')):
+                    start_x=M1.Start_candle_index
+                    start_y=M1.Start_price
+                    x1 = M4.End_candle_index
+                    y1 = M4.End_price
+                    x2 = x1+ int(step/2)
+
+                    if (M1.Price_range < M3.Price_range and 
+                        M4.Price_range > M2.Price_range and 
+                        0.318 <= M4.Price_range / M3.Price_range <= (0.618 + 0.02)):
+
+                            pred5_end_price = M3.End_price
+                            pred_y.append(pred5_end_price)
+                            pred_x1.append(x1)
+                            pred_x2.append(x2)
+                            start_candle_index.append(start_x)
+                            start_price.append(start_y)
+                            hmw_index.append(index)
+                        
+        return hmw_index, pred_x1,pred_x2,pred_y

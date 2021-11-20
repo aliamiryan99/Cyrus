@@ -3,13 +3,13 @@
 class ChartConfig:
 
     auto_time_frame = True
-    time_frame = "H4"
+    time_frame = "M15"
     date_format = '%Y.%m.%d %H:%M'
-    auto_candles = True
-    candles = 2000
+    auto_candles = False
+    candles = 4000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
-                 "RangeRegion"]
-    tool_name = 'Channels'
+                 "RangeRegion", "SRLevels"]
+    tool_name = 'Elliot'
 
     def __init__(self, symbol, data, tool_name, params=None):
 
@@ -23,7 +23,7 @@ class ChartConfig:
             from MetaTraderChartTool.Tools.SupportResistance import SupportResistance
             extremum_window = 40
             extremum_mode = 1
-            sections = 5
+            sections = 8
             extremum_show = False
 
             self.tool = SupportResistance(data, extremum_window, extremum_mode, sections, extremum_show)
@@ -45,14 +45,14 @@ class ChartConfig:
 
         if tool_name == "Channels":
             from MetaTraderChartTool.Tools.Channels import Channels
-            extremum_window_start = 2
-            extremum_window_end = 3
-            extremum_window_step = 1
+            extremum_window_start = 1
+            extremum_window_end = 20
+            extremum_window_step = 5
             extremum_mode = 1
-            check_window = 4
-            alpha = 0.1
-            extend_number = 50
-            type = 'parallel'   # 'parallel' , 'monotone'
+            check_window = 3
+            alpha = 0.05
+            extend_number = 40
+            type = 'monotone'   # 'betweenness' , 'monotone'
 
             self.tool = Channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode,
                                  check_window, alpha, extend_number, type)
@@ -60,7 +60,12 @@ class ChartConfig:
         if tool_name == "Elliot":
             from MetaTraderChartTool.Tools.Elliot import Elliot
 
-            self.tool = Elliot(data)
+            wave4_enable = False
+            wave5_enable = False
+            inside_flat_zigzag_wc = False
+            post_prediction_enable = True
+
+            self.tool = Elliot(data, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable)
 
         if tool_name == "Harmonics":
             from MetaTraderChartTool.Tools.Harmonics import Harmonics
@@ -112,3 +117,13 @@ class ChartConfig:
             self.tool = RangeRegion(symbol, data, range_candle_threshold, up_timeframe, stop_target_margin,
                                     type1_enable, type2_enable, one_stop_in_region, candle_breakout_threshold,
                                     max_candles, fib_enable)
+
+        if tool_name == "SRLevels":
+            from MetaTraderChartTool.Tools.SR import SR
+
+            tf2 = "M30"
+            tf3 = 'H1'
+
+            mode = "Static"
+
+            self.tool = SR(data, symbol, self.time_frame, tf2, tf3, mode)

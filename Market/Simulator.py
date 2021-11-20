@@ -20,8 +20,10 @@ class Simulator(Market):
         self.last_ticket += 1
 
     def sell(self, price, symbol, take_profit, stop_loss, volume):
-        take_profit = price - take_profit * 10 ** -Variables.config.symbols_pip[symbol]
-        stop_loss = price + stop_loss * 10 ** -Variables.config.symbols_pip[symbol]
+        if take_profit != 0:
+            take_profit = price - take_profit * 10 ** -Variables.config.symbols_pip[symbol]
+        if stop_loss != 0:
+            stop_loss = price + stop_loss * 10 ** -Variables.config.symbols_pip[symbol]
         self.simulation.sell(self.time, price, symbol, take_profit, stop_loss, volume, self.last_ticket)
         self.last_ticket += 1
 
@@ -46,8 +48,8 @@ class Simulator(Market):
         self.simulation.close(self.time, price, volume, ticket)
 
     def close_all(self, symbol, price):
-        self.simulation.close_all_symbol('buy', symbol, self.time, price)
-        self.simulation.close_all_symbol('sell', symbol, self.time, price)
+        self.simulation.close_all_symbol('Buy', symbol, self.time, price)
+        self.simulation.close_all_symbol('Sell', symbol, self.time, price)
 
     def get_open_buy_positions(self, symbol):
         open_buys = []

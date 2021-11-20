@@ -13,7 +13,7 @@ def get_channels(data, extremum_start_window, extremum_end_window, extremum_wind
         price_up, price_down = bottom, top
 
     up_channels, down_channels = [], []
-    for window in range(extremum_start_window, extremum_end_window, extremum_window_step):
+    for window in range(extremum_start_window, extremum_end_window+1, extremum_window_step):
         local_min, local_max = get_local_extermums(data, window, extremum_mode)
         min_pointer, max_pointer = check_window-1, check_window-1
         while min_pointer < len(local_min) and max_pointer < len(local_max):
@@ -95,3 +95,10 @@ def get_down_convex_line(price, indexes):
             return {'x': [indexes[i], indexes[-1]], 'y': [price[indexes[i]], price[indexes[-1]]], 'line': line}, line[0]
     return 0, 0
 
+
+def coordinate_lines(x1, y1, m1, x2, y2, m2):
+    x = (m1*m2*x2 - m1*y2 + m1*x1 + y1) / (m1*m2+1)
+    y = (m1*m2*x1 + m2*y1 - m2*x2 + y2) / (m1*m2+1)
+
+    x3 = (m2*m1*x1 + m2*y1 + x2 - m2*y2) / (m2*m1+1)
+    return x, y

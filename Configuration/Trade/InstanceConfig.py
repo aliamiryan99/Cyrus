@@ -12,19 +12,22 @@ repairment_list = ['ReEntrance']
 recovery_list = ['Basic', 'Signal', 'Candle']
 close_mode_list = ['tp_sl', 'trailing', 'both']
 tp_sl_list = ['Fix', 'Body', 'Extremum', 'Wave']
-trailing_list = ['Basic', 'Candle', 'HugeCandle', 'LocalExtremum', 'Stochastic', 'ReverseSignal']
+trailing_list = ['Advance', 'Candle', 'HugeCandle', 'LocalExtremum', 'Stochastic', 'ReverseSignal']
 account_management_list = ['Balance', 'Risk', 'Fix']
+
+online_all_symbols = ['GBPUSD.I', 'EURUSD.I', 'XAUUSD.I', 'AUDUSD.I', 'NZDUSD.I', 'USDCAD.I', 'USDCHF.I', 'USDJPY.I', 'BTC',
+               'US30.DEC1', 'LTC', 'ETH']
+back_test_all_symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD', 'US30USD', 'OILUSD']
 
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['GBPUSD.I', 'EURUSD.I', 'XAUUSD.I', 'AUDUSD.I', 'NZDUSD.I', 'USDCAD.I', 'USDCHF.I', 'USDJPY.I', 'BTC',
-               'US30.DEC1', 'LTC', 'ETH']
-    management_ratio = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    symbols = ['XAUUSD.I']
+    management_ratio = [2, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1]
     history_size = 500
     algorithm_time_frame = "H1"
     trailing_time_frame = "H1"
-    tag = "Ichimoku : tenkan sen and kijun sen cross"
+    tag = "Ichimoku"
 
     algorithm_name = 'Ichimoku'
     repairment_name = 'ReEntrance'
@@ -107,7 +110,7 @@ class InstanceConfig:
             window_size = 50
             tp_mode = 4
             fix_tp = 100
-            tp_alpha = 2
+            tp_alpha = 4
             volume_mode = 6
             volume_alpha = 3
             price_th_mode = 1  # 1 : const price, 2: body candle, 3 : total candle
@@ -134,7 +137,7 @@ class InstanceConfig:
             alpha = 2
             mode = 1  # 1: body candle, 2: total candle
             tp_disable = False
-            sl_disable = False
+            sl_disable = True
 
             self.tp_sl_tool = Body(window, alpha, mode, tp_disable, sl_disable)
         elif tp_sl_name == 'Extremum':
@@ -155,13 +158,13 @@ class InstanceConfig:
             self.tp_sl_tool = Wave(data, extremum_window, extremum_mode, alpha, beta)
 
         data = copy.deepcopy(data)
-        if trailing_name == 'Basic':
+        if trailing_name == 'Advance':
             from AlgorithmFactory.AlgorithmsOfExit.Trailings.SimpleTrailing import SimpleTrailing
             mode = 3
             window = 10
             alpha = 0.1
-
             self.trailing_tool = SimpleTrailing(symbol, window, alpha, mode)
+
         elif trailing_name == 'Candle':
             from AlgorithmFactory.AlgorithmsOfExit.Trailings.CandleTrailing import CandleTrailing
 
@@ -194,10 +197,10 @@ class InstanceConfig:
         elif trailing_name == "ReverseSignal":
             from AlgorithmFactory.AlgorithmsOfExit.Trailings.ReverseSignalTrailing import ReverseSignalTrailing
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 1
+            role = 8
             tenkan = 9
             kijun = 26
-            senkou_span_projection = 26
+            senkou_span_projection = 0
             range_filter_enable = False
             n = 9 * 16
             m = 0.4
@@ -452,7 +455,7 @@ class InstanceConfig:
             algorithm = Regression(data, extremum_window, extremum_mode)
         elif algorithm_name == 'SharpPointDetection':
             from AlgorithmFactory.Algorithms.SharpPointDetection import SharpPointDetection
-            mean_alpha = 0.05
+            mean_alpha = 2
             candle_bound = 4
 
             algorithm = SharpPointDetection(data, mean_alpha, candle_bound)
@@ -480,10 +483,10 @@ class InstanceConfig:
                                              extremum_window_step, extremum_mode, check_window, alpha, beta)
         elif algorithm_name == "Ichimoku":
             from AlgorithmFactory.Algorithms.Ichimoku import IchimokuAlgorithm
-            role = 3
+            role = 10
             tenkan = 9
             kijun = 26
-            senkou_span_projection = 26
+            senkou_span_projection = 0
             range_filter_enable = False
             n = 9*16
             m = 0.4

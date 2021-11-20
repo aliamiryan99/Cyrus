@@ -184,6 +184,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         # lock for acquire/release of ZeroMQ connector
         self._lock = Lock()
 
+        self.start_time = datetime.now()
+        self.spend_time = datetime.now() - datetime.now()
+
     ##########################################################################
     def isFinished(self):
         """ Check if execution finished"""
@@ -222,9 +225,9 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
                 print(data)
                 print("________________________________________________________________________________")
             elif data['_action'] == 'CLOSE':
-                data['_close_time'] = datetime.strptime(data['_close_time'], Config.date_order_format)
-                found = False
                 if data['_response'] != 'NOT_FOUND':
+                    data['_close_time'] = datetime.strptime(data['_close_time'], Config.date_order_format)
+                    found = False
                     for trade in self.open_buy_trades[data['_symbol']]:
                         if data['_ticket'] == trade['Ticket']:
                             self.open_buy_trades[data['_symbol']].remove(trade)
@@ -279,6 +282,7 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         """
         Callback to process new Data received through the SUB port
         """
+        start_time = datetime.now()
         # split msg to get topic and message
         symbol, msg = data.split("&")
         # print('Input on Topic={} with Message={}'.format(symbol, msg))
@@ -323,6 +327,8 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
         # Recovery Algorithm Section
         self.recovery(symbol, ask, bid)
 
+        self.spend_time += datetime.now() - start_time
+
     ##########################################################################
     def update_history(self, time, symbol, bid):
         time_identifier = Functions.get_time_id(time, self.algorithm_time_frame)
@@ -339,6 +345,13 @@ class OnlineLauncher(DWX_ZMQ_Strategy):
             self._recovery_algorithms[symbol].on_data(self._histories[symbol][-1])
             print(symbol)
             print(pd.DataFrame(self._histories[symbol][-2:-1]))
+            print(f"SpendTime {self.spend_time}")
+            print(f"ConnectorTime {self._zmq.spend_time}")
+            print(f"SleepTime {self._zmq.sleep_time}")
+            print(f"SocketTime {self._zmq.socket_time}")
+            print(f"ReceiveTime {self._zmq.receive_time}")
+            print(f"HndTime {self._zmq.hnd_time}")
+            print(f"TotalTime {datetime.now() - self.start_time}")
             print("________________________________________________________________________________")
         else:
             # Update Last Candle Section

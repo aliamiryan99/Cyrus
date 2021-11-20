@@ -130,7 +130,7 @@ def wave_breaking_trendline_flat_zigzag_triangle(Ma, Mc, post_action):
 
 def waves_relative_slope(p1, d1, W2):
     """Returns the slop proportion of wave 1(p1, d1) to wave 2(W2)"""
-    return (p1 * W2.Duration) / (W2.Price_range * d1)
+    return (p1 * W2.Duration) / ((W2.Price_range+0.01) * d1)
 
 
 def wave_is_steeper(p1, d1, W2, retraced_ratio=1):

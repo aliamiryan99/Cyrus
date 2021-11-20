@@ -8,11 +8,12 @@ from Indicators.VolumeBarGenerator import VolumeGenerator
 from Indicators.GpIndicator import GpIndicator
 
 from datetime import timedelta
+import pandas as pd
 
 
 class VolumeBarIndicator(RealTimeTool):
 
-    def __init__(self, chart_tool: BasicChartTools, data, prediction_multiplayer, window_size, vb_target_enable, vb_slow_enable, gp_enable):
+    def __init__(self, chart_tool: BasicChartTools, data, prediction_multiplayer, window_size, vb_target_enable, vb_slow_enable, gp_enable, save_data):
         super().__init__(chart_tool, data)
 
         self.window_size = window_size
@@ -20,6 +21,7 @@ class VolumeBarIndicator(RealTimeTool):
         self.vb_target_enable = vb_target_enable
         self.vb_slow_enable = vb_slow_enable
         self.gp_enable = gp_enable
+        self.save_data = save_data
 
         self.data_window = 15
 
@@ -64,6 +66,13 @@ class VolumeBarIndicator(RealTimeTool):
 
         self.pre_target_len, self.pre_slow_len = 0, 0
 
+        self.fast_correct, self.fast_wrong, self.target_correct, self.target_wrong, self.slow_correct, self.slow_wrong = 0, 0, 0, 0, 0, 0
+        self.fast_pre_predict, self.target_pre_predict, self.slow_pre_predict = 0, 0, 0
+        self.fast_gap_list , self.target_gap_list, self.slow_gap_list = [], [], []
+        self.fast_gap_avg, self.target_gap_avg, self.slow_gap_avg = 0, 0, 0
+
+        self.fast_saved_len, self.target_saved_len, self.slow_saved_len = 0, 0, 0
+
     def on_tick(self, time, bid, ask):
         tick = {'Time': time, 'Bid': bid, 'Ask': ask}
         self.new_week_volume += 1
@@ -74,6 +83,16 @@ class VolumeBarIndicator(RealTimeTool):
             vb = self.volume_bar_fast.total_data[-1]
             self.volume_bar_target.update(vb)
             self.volume_bar_slow.update(vb)
+            if self.save_data:
+                if len(self.volume_bar_fast.total_data) - self.fast_saved_len > 100:
+                    pd.DataFrame(self.volume_bar_fast.total_data).to_csv("Data/VolumeBar/Fast.csv")
+                    self.fast_saved_len = len(self.volume_bar_fast.total_data)
+                if len(self.volume_bar_target.total_data) - self.target_saved_len > 10:
+                    pd.DataFrame(self.volume_bar_target.total_data).to_csv("Data/VolumeBar/Target.csv")
+                    self.target_saved_len = len(self.volume_bar_target.total_data)
+                if len(self.volume_bar_slow.total_data) - self.slow_saved_len > 5:
+                    pd.DataFrame(self.volume_bar_slow.total_data).to_csv("Data/VolumeBar/Slow.csv")
+                    self.slow_saved_len = len(self.volume_bar_slow.total_data)
 
         if self.volume_bar_fast.cum_value == 0 and len(self.volume_bar_fast.total_data) > 1:
             print("TrendLineFast")
@@ -123,15 +142,27 @@ class VolumeBarIndicator(RealTimeTool):
                 target_obs = target_data + fast_data[self.get_pre_index_time(fast_data, target_data):]
                 slow_obs = slow_data + target_data[self.get_pre_index_time(target_data, slow_data):] + fast_data[self.get_pre_index_time(fast_data, target_data):]
 
-                target_predict_data = self.volume_bar_fast.total_data[self.get_pre_index_time(self.volume_bar_fast.total_data, target_data) - len(target_data) * 12 : ]
-                slow_predict_data = self.volume_bar_fast.total_data[self.get_pre_index_time(self.volume_bar_fast.total_data, slow_data) - len(slow_data) * 48 : ]
+                target_predict_data = self.volume_bar_fast.total_data[self.get_pre_index_time(self.volume_bar_fast.total_data, target_data) - len(target_data) * 12:]
+                slow_predict_data = self.volume_bar_fast.total_data[self.get_pre_index_time(self.volume_bar_fast.total_data, slow_data) - len(slow_data) * 48:]
 
                 total_data = self.volume_bar_fast.total_data
 
                 fastPredWAP, fastStdWAP, fastWAPInterpolate, fastStdInterpolate, targetPredWAP, targetStdWAP, \
                 targetWAPInterpolate, targetStdInterpolate, slowPredWAP, slowStdWAP, slowWAPInterpolate,\
                 slowStdInterpolate, xpred = self.gp_indicator.update(self.new_week, self.new_day, total_data,
-                                                                     slow_data, target_data, fast_data, slow_obs, target_obs, target_predict_data, slow_predict_data, 3)
+                                                                     slow_data, target_data, fast_data, slow_obs, target_obs, target_predict_data, slow_predict_data, self.prediction_multiplayer+1)
+                if fast_data[-1]['WAP'] - fast_data[-2]['WAP'] > 0:
+                    direction = 1
+                else:
+                    direction = -1
+
+                self.fast_pre_predict, self.fast_correct, self.fast_wrong = self.statistic_counter(self.fast_pre_predict, direction, self.fast_correct, self.fast_wrong, fastPredWAP)
+                self.target_pre_predict, self.target_correct, self.target_wrong = self.statistic_counter(self.target_pre_predict, direction, self.target_correct, self.target_wrong, targetPredWAP)
+                self.slow_pre_predict, self.slow_correct, self.slow_wrong = self.statistic_counter(self.slow_pre_predict, direction, self.slow_correct, self.slow_wrong, slowPredWAP)
+
+                self.fast_gap_list.append(self.calculate_gap(fast_data, fastPredWAP, fastStdWAP))
+                self.target_gap_list.append(self.calculate_gap(fast_data, targetPredWAP, targetStdWAP))
+                self.slow_gap_list.append(self.calculate_gap(fast_data, slowPredWAP, slowStdWAP))
 
                 self.draw_interpolate_line("FastInterpolate", fast_data, fastWAPInterpolate, len(fastWAPInterpolate), width=1, color="255,255,255")
                 self.draw_predict_line("FastPredict", fast_data, fastPredWAP, color="255,255,255")
@@ -145,7 +176,13 @@ class VolumeBarIndicator(RealTimeTool):
                 self.draw_predict_line("SlowPredict", fast_data, slowPredWAP, color=self.slow_up_color)
                 self.pre_slow_len = len(slowWAPInterpolate)
 
-                print(slow_obs)
+                print(f"Fast Correct : {self.fast_correct} , Fast Wrong : {self.fast_wrong}")
+                print(f"Target Correct : {self.target_correct} , Target Wrong : {self.target_wrong}")
+                print(f"Slow Correct : {self.slow_correct} , Slow Wrong : {self.slow_wrong}")
+
+                print(f"Fast Gap Avg : {sum(self.fast_gap_list)/len(self.fast_gap_list)}")
+                print(f"Target Gap Avg : {sum(self.target_gap_list)/len(self.target_gap_list)}")
+                print(f"Slow Gap Avg : {sum(self.slow_gap_list)/len(self.slow_gap_list)}")
 
         if self.new_day:
             self.new_day = False
@@ -203,7 +240,7 @@ class VolumeBarIndicator(RealTimeTool):
     def draw_candle(self, name, color, candle):
         self.chart_tool.rectangle([name+"Rect"], [candle['StartTime']], [candle['Open']], [candle['Time']], [candle['Close']], color=color, width=self.width)
         self.chart_tool.trend_line([name+"Line"], [candle['MiddleTime']], [candle['Low']], [candle['MiddleTime']], [candle['High']], color=color, width=self.width)
-        self.chart_tool.arrow([name+"WAP"], [candle['MiddleTime']], [(candle['Open']+candle['Close'])/2], 251, self.chart_tool.EnumAnchor.Top, width=4)
+        self.chart_tool.arrow([name+"WAP"], [candle['MiddleTime']], [(candle['Open']+candle['Close'])/2], 251, self.chart_tool.EnumArrowAnchor.Top, width=2)
 
     def draw_interpolate_line(self, base_name, data, interpolate_data, pre_len, width, color):
         names = [f"{base_name}{i}" for i in range(1, len(interpolate_data))]
@@ -228,3 +265,21 @@ class VolumeBarIndicator(RealTimeTool):
         self.chart_tool.delete(names)
         self.chart_tool.trend_line(names, times_start, prices_start, times_end, prices_end,
                                    style=self.chart_tool.EnumStyle.Dot, color=color)
+
+    def calculate_gap(self, fast_data, pred_wap, std_wap):
+        if pred_wap[1][0] - std_wap[1][0] < fast_data[-1]['WAP'] < pred_wap[1][0] + std_wap[1][0]:
+            return 0
+        else:
+            return min(abs((pred_wap[1][0] - std_wap[1][0]) - fast_data[-1]['WAP']), abs((pred_wap[1][0] + std_wap[1][0]) - fast_data[-1]['WAP']))
+
+    def statistic_counter(self, pre_predict, direction, correct, wrong, pred_wap):
+        if pre_predict != 0:
+            if pre_predict == direction:
+                correct += 1
+            else:
+                wrong += 1
+        if pred_wap[1][0] > pred_wap[0][0]:
+            pre_predict = 1
+        else:
+            pre_predict = -1
+        return pre_predict, correct, wrong

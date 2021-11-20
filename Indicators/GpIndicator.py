@@ -58,7 +58,7 @@ class GpIndicator:
 
         kern1 = GPy.kern.Matern52(1, self.sigmaInit, 0.03)
         kern2 = GPy.kern.Matern52(1, self.sigmaInit, 0.03)
-        kern3 = GPy.kern.Matern52(1, self.sigmaInit, 0.03)
+        kern3 = GPy.kern.Matern52(1, self.sigmaInit, 0.01)
         slowXtrain = np.array([[item['CandleXCenter'],] for item in slowObs])  # slowData.CandleX[i:i+wind.SlowWindow[0]-1,None]
         slowYtrain = np.array([[item['WAP'],] for item in slowObs])  # slowData.WAP[i:i+wind.SlowWindow[0]-1,None]
 
@@ -67,8 +67,8 @@ class GpIndicator:
         # pp = np.random.randn(35,1)*0.005
         fitSlowWAP = GPy.models.GPRegression(slowXtrain, slowYtrain, kern1)
 
-        fitSlowWAP.optimize()
-
+        fitSlowWAP.optimize(messages=False)
+        fitSlowWAP.optimize_restarts(num_restarts=4)
         # Interpolation Part based on Slow Data
 
         [slowWAPInterpolate, slowStdInterpolate, slowXInterpolate] = GP_VB_Interpolator(slow_predict_data, self.sigmaMin,
@@ -96,8 +96,8 @@ class GpIndicator:
 
         fitTargetWAP = GPy.models.GPRegression(targetXtrain, targetYtrain, kern2)
 
-        fitTargetWAP.optimize()
-
+        fitTargetWAP.optimize(messages=False)
+        fitTargetWAP.optimize_restarts(num_restarts=4)
         # Interpolation Part based on Target Data
 
         [targetWAPInterpolate, targetStdInterpolate, targetXInterpolate] = GP_VB_Interpolator(
@@ -116,8 +116,8 @@ class GpIndicator:
 
         fitFastWAP = GPy.models.GPRegression(fastXtrain, fastYtrain, kern3)
 
-        fitFastWAP.optimize()
-
+        fitFastWAP.optimize(messages=False)
+        fitFastWAP.optimize_restarts(num_restarts=4)
         # Interpolation Part based on Target Data
 
         [fastWAPInterpolate, fastStdInterpolate, fastXInterpolate] = GP_VB_Interpolator(
