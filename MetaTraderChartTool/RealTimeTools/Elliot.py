@@ -1,4 +1,4 @@
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
 
 from AlgorithmFactory.AlgorithmTools.Elliott import elliott
@@ -9,14 +9,13 @@ import numpy as np
 
 class Elliot(RealTimeTool):
 
-    def __init__(self, chart_tool: BasicChartTools, data, price_type, candle_time_frame, neo_time_frame, past_check_num, window):
+    def __init__(self, chart_tool: MetaTraderBase, data, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable, price_type, candle_time_frame, neo_time_frame, past_check_num, window):
         super().__init__(chart_tool, data)
 
-        self.wave4_enable = False
-        self.wave5_enable = False
-        self.inside_flat_zigzag_wc = False
-        self.inside_flat_zigzag_wc = False
-        self.post_prediction_enable = False
+        self.wave4_enable = wave4_enable
+        self.wave5_enable = wave5_enable
+        self.inside_flat_zigzag_wc = inside_flat_zigzag_wc
+        self.post_prediction_enable = post_prediction_enable
 
         self.price_type = price_type
         self.past_check_num = past_check_num
@@ -69,7 +68,10 @@ class Elliot(RealTimeTool):
                 In_x2_list = In_impulse_prediction_list_w4[i]['X2']
 
                 In_impulse_prediction_list_w4[i]['Start_time'] = list(np.array(times)[In_x1_list])
-                In_impulse_prediction_list_w4[i]['End_time'] = list(np.array(times)[In_x2_list])
+                a = elliott.next_time(times[-1], candle_time_frame, In_x2_list[-1] - len(times) + 1)
+                # In_zigzag_flat_prediction_list[i]['End_time'] = list(np.array(times)[inter_x2_list])
+                In_impulse_prediction_list_w4[i]['End_time'] = list(np.array(times)[In_x2_list[:-1]])
+                In_impulse_prediction_list_w4[i]['End_time'].append(a)
 
                 index = "In_Pr_w4" + str(i)
                 self.result_final[index] = In_impulse_prediction_list_w4[i]
@@ -160,24 +162,37 @@ class Elliot(RealTimeTool):
 
             ### inside_pattern_precition_zone
             if self.wave4_enable:
-                color1 = "0,0,200"
-                color2 = "20,0,150"
-                start_times =[]
+                self.color1 = "200,200,0"
+                self.color2 = "200,200,0"
+                self.color3 = "255,128,128"
+                start_times = []
                 for j in range(4):
                     names = [f"In_Prediction_w4 {j}-{i}" for i in
-                                range(len(self.result_final['In_Pr_w40']['Start_time']))]
+                             range(len(self.result_final['In_Pr_w40']['Start_time']))]
                     start_times = self.result_final['In_Pr_w40']['Start_time']
                     end_times = self.result_final['In_Pr_w40']['End_time']
-                    start_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
-                    end_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
+                    # start_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
+                    # end_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
+                    start_prices = self.result_final['In_Pr_w40']['Y1'][j]
+                    end_prices = self.result_final['In_Pr_w40']['Y1'][j]
                     if (start_times != []):
-                        if (j==0 and start_prices !="none"):
-                            chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=color2,
-                                        style=chart_tool.EnumStyle.Dot , width=2)
-                            # pass
+                        if (j == 0):
+                            chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=self.color2,
+                                                  style=chart_tool.EnumStyle.DashDot, width=2)
+                        # pass
                         else:
-                            chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=color1,
-                                        style=chart_tool.EnumStyle.Dot , width=2)
+                            for k in range(len(start_prices[0])):
+                                chart_tool.trend_line(names, start_times, [item1[k] for item1 in start_prices],
+                                                      end_times,
+                                                      [item2[k] for item2 in end_prices], color=self.color1,
+                                                      style=chart_tool.EnumStyle.DashDot, width=2)
+                                chart_tool.v_line([name + str(k) + '1' for name in names], times=start_times,
+                                                  style=chart_tool.EnumStyle.DashDot)
+                                chart_tool.v_line([name + str(k) + '2' for name in names], times=end_times,
+                                                  style=chart_tool.EnumStyle.DashDot, color=self.color3)
+
+                self.last_prediction_w4_time = self.result_final['In_Pr_w40']['Start_time'][-1]
+                self.last_prediction_w4_index = In_impulse_prediction_list_w4[0]['X1'][-1]
 
             if self.wave5_enable:
                 # color1 = "0,0,200"
@@ -477,6 +492,44 @@ class Elliot(RealTimeTool):
 
                     self.chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=self.color,
                                           width=self.width, style=self.chart_tool.EnumStyle.Dot)
+
+        if self.wave4_enable:
+            if len(In_impulse_prediction_list_w4) != 0:
+                if self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time'] > self.last_prediction_w4_time:
+                    self.last_prediction_w4_index += 1
+                    self.last_prediction_w4_time = self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']
+                    for j in range(4):
+
+                        start_times = [self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']]
+                        if In_impulse_prediction_list_w4[0]['X2'][-1] >= len(self.data):
+                            end_times = [self.data[-1]['Time'] + (In_impulse_prediction_list_w4[0]['X2'][-1] - len(self.data))\
+                                         * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])]
+                        else:
+                            end_times = [self.data[In_impulse_prediction_list_w4[0]['X2'][-1]]['Time']]
+
+                        # Shift prediction times 3 candles for synchronization
+                        start_times[0] += 3 * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])
+                        end_times[0] += 3 * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])
+                        # start_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
+                        # end_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
+                        start_prices = In_impulse_prediction_list_w4[0]['Y1'][j][-1]
+                        end_prices = In_impulse_prediction_list_w4[0]['Y1'][j][-1]
+                        names = [f"In_Prediction_w4 {j}-{self.last_prediction_w4_index}-{i}" for i in range(len(start_prices))]
+                        start_times = start_times*len(start_prices)
+                        end_times = end_times * len(start_prices)
+                        if (start_times != []):
+                            if (j == 0):
+                                self.chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=self.color2,
+                                                      style=self.chart_tool.EnumStyle.DashDot, width=2)
+                            # pass
+                            else:
+                                self.chart_tool.trend_line(names, start_times, start_prices,
+                                                          end_times,end_prices, color=self.color1,
+                                                          style=self.chart_tool.EnumStyle.DashDot, width=2)
+                                self.chart_tool.v_line([f"{names[-1]}_1"], times=[start_times[0]],
+                                                  style=self.chart_tool.EnumStyle.DashDot)
+                                self.chart_tool.v_line([f"{names[-1]}_2"], times=[end_times[0]],
+                                                  style=self.chart_tool.EnumStyle.DashDot, color=self.color3)
 
         #
         # print("Line")

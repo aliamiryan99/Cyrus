@@ -17,11 +17,10 @@ arrow_size = 12
 # Backtest Parameter
 balance = 10000
 
+if __name__ == "__main__":
+    if combiner == 'Backtest':
+        combiner = BacktestCombiner(backtests, balance, new_time_frame)
+    elif combiner == 'EnterPosition':
+        combiner = EnterPositionCombiner(backtests, new_time_frame, colors, arrow_size)
 
-
-if combiner == 'Backtest':
-    combiner = BacktestCombiner(backtests, balance, new_time_frame)
-elif combiner == 'EnterPosition':
-    combiner = EnterPositionCombiner(backtests, new_time_frame, colors, arrow_size)
-
-combiner.get_output()
+    combiner.get_output()

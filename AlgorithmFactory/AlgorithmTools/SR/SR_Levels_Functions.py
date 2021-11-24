@@ -351,9 +351,9 @@ def SR_Levels_fiboret(data_input):
     fibo_levels = np.array([0, 0.236, 0.382, 0.5, 0.618, 1])
 
     h = max(data_input['High'])
-    h_idx = np.where(data_input['High'] == h)[0]
+    h_idx = np.where(data_input['High'] == h)[0][0]
     l = max(data_input['Low'])
-    l_idx = np.where(data_input['Low'] == l)[0]
+    l_idx = np.where(data_input['Low'] == l)[0][0]
 
     if l_idx < h_idx:
         fibo_lev_price = fibo_levels * (h - l)

@@ -1,5 +1,5 @@
 
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from MetaTraderChartTool.Tools.Tool import Tool
 
 from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
@@ -37,7 +37,7 @@ class SR(Tool):
 
             self.osr_lines = Oblique_channel_and_SRLines(self.sr_data1, 10 ** -(Config.symbols_pip[symbol]-1))
 
-    def draw(self, chart_tools: BasicChartTools):
+    def draw(self, chart_tools: MetaTraderBase):
 
         if self.mode == "OSR":
             names, times1, prices1, times2, prices2 = [], [], [], [], []

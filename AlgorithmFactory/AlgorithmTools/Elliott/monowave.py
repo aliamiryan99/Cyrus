@@ -1,3 +1,6 @@
+
+
+
 import numpy as np
 import pandas as pd
 import copy
@@ -55,7 +58,7 @@ class MonoWave:
             # if curr_direction * next_direction > 0:
             #     j = j + 1
             price_range = abs(dataF_price_node[key][start] -
-                              dataF_price_node[key][j])+ 0.001
+                              dataF_price_node[key][j]) + 0.001
             time = j - start
             sl = np.degrees(np.arctan(price_range / time))
             direction = 1 if (curr_direction > 0) else -1
@@ -361,7 +364,7 @@ class MonoWave:
         if M2 is not None:
 
             if M2.MW_end_index < self.monowaves.shape[0]:
-                M1.Next_wave_retracement_ratio = M2.Price_range / (M1.Price_range+0.001)
+                M1.Next_wave_retracement_ratio = M2.Price_range / (M1.Price_range + 0.001)
                 if (M1.Next_wave_retracement_ratio < (1 - fib_ratio)):
                     M1.Num_retracement_rule = 1
                 elif (M1.Next_wave_retracement_ratio < (fib_ratio - fib_ratio_precision)):
@@ -473,9 +476,6 @@ class MonoWave:
     def EW_rules(self, hyper_monowaves):
         for i in range(len(hyper_monowaves)):
             hyper_monowaves[i] = self.EW_rules_single_wave(hyper_monowaves, i)
-
-
-
 
     # region Eliottwave Rules
     def EW_R1a(self, hyper_monowaves, idx):
@@ -629,7 +629,7 @@ class MonoWave:
                     M1.Structure_list_label.append(':sL3')
                     M1.EW_structure.append('1b:-')
                 elif (not (self.waves_are_similar(M0.Price_range, M2.Price_range)) or not (
-                self.waves_are_similar(M0.Duration, M2.Duration))):
+                        self.waves_are_similar(M0.Duration, M2.Duration))):
                     if (M4 is not None and self.wave_retrace_beyond(M1, M4,
                                                                     (M3.End_candle_index - M1.Start_candle_index) // 2,
                                                                     M4.Duration)):
@@ -848,7 +848,7 @@ class MonoWave:
                         # ※ There may be a Complex formation where m0 is x
                         M0.Structure_list_label.append('x.c3')
                         M0.EW_structure.append('2c:Flat')
-                elif (M1 is not None and M_1 is not None and M1.Price_range / M_1.Price_range >= 0.382):
+                elif (M_1 is not None and M1.Price_range / M_1.Price_range >= 0.382):
                     # ※ There may be a Complex formation where m2 is x
                     M2.Structure_list_label.append('x.c3')
                     M2.EW_structure.append('2c:x-wave')
@@ -909,7 +909,7 @@ class MonoWave:
                     M1.Structure_list_label.append(':5')
                     M1.EW_structure.append('2d:-')
                 if (wave_is_steeper(M3.Price_range, M3.Duration, M1)):
-                    if (M0 is not None and self.wave_is_retraced(M3, M4)
+                    if (M0 is not None and M4 is not None and self.wave_is_retraced(M3, M4)
                             and self.waves_are_similar(M0.Duration, M1.Duration)
                             and (waves_are_fib_related(M2.Duration, M0.Duration, order=True) or waves_are_fib_related(
                                 M2.Duration, M1.Duration, order=True))
@@ -1052,7 +1052,7 @@ class MonoWave:
                         # ※ complex correction may have concluded with m3
                         M1.Structure_list_label.append(':F3')
                         M1.EW_structure.append('3a:complex correction')
-                        if (M1.Price_range > max(M_1.Price_range, M_3.Price_range)
+                        if (M_1 is not None and M1.Price_range > max(M_1.Price_range, M_3.Price_range)
                                 and self.wave_breaking_trend(M_2.End_candle_index, M0.End_candle_index,
                                                              M1.End_candle_index, M2.End_candle_index)):
                             # ※ m1 may be the 5 of a 5x impulse pattern
@@ -1086,15 +1086,17 @@ class MonoWave:
                             M1.EW_structure.append('3a:complex corrective pattern')
 
                         if M_3 is not None and (M1.Price_range > max(M_1.Price_range, M_3.Price_range)
-                                and self.wave_breaking_trend(M_2.End_candle_index, M0.End_candle_index,
-                                                             M1.End_candle_index, M2.End_candle_index)):
+                                                and self.wave_breaking_trend(M_2.End_candle_index, M0.End_candle_index,
+                                                                             M1.End_candle_index, M2.End_candle_index)):
                             # ※ m1 may be the 5 of a 5x impulse pattern
                             M1.Structure_list_label.append('[:L5]')
                             M1.EW_structure.append('3a:wave5 of impulse')
 
         hyper_monowaves[idx] = M1
-        if (M2 is not None): hyper_monowaves[idx + 1] = M2
-        if (M3 is not None): hyper_monowaves[idx + 2] = M3
+        if M2 is not None:
+            hyper_monowaves[idx + 1] = M2
+        if M3 is not None:
+            hyper_monowaves[idx + 2] = M3
 
     def EW_R3b(self, hyper_monowaves, idx):
         n = len(hyper_monowaves)
@@ -2521,12 +2523,12 @@ class MonoWave:
                 M1.EW_structure.append('5d:3rd Extension Terminal pattern completing with m2')
                 sw = 1
             if 0.618 <= M3.Price_range / M2.Price_range <= 1:
-                if M4 is not None and M4.Price_range / M0.Price_range < 0.618:
-                    if M1.Duration < M0.Duration:
-                        # ※ m1 may be an x-wave within a Complex Correction
-                        M1.Structure_list_label.append('x.c3')
-                        M1.EW_structure.append('5d:x-wave')
-                        sw = 1
+                if M4 is not None and M0 is not None and M4.Price_range / M0.Price_range < 0.618:
+                        if M1.Duration < M0.Duration:
+                            # ※ m1 may be an x-wave within a Complex Correction
+                            M1.Structure_list_label.append('x.c3')
+                            M1.EW_structure.append('5d:x-wave')
+                            sw = 1
                 else:
                     M1.Structure_list_label.append(':F3')
                     M1.EW_structure.append('5d:-')
@@ -2891,16 +2893,14 @@ class MonoWave:
                     # ※ A Trending Impulse pattern may have concluded with m2
                     M1.Structure_list_label.append(':L5')
                     M1.EW_structure.append('7b:Trending Impulse concluded with m2')
-                    if M_1.Price_range < M0.Price_range and self.wave_not_shortest(M_2.Price_range, M0.Price_range,
-                                                                                   M2.Price_range) \
-                            and self.market_goes_beyond_w1_start(M_2, M2.End_candle_index,
-                                                                 (M2.End_candle_index - M_2.Start_candle_index) // 2):
+                    if (M_2 is not None and M_1.Price_range < M0.Price_range and self.wave_not_shortest(M_2.Price_range, M0.Price_range, M2.Price_range)
+                            and self.market_goes_beyond_w1_start(M_2, M2.End_candle_index, (M2.End_candle_index - M_2.Start_candle_index) // 2) ):
                         # ※ A 5th Extension Terminal may have completed with m2
                         M1.Structure_list_label.append(':sL3')
                         M1.EW_structure.append('7b:5th Extension Terminal completed with m2')
 
-        if (idx + 1 < n): hyper_monowaves[idx + 1] = M2
-        if (idx + 2 < n): hyper_monowaves[idx + 2] = M3
+        if M2 is not None: hyper_monowaves[idx + 1] = M2
+        if M3 is not None: hyper_monowaves[idx + 2] = M3
         hyper_monowaves[idx] = M1
 
     def EW_R7c(self, hyper_monowaves, idx):
@@ -3110,13 +3110,13 @@ class MonoWave:
         dur = W1.Duration
         d2 = W2.Duration
         return abs(self.nodes.Price[W2.Start_candle_index + min(dur, d2)] - W2.Start_price) / (
-                    W1.Price_range * retraced_ratio) >= 1
+                W1.Price_range * retraced_ratio) >= 1
 
     def wave_is_retraced_slower(self, W1, W2):
         """Returns True if W2 retraces all of W1 in the same amount of time (or more [dur]) that W1 took to form"""
         if (W2.End_price - W2.Start_price) * (W2.End_price - W1.Start_price) > 0 and W2.Duration > W1.Duration:
             return (self.nodes.Price[W2.Start_candle_index + W1.Duration] - W2.Start_price) * (
-                        self.nodes.Price[W2.Start_candle_index + W1.Duration] - W1.Start_price) <= 0
+                    self.nodes.Price[W2.Start_candle_index + W1.Duration] - W1.Start_price) <= 0
         return False
 
     def wave_ret_n_subwaves(self, W1, W2, n=3):
@@ -3214,7 +3214,7 @@ class MonoWave:
         if M2 is not None and M0 is not None:
             if (check_subitem_in_list(M0.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                ':L5') and self.price_ratio(
-                    M2, M0, (1 - fib_ratio))) \
+                M2, M0, (1 - fib_ratio))) \
                     or (check_subitem_in_list(M0.Structure_list_label, ':F3') or check_subitem_in_list(
                 M2.Structure_list_label, ':F3')) \
                     or (check_subitem_in_list(M0.Structure_list_label, ':s5') and check_subitem_in_list(
@@ -3224,7 +3224,7 @@ class MonoWave:
         if M3 is not None:
             if (check_subitem_in_list(M0.Structure_list_label, '?') and check_subitem_in_list(M2.Structure_list_label,
                                                                                               ':c3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':L5')) \
+                M3.Structure_list_label, ':L5')) \
                     or (check_subitem_in_list(M0.Structure_list_label, '?') and check_subitem_in_list(
                 M2.Structure_list_label, ':c3') and check_subitem_in_list(M3.Structure_list_label, ':c3')) \
                     or (check_subitem_in_list(M0.Structure_list_label, 'x.c3') and check_subitem_in_list(
@@ -3244,8 +3244,8 @@ class MonoWave:
         if M4 is not None:
             if (check_subitem_in_list(M0.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                ':5') and check_subitem_in_list(
-                    M3.Structure_list_label, ':F3') and check_subitem_in_list(M4.Structure_list_label,
-                                                                              ':L5') and self.price_ratio(M2, M0, (
+                M3.Structure_list_label, ':F3') and check_subitem_in_list(M4.Structure_list_label,
+                                                                          ':L5') and self.price_ratio(M2, M0, (
                     1 - fib_ratio))):
                 return
 
@@ -3293,15 +3293,15 @@ class MonoWave:
             # 1. F3-c3-c3-c3: second or third c3 must be smallest or largest of all four
             if (check_subitem_in_list(M0.Structure_list_label, ':F3') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                 ':c3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':c3')):
+                M3.Structure_list_label, ':c3')):
                 if (self.check_smallest(HMW[i - 1:i + 2], 1) or self.check_smallest(HMW[i - 1:i + 2],
                                                                                     2) or self.check_largest(
-                        HMW[i - 1:i + 2], 1) or self.check_largest(HMW[i - 1:i + 2], 2)):
+                    HMW[i - 1:i + 2], 1) or self.check_largest(HMW[i - 1:i + 2], 2)):
                     return
             # 9 and 11. 5-c3-5-F3 : c3 must be smaller than 5
             if ((check_subitem_in_list(M0.Structure_list_label, ':5') or check_subitem_in_list(M0.Structure_list_label,
                                                                                                ':s5')) and check_subitem_in_list(
-                    M2.Structure_list_label, ':5') and check_subitem_in_list(M3.Structure_list_label, ':F3')):
+                M2.Structure_list_label, ':5') and check_subitem_in_list(M3.Structure_list_label, ':F3')):
                 if M1.Price_range < M0.Price_range:
                     M1.Structure_list_label.append('x.c3')  # maybe need to remove :c3
                     return
@@ -3309,7 +3309,7 @@ class MonoWave:
             # 10 and 12. 5-c3-F3-c3 : c3 must be smaller than 5
             if ((check_subitem_in_list(M0.Structure_list_label, ':5') or check_subitem_in_list(M0.Structure_list_label,
                                                                                                ':s5')) and check_subitem_in_list(
-                    M2.Structure_list_label, ':F3') and check_subitem_in_list(M3.Structure_list_label, ':c3')):
+                M2.Structure_list_label, ':F3') and check_subitem_in_list(M3.Structure_list_label, ':c3')):
                 if M1.Price_range < M0.Price_range:
                     M1.Structure_list_label.append('x.c3')  # maybe need to remove :c3
                     return
@@ -3323,17 +3323,17 @@ class MonoWave:
             if (check_subitem_in_list(M_1.Structure_list_label, ':F3') and check_subitem_in_list(
                     M0.Structure_list_label, ':c3') and check_subitem_in_list(M2.Structure_list_label,
                                                                               ':c3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':L3')):
+                M3.Structure_list_label, ':L3')):
                 if (self.check_smallest(HMW[i - 2:i + 2], 3) or self.check_smallest(HMW[i - 2:i + 2],
                                                                                     4) or self.check_largest(
-                        HMW[i - 2:i + 2], 3) or self.check_largest(HMW[i - 2:i + 2], 4)):
+                    HMW[i - 2:i + 2], 3) or self.check_largest(HMW[i - 2:i + 2], 4)):
                     return
 
             # 6. F3-c3-c3-sl3-L3 : L3 must be the smallest of all five Structure labels
             if (check_subitem_in_list(M_1.Structure_list_label, ':F3') and check_subitem_in_list(
                     M0.Structure_list_label, ':c3') and check_subitem_in_list(M2.Structure_list_label,
                                                                               ':sl3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':L3')):
+                M3.Structure_list_label, ':L3')):
                 if (self.check_smallest(HMW[i - 2:i + 2], 4)):
                     return
 
@@ -3368,7 +3368,7 @@ class MonoWave:
         # 9. s5-x.c3-:3 : (last :3 terminates pattern OR rare Triple Combination pattern forming, if so, after :3 another x.c3 would occur)
         if ((check_subitem_in_list(M0.Structure_list_label, ':3') or check_subitem_in_list(M0.Structure_list_label,
                                                                                            ':s5')) and check_subitem_in_list(
-                M2.Structure_list_label, ':3')):
+            M2.Structure_list_label, ':3')):
             return
 
         if M3 is not None:
@@ -3376,7 +3376,7 @@ class MonoWave:
             # 2. L3-x.c3-5-c3 : virtually Impossible, c3 must be larger than L3 and 5)
             if (check_subitem_in_list(M0.Structure_list_label, ':L3') and (
                     check_subitem_in_list(M2.Structure_list_label, ':F3') or check_subitem_in_list(
-                    M2.Structure_list_label, ':5')) and check_subitem_in_list(M3.Structure_list_label, ':c3')):
+                M2.Structure_list_label, ':5')) and check_subitem_in_list(M3.Structure_list_label, ':c3')):
                 if (M3.Price_range > M0.Price_range and M3.Price_range > M2.Price_range):
                     return
 
@@ -3387,16 +3387,16 @@ class MonoWave:
             if (check_subitem_in_list(M0.Structure_list_label, ':5') and ((check_subitem_in_list(
                     M2.Structure_list_label, ':F3') and check_subitem_in_list(M3.Structure_list_label, ':c3')) or (
                                                                                   check_subitem_in_list(
-                                                                                          M2.Structure_list_label,
-                                                                                          ':5') and check_subitem_in_list(
-                                                                                  M3.Structure_list_label, ':F3')))):
+                                                                                      M2.Structure_list_label,
+                                                                                      ':5') and check_subitem_in_list(
+                                                                              M3.Structure_list_label, ':F3')))):
                 if (M1.Price_range < M0.Price_range and M1.Price_range < M2.Price_range):
                     return
 
             # 10. L5-x.c3-F3-c3 : (x.c3 must be larger than L5 and F3)
             if (check_subitem_in_list(M0.Structure_list_label, ':L5') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                 ':F3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':c3')):
+                M3.Structure_list_label, ':c3')):
                 if (M1.Price_range > M0.Price_range and M1.Price_range > M2.Price_range):
                     return
 
@@ -3445,14 +3445,14 @@ class MonoWave:
             if check_subitem_in_list(M_3.Structure_list_label, ':F3') and check_subitem_in_list(
                     M_2.Structure_list_label, ':c3') and check_subitem_in_list(M_1.Structure_list_label,
                                                                                ':c3') and check_subitem_in_list(
-                    M0.Structure_list_label, ':c3'):
+                M0.Structure_list_label, ':c3'):
                 if M4.Price_range > M1.Price_range or M4.Price_range > M2.Price_range:
                     return
             # 2. F3-c3-c3-sL3-L3-? : (L3 must be the smallest wave,it must be violently retraced)
             if check_subitem_in_list(M_3.Structure_list_label, ':F3') and check_subitem_in_list(
                     M_2.Structure_list_label, ':c3') and check_subitem_in_list(M_1.Structure_list_label,
                                                                                ':c3') and check_subitem_in_list(
-                    M0.Structure_list_label, ':sL3'):
+                M0.Structure_list_label, ':sL3'):
                 if (self.check_smallest(HMW[i - 4:i], 4)):
                     return
 
@@ -3460,7 +3460,7 @@ class MonoWave:
         if M0 is not None and M3 is not None:
             if check_subitem_in_list(M0.Structure_list_label, ':sL3') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                 'x.c3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':F3'):
+                M3.Structure_list_label, ':F3'):
                 if (M0.Price_range > M1.Price_range and M2.Price_range > M1.Price_range) or (
                         M0.Price_range < M1.Price_range and M2.Price_range < M1.Price_range):
                     return
@@ -3488,25 +3488,25 @@ class MonoWave:
             # 3. F3-5-F3-L5 : (the two F3's cannot share any similar price territory and L5 must be longer than 5)
             if check_subitem_in_list(M0.Structure_list_label, ':F3') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                ':F3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':L5'):
+                M3.Structure_list_label, ':L5'):
                 if not wave_overlap(M0, M2) and M3.Price_range > M1.Price_range:
                     return
             # 4. F3-5-x.c3-F3 : (x.c3 and first F3 must be smaller than 5; second F3 almost always longer than x.c3)
             if check_subitem_in_list(M0.Structure_list_label, ':F3') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                'x.c3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':F3'):
+                M3.Structure_list_label, ':F3'):
                 if M2.Price_range < M1.Price_range and M0.Price_range < M1.Price_range and M3.Price_range > M2.Price_range:
                     return
             # 5. F3-5-x.c3-5 : (x.c3 and F3 must be smaller than first 5; second 5 must be larger than x.c3)
             if check_subitem_in_list(M0.Structure_list_label, ':F3') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                'x.c3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':5'):
+                M3.Structure_list_label, ':5'):
                 if M2.Price_range < M1.Price_range and M0.Price_range < M1.Price_range and M3.Price_range > M2.Price_range:
                     return
             # 6. c3-5-x.c3-F3 : (x.c3 is either 161.8% or more of 5 or less than 61.8% of 5; if x.c3 is larger than 5 then F3 must be smaller than x.c3; if x.c3 is smaller than 5, then F3 would almost always be larger than x.c3)
             if check_subitem_in_list(M0.Structure_list_label, ':c3') and check_subitem_in_list(M2.Structure_list_label,
                                                                                                'x.c3') and check_subitem_in_list(
-                    M3.Structure_list_label, ':F3'):
+                M3.Structure_list_label, ':F3'):
                 if (self.price_ratio(M2, M1, 1 + fib_ratio) or self.price_ratio(M1, M2, 1 + fib_ratio)):
                     if (M2.Price_range > M1.Price_range and M3.Price_range < M2.Price_range) or (
                             M2.Price_range < M1.Price_range and M3.Price_range < M2.Price_range):
@@ -3607,7 +3607,7 @@ class MonoWave:
                 if check_subitem_in_list(M_1.Structure_list_label, ':F3') and check_subitem_in_list(
                         M0.Structure_list_label, ':c3') and check_subitem_in_list(M2.Structure_list_label,
                                                                                   'x.c3') and check_subitem_in_list(
-                        M3.Structure_list_label, ':F3'):
+                    M3.Structure_list_label, ':F3'):
                     if M0.Price_range > M1.Price_range and M2.Price_range > M1.Price_range and M3.Price_range < M2.Price_range:
                         return
 
@@ -3630,13 +3630,13 @@ class MonoWave:
                 if check_subitem_in_list(M0.Structure_list_label, ':L3') or check_subitem_in_list(
                         M_1.Structure_list_label, ':L3') or check_subitem_in_list(M0.Structure_list_label,
                                                                                   ':L5') or check_subitem_in_list(
-                        M_1.Structure_list_label, ':L5'):
+                    M_1.Structure_list_label, ':L5'):
                     continue
                 if len(M_2.Structure_list_label) >= 1 and (
                         check_subitem_in_list(M_2.Structure_list_label, ':F3') or check_subitem_in_list(
-                        M_2.Structure_list_label, 'x.c3') or check_subitem_in_list(M_2.Structure_list_label,
-                                                                                   ':L3') or check_subitem_in_list(
-                        M_2.Structure_list_label, ':s5') or check_subitem_in_list(M_2.Structure_list_label, ':L5')):
+                    M_2.Structure_list_label, 'x.c3') or check_subitem_in_list(M_2.Structure_list_label,
+                                                                               ':L3') or check_subitem_in_list(
+                    M_2.Structure_list_label, ':s5') or check_subitem_in_list(M_2.Structure_list_label, ':L5')):
                     pairs.append((i - 2, i))
                     continue
 
@@ -3648,9 +3648,9 @@ class MonoWave:
                             break
                     if len(HMW[j].Structure_list_label) >= 1 and (
                             check_subitem_in_list(HMW[j].Structure_list_label, 'x.c3') or check_subitem_in_list(
-                            HMW[j].Structure_list_label, ':L3') or check_subitem_in_list(HMW[j].Structure_list_label,
-                                                                                         ':s5') or check_subitem_in_list(
-                            HMW[j].Structure_list_label, ':L5')):
+                        HMW[j].Structure_list_label, ':L3') or check_subitem_in_list(HMW[j].Structure_list_label,
+                                                                                     ':s5') or check_subitem_in_list(
+                        HMW[j].Structure_list_label, ':L5')):
                         if (i - j) % 2 == 1:
                             pairs.append((j + 1, i))
                             break
@@ -3660,213 +3660,390 @@ class MonoWave:
         self.monowaves.to_csv(path + 'monowaves.csv', index=False, encoding='utf-8', sep=';')
 
     def Flat_prediction_zone_label_Mc(self, hyper_monowaves):
-        pred1_yc=[]
-        pred2_yc=[]
-        pred3_yc=[]
-        pred_xc=[]
-        pred_xb=[]
-        pred_yb=[]
-        hmw_index=[]
-        
-        for index in range(len(hyper_monowaves)-2):
+        pred1_yc = []
+        pred2_yc = []
+        pred3_yc = []
+        pred_xc = []
+        pred_xb = []
+        pred_yb = []
+        hmw_index = []
+
+        for index in range(len(hyper_monowaves) - 1):
             Ma = hyper_monowaves[index]
             Mb = hyper_monowaves[index + 1]
-        
-            if (check_subitem_in_list(Ma.Structure_list_label, '3') and check_subitem_in_list(Mb.Structure_list_label, '3')):
-                    xb = Mb.End_candle_index
-                    yb = Mb.End_price
-                    
-                    if Ma.Duration < Mb.Duration and Mb.Price_range > 0.618 * Ma.Price_range:
-                        if Ma.Duration + 1 >= Mb.Duration:
-                            xc = xb + Ma.Duration + Mb.Duration
-                            pred_xc.append(xc)
-                        else:
-                            xc = xb + int((Ma.Duration + Mb.Duration)/2)
-                            pred_xc.append(xc)
-                
 
-                        pred1_C_price_range = Ma.Price_range
-                        pred2_C_price_range = 1.618 * Ma.Price_range
-                        pred3_C_price_range = 2.618 * Ma.Price_range
+            if (check_subitem_in_list(Ma.Structure_list_label, '3') and check_subitem_in_list(Mb.Structure_list_label,
+                                                                                              '3')
+                    and not check_subitem_in_list(Ma.Structure_list_label, 'L3') and not check_subitem_in_list(
+                        Ma.Structure_list_label, 'L5')
+                    and not check_subitem_in_list(Mb.Structure_list_label, 'L3') and not check_subitem_in_list(
+                        Mb.Structure_list_label, 'L5')):
+                xb = Mb.End_candle_index
+                yb = Mb.End_price
 
-                        pred1_C_end_price = yb + (pred1_C_price_range * Ma.Direction)
-                        pred2_C_end_price = yb + (pred2_C_price_range * Ma.Direction)
-                        pred3_C_end_price = yb + (pred3_C_price_range * Ma.Direction)
-
-                        pred1_yc.append(pred1_C_end_price)
-                        pred2_yc.append(pred2_C_end_price)
-                        pred3_yc.append(pred3_C_end_price)
-                        pred_xb.append(xb)
-                        pred_yb.append(yb)
-
-                        hmw_index.append(index)
-                    
-        return hmw_index, pred_xb, pred_yb, pred_xc, pred1_yc, pred2_yc, pred3_yc 
-      
-      
-    def Zigzag_prediction_zone_label_Mc(self, hyper_monowaves):
-        pred1_yc=[]
-        pred2_yc=[]
-        pred3_yc=[]
-        pred_xc=[]
-        pred_xb=[]
-        pred_yb=[]
-        hmw_index=[]
-        
-        for index in range(len(hyper_monowaves)-2):
-            Ma = hyper_monowaves[index]
-            Mb = hyper_monowaves[index + 1]
-        
-            if (check_subitem_in_list(Ma.Structure_list_label, '5') and check_subitem_in_list(Mb.Structure_list_label, '3')):
-                    xb = Mb.End_candle_index
-                    yb = Mb.End_price
-                    ya = Ma.End_price
-                    
-                    if Ma.Duration <= Mb.Duration and Mb.Price_range <= 0.618 * Ma.Price_range:
-                        xc = xb + Mb.Duration
+                if Ma.Duration < Mb.Duration and Mb.Price_range > 0.618 * Ma.Price_range:
+                    if Ma.Duration + 1 >= Mb.Duration:
+                        xc = xb + Ma.Duration + Mb.Duration
                         pred_xc.append(xc)
-                
+                    else:
+                        xc = xb + int((Ma.Duration + Mb.Duration) / 2)
+                        pred_xc.append(xc)
 
-                        pred1_C_price_range = 0.618 * Ma.Price_range
-                        pred2_C_price_range = Ma.Price_range
-                        pred3_C_price_range = 1.618 * Ma.Price_range
-                    
-                        pred1_C_end_price = yb + (pred1_C_price_range * Ma.Direction) 
-                        if Ma.Direction > 0 and ya > yb + (pred1_C_price_range * Ma.Direction):
-                            pred1_C_end_price = ya
-                        elif Ma.Direction < 0 and ya < yb + (pred1_C_price_range * Ma.Direction):
-                            pred1_C_end_price = ya    
+                    pred1_C_price_range = Ma.Price_range
+                    pred2_C_price_range = 1.618 * Ma.Price_range
+                    pred3_C_price_range = 2.618 * Ma.Price_range
 
-                        pred2_C_end_price = yb + (pred2_C_price_range * Ma.Direction)
-                        pred3_C_end_price = yb + (pred3_C_price_range * Ma.Direction)
+                    pred1_C_end_price = yb + (pred1_C_price_range * Ma.Direction)
+                    pred2_C_end_price = yb + (pred2_C_price_range * Ma.Direction)
+                    pred3_C_end_price = yb + (pred3_C_price_range * Ma.Direction)
 
-                        pred1_yc.append(pred1_C_end_price)
-                        pred2_yc.append(pred2_C_end_price)
-                        pred3_yc.append(pred3_C_end_price)
-                        pred_xb.append(xb)
-                        pred_yb.append(yb)
+                    pred1_yc.append(pred1_C_end_price)
+                    pred2_yc.append(pred2_C_end_price)
+                    pred3_yc.append(pred3_C_end_price)
+                    pred_xb.append(xb)
+                    pred_yb.append(yb)
 
-                        hmw_index.append(index)
-                    
-        return hmw_index, pred_xb, pred_yb, pred_xc, pred1_yc, pred2_yc, pred3_yc 
+                    hmw_index.append(index)
+
+        return hmw_index, pred_xb, pred_yb, pred_xc, pred1_yc, pred2_yc, pred3_yc
+
+    def Zigzag_prediction_zone_label_Mc(self, hyper_monowaves):
+        pred1_yc = []
+        pred2_yc = []
+        pred3_yc = []
+        pred_xc = []
+        pred_xb = []
+        pred_yb = []
+        hmw_index = []
+
+        for index in range(len(hyper_monowaves) - 2):
+            Ma = hyper_monowaves[index]
+            Mb = hyper_monowaves[index + 1]
+
+            if (check_subitem_in_list(Ma.Structure_list_label, '5') and check_subitem_in_list(Mb.Structure_list_label,
+                                                                                              '3')
+                    and not check_subitem_in_list(Ma.Structure_list_label, 'L3') and not check_subitem_in_list(
+                        Ma.Structure_list_label, 'L5')
+                    and not check_subitem_in_list(Mb.Structure_list_label, 'L3') and not check_subitem_in_list(
+                        Mb.Structure_list_label, 'L5')):
+                xb = Mb.End_candle_index
+                yb = Mb.End_price
+                ya = Ma.End_price
+
+                if Ma.Duration <= Mb.Duration and Mb.Price_range <= 0.618 * Ma.Price_range:
+                    xc = xb + Mb.Duration
+                    pred_xc.append(xc)
+
+                    pred1_C_price_range = 0.618 * Ma.Price_range
+                    pred2_C_price_range = Ma.Price_range
+                    pred3_C_price_range = 1.618 * Ma.Price_range
+
+                    pred1_C_end_price = yb + (pred1_C_price_range * Ma.Direction)
+                    if Ma.Direction > 0 and ya > yb + (pred1_C_price_range * Ma.Direction):
+                        pred1_C_end_price = ya
+                    elif Ma.Direction < 0 and ya < yb + (pred1_C_price_range * Ma.Direction):
+                        pred1_C_end_price = ya
+
+                    pred2_C_end_price = yb + (pred2_C_price_range * Ma.Direction)
+                    pred3_C_end_price = yb + (pred3_C_price_range * Ma.Direction)
+
+                    pred1_yc.append(pred1_C_end_price)
+                    pred2_yc.append(pred2_C_end_price)
+                    pred3_yc.append(pred3_C_end_price)
+                    pred_xb.append(xb)
+                    pred_yb.append(yb)
+
+                    hmw_index.append(index)
+
+        return hmw_index, pred_xb, pred_yb, pred_xc, pred1_yc, pred2_yc, pred3_yc
 
     def Impulse_In_prediction_zone_label_M4(self, hyper_monowaves, step):
-      
-        pred_y1=[]
-        pred_y2=[]
-        pred_y3=[]
-        pred_y4=[]
-        pred_x1=[]
-        pred_x2=[]
-        start_candle_index=[]
-        start_price=[]
-        hmw_index=[]
-        validation=[]
-        
-        for index in range(len(hyper_monowaves)-3):
-            if index==101:
-                y=1
-                
+
+        pred_y1 = []
+        pred_y2 = []
+        pred_y3 = []
+        pred_y4 = []
+        preds = []
+        pred_x1 = []
+        pred_x2 = []
+
+        pred4_price_range2 = []
+        pred4_price_range3 = []
+        pred4_price_range4 = []
+        start_candle_index = []
+        start_price = []
+        hmw_index = []
+        validation = []
+        ii = -1
+
+        for index in range(len(hyper_monowaves) - 3):
+            if index == 101:
+                y = 1
+
             M1 = hyper_monowaves[index]
             M2 = hyper_monowaves[index + 1]
             M3 = hyper_monowaves[index + 2]
-        
-            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label, ':F3') 
-                 and (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label, ':s5'))):
-                    start_x=M1.Start_candle_index
-                    start_y=M1.Start_price
-                    x1 = M3.End_candle_index
-                    y1 = M3.End_price
-                    x2 = x1+ int(step/2)
 
-                    pred4_price_range1 = (1- M2.Price_range/M1.Price_range)*M3.Price_range
-                    pred4_price_range2 = 0.62 * M2.Price_range
-                    pred4_price_range3 = 0.236 * M3.Price_range
-                    pred4_price_range4 = 0.382 * abs(M3.End_price - M1.Start_price)
-                    
-                    
-                    
-                    # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [1.0, 1.62]])
-                    # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.382, 0.5, 0.618]])
-                    # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.236, 0.382, 0.5, 0.618]])
-                    # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [0.62, 1.00]])
-                    # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.236, 0.5]])
-                    # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382]])
+            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,
+                                                                                               ':F3')
+                    and (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(
+                        M3.Structure_list_label, ':s5'))
+                    and M1.Price_range >= M2.Price_range and M2.Price_range <= M3.Price_range):
+                start_x = M1.Start_candle_index
+                start_y = M1.Start_price
+                x1 = M3.End_candle_index
+                y1 = M3.End_price
+                x2 = x1 + int(step / 2)
+                ii += 1
+                pred4_price_range = abs(1 - M2.Price_range / M1.Price_range) * M3.Price_range
+                # pred4_price_range2 = M2.Price_range
+                # pred4_price_range2_1 = 1.62 * M2.Price_range
+                # pred4_price_range3 = 0.382 * M3.Price_range
+                # pred4_price_range3_1 = 0.5 * M3.Price_range
+                # pred4_price_range3_2 = 0.618 * M3.Price_range
+                # pred4_price_range4 = 0.236 * abs(M3.End_price - M1.Start_price)
+                # pred4_price_range4_1 = 0.382 * abs(M3.End_price - M1.Start_price)
+                # pred4_price_range4_2 = 0.5 * abs(M3.End_price - M1.Start_price)
+                # pred4_price_range4_3 = 0.618 * abs(M3.End_price - M1.Start_price)
 
-                    
+                pred4_price_range2.append([ratio * M2.Price_range for ratio in [1.0, 1.62]])
+                pred4_price_range3.append([ratio * M3.Price_range for ratio in [0.382, 0.5, 0.618]])
+                pred4_price_range4.append(
+                    [ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.236, 0.382, 0.5, 0.618]])
+
+                # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [1.0, 1.62]])
+                # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.382, 0.5, 0.618]])
+                # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.236, 0.382, 0.5, 0.618]])
+                # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [0.62, 1.00]])
+                # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.236, 0.5]])
+                # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382]])
+
+                pred_x1.append(x1)
+                pred_x2.append(x2)
+                start_candle_index.append(start_x)
+                start_price.append(start_y)
+                hmw_index.append(index)
+                # pred_y.append(pred4_end_price)
+                if pred4_price_range / M1.Price_range < 0.618 and pred4_price_range / M3.Price_range < (
+                        M2.Price_range / M1.Price_range) \
+                        and M3.Price_range >= pred4_price_range:
+                    pred4_end_price1 = y1 - (pred4_price_range * M3.Direction)
+                    pred_y1.append([pred4_end_price1])
+                else:
+                    pred_y1.append(["none"])
+
+                pred_y_temp = []
+                for i in range(2):
+                    if pred4_price_range2[ii][i] / M1.Price_range < 0.618 and pred4_price_range2[ii][
+                        i] / M3.Price_range < (M2.Price_range / M1.Price_range) \
+                            and M3.Price_range >= pred4_price_range2[ii][i]:
+                        pred4_end_price2 = M3.End_price - M3.Direction * pred4_price_range2[ii][i]
+                        pred_y_temp.append(pred4_end_price2)
+                    else:
+                        pred_y_temp.append("none")
+                pred_y2.append(pred_y_temp)
+
+                pred_y_temp = []
+                for i in range(3):
+                    if pred4_price_range3[ii][i] / M1.Price_range < 0.618 and pred4_price_range3[ii][
+                        i] / M3.Price_range < (M2.Price_range / M1.Price_range) \
+                            and M3.Price_range >= pred4_price_range3[ii][i]:
+                        pred4_end_price3 = M3.End_price - M3.Direction * pred4_price_range3[ii][i]
+                        pred_y_temp.append(pred4_end_price3)
+                    else:
+                        pred_y_temp.append("none")
+                pred_y3.append(pred_y_temp)
+
+                pred_y_temp = []
+                for i in range(4):
+                    if pred4_price_range4[ii][i] / M1.Price_range < 0.618 and pred4_price_range4[ii][
+                        i] / M3.Price_range < (M2.Price_range / M1.Price_range) \
+                            and M3.Price_range >= pred4_price_range4[ii][i]:
+                        pred4_end_price4 = M3.End_price - M3.Direction * pred4_price_range4[ii][i]
+                        pred_y_temp.append(pred4_end_price4)
+                    else:
+                        pred_y_temp.append("none")
+                pred_y4.append(pred_y_temp)
+
+                # if pred4_price_range / M1.Price_range < 0.618:
+                #     pred_y1.append(pred4_end_price)
+                #     pred_x1.append(x1)
+                #     pred_x2.append(x2)
+                #     start_candle_index.append(start_x)
+                #     start_price.append(start_y)
+                #     hmw_index.append(index)
+        preds.append(pred_y1)
+        preds.append(pred_y2)
+        preds.append(pred_y3)
+        preds.append(pred_y4)
+        # return hmw_index, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4
+        return hmw_index, pred_x1, pred_x2, preds
+
+    def Impulse_In_prediction_zone_label_M5_truncated(self, hyper_monowaves, step):
+
+        pred_y = []
+        pred_x1 = []
+        pred_x2 = []
+        start_candle_index = []
+        start_price = []
+        hmw_index = []
+        validation = []
+
+        for index in range(len(hyper_monowaves) - 4):
+
+            M1 = hyper_monowaves[index]
+            M2 = hyper_monowaves[index + 1]
+            M3 = hyper_monowaves[index + 2]
+            M4 = hyper_monowaves[index + 2]
+
+            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,
+                                                                                               ':F3') and
+                    (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(
+                        M3.Structure_list_label, ':s5')) and
+                    check_subitem_in_list(M3.Structure_list_label, ':F3')):
+                start_x = M1.Start_candle_index
+                start_y = M1.Start_price
+                x1 = M4.End_candle_index
+                y1 = M4.End_price
+                x2 = x1 + int(step / 2)
+
+                if (M1.Price_range < M3.Price_range and
+                        M4.Price_range > M2.Price_range and
+                        0.318 <= M4.Price_range / M3.Price_range <= (0.618 + 0.02)):
+                    pred5_end_price = M3.End_price
+                    pred_y.append(pred5_end_price)
                     pred_x1.append(x1)
                     pred_x2.append(x2)
                     start_candle_index.append(start_x)
                     start_price.append(start_y)
                     hmw_index.append(index)
-                    # pred_y.append(pred4_end_price)
-                    if  pred4_price_range1 / M1.Price_range < 0.618:
-                        pred4_end_price1 = y1 - (pred4_price_range1 * M3.Direction)
-                        pred_y1.append(pred4_end_price1)
-                    else: pred_y1.append("none")
 
-                    if  pred4_price_range2 / M3.Price_range < (M2.Price_range / M1.Price_range):
-                        pred4_end_price2 = M3.End_price - M3.Direction * pred4_price_range2
-                        pred_y2.append(pred4_end_price2)
-                    else: pred_y2.append("none")
+        return hmw_index, pred_x1, pred_x2, pred_y
 
-                    if  pred4_price_range3 / M3.Price_range < (M2.Price_range / M1.Price_range):
-                        pred4_end_price3 = M3.End_price - M3.Direction * pred4_price_range3
-                        pred_y3.append(pred4_end_price3)
-                    else: pred_y3.append("none")
 
-                    if  pred4_price_range4 / M3.Price_range < (M2.Price_range / M1.Price_range):
-                        pred4_end_price4 = M3.End_price - M3.Direction * pred4_price_range4
-                        pred_y4.append(pred4_end_price4)
-                    else: pred_y4.append("none")
-                   
-                    
-                    # if pred4_price_range / M1.Price_range < 0.618:
-                    #     pred_y1.append(pred4_end_price)
-                    #     pred_x1.append(x1)
-                    #     pred_x2.append(x2)
-                    #     start_candle_index.append(start_x)
-                    #     start_price.append(start_y)
-                    #     hmw_index.append(index)
-                        
-        return hmw_index, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4
-    
-    def Impulse_In_prediction_zone_label_M5_truncated(self, hyper_monowaves, step):
-      
-        pred_y=[]
-        pred_x1=[]
-        pred_x2=[]
-        start_candle_index=[]
-        start_price=[]
-        hmw_index=[]
-        validation=[]
-        
-        for index in range(len(hyper_monowaves)-4):
-                            
-            M1 = hyper_monowaves[index]
-            M2 = hyper_monowaves[index + 1]
-            M3 = hyper_monowaves[index + 2]
-            M4 = hyper_monowaves[index + 2]
-        
-            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label, ':F3') and 
-                (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label, ':s5')) and
+def Impulse_In_prediction_zone_label_M5(self, hyper_monowaves, step):
+    pred_y1 = []
+    pred_y2 = []
+    pred_y3 = []
+    pred_y4 = []
+    preds = []
+    pred_x1 = []
+    pred_x2 = []
+    pred5_price_range1 = []
+    pred5_price_range2 = []
+    pred5_price_range3 = []
+    pred5_price_range4 = []
+    start_candle_index = []
+    start_price = []
+    hmw_index = []
+    validation = []
+    ii = -1
+
+    for index in range(len(hyper_monowaves) - 3):
+        if index == 101:
+            y = 1
+
+        M1 = hyper_monowaves[index]
+        M2 = hyper_monowaves[index + 1]
+        M3 = hyper_monowaves[index + 2]
+        M4 = hyper_monowaves[index + 3]
+
+        if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,
+                                                                                           ':F3') and
+                (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label,
+                                                                                               ':s5')) and
                 check_subitem_in_list(M3.Structure_list_label, ':F3')):
-                    start_x=M1.Start_candle_index
-                    start_y=M1.Start_price
-                    x1 = M4.End_candle_index
-                    y1 = M4.End_price
-                    x2 = x1+ int(step/2)
 
-                    if (M1.Price_range < M3.Price_range and 
-                        M4.Price_range > M2.Price_range and 
-                        0.318 <= M4.Price_range / M3.Price_range <= (0.618 + 0.02)):
+            start_x = M1.Start_candle_index
+            start_y = M1.Start_price
+            x1 = M4.End_candle_index
+            y1 = M4.End_price
+            x2 = x1 + int(step / 2)
+            ii += 1
 
-                            pred5_end_price = M3.End_price
-                            pred_y.append(pred5_end_price)
-                            pred_x1.append(x1)
-                            pred_x2.append(x2)
-                            start_candle_index.append(start_x)
-                            start_price.append(start_y)
-                            hmw_index.append(index)
-                        
-        return hmw_index, pred_x1,pred_x2,pred_y
+            # pred4_price_range2 = M2.Price_range
+            # pred4_price_range2_1 = 1.62 * M2.Price_range
+            # pred4_price_range3 = 0.382 * M3.Price_range
+            # pred5_price_range3_1 = 0.5 * M3.Price_range
+            # pred5_price_range3_2 = 0.618 * M3.Price_range
+            # pred4_price_range4 = 0.236 * abs(M3.End_price - M1.Start_price)
+            # pred5_price_range4_1 = 0.382 * abs(M3.End_price - M1.Start_price)
+            # pred5_price_range4_2 = 0.5 * abs(M3.End_price - M1.Start_price)
+            # pred5_price_range4_3 = 0.618 * abs(M3.End_price - M1.Start_price)
+
+            pred5_price_range1.append([ratio * M1.Price_range for ratio in [1.0, 1.62]])
+            pred5_price_range2.append([ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382, 0.618, 1.0]])
+            pred5_price_range3.append([ratio * M4.Price_range for ratio in [1.27, 1.62]])
+            pred5_price_range4.append([ratio * M2.Price_range for ratio in [2.62, 4.24]])
+            # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [1.0, 1.62]])
+            # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.382, 0.5, 0.618]])
+            # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.236, 0.382, 0.5, 0.618]])
+            # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [0.62, 1.00]])
+            # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.236, 0.5]])
+            # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382]])
+
+            pred_x1.append(x1)
+            pred_x2.append(x2)
+            start_candle_index.append(start_x)
+            start_price.append(start_y)
+            hmw_index.append(index)
+            # pred_y.append(pred4_end_price)
+            if pred5_price_range1 / M1.Price_range < 0.618 and pred5_price_range1 / M3.Price_range < (
+                    M2.Price_range / M1.Price_range) \
+                    and M3.Price_range >= pred5_price_range1:
+                pred4_end_price1 = y1 - (pred5_price_range1 * M3.Direction)
+                pred_y1.append([pred4_end_price1])
+            else:
+                pred_y1.append(["none"])
+
+            pred_y_temp = []
+            for i in range(2):
+                if pred5_price_range2[ii][i] / M1.Price_range < 0.618 and pred5_price_range2[ii][i] / M3.Price_range < (
+                        M2.Price_range / M1.Price_range) \
+                        and M3.Price_range >= pred5_price_range2[ii][i]:
+                    pred4_end_price2 = M3.End_price - M3.Direction * pred5_price_range2[ii][i]
+                    pred_y_temp.append(pred4_end_price2)
+                else:
+                    pred_y_temp.append("none")
+            pred_y2.append(pred_y_temp)
+
+            pred_y_temp = []
+            for i in range(3):
+                if pred5_price_range3[ii][i] / M1.Price_range < 0.618 and pred5_price_range3[ii][i] / M3.Price_range < (
+                        M2.Price_range / M1.Price_range) \
+                        and M3.Price_range >= pred5_price_range3[ii][i]:
+                    pred4_end_price3 = M3.End_price - M3.Direction * pred5_price_range3[ii][i]
+                    pred_y_temp.append(pred4_end_price3)
+                else:
+                    pred_y_temp.append("none")
+            pred_y3.append(pred_y_temp)
+
+            pred_y_temp = []
+            for i in range(4):
+                if pred5_price_range4[ii][i] / M1.Price_range < 0.618 and pred5_price_range4[ii][i] / M3.Price_range < (
+                        M2.Price_range / M1.Price_range) \
+                        and M3.Price_range >= pred5_price_range4[ii][i]:
+                    pred4_end_price4 = M3.End_price - M3.Direction * pred5_price_range4[ii][i]
+                    pred_y_temp.append(pred4_end_price4)
+                else:
+                    pred_y_temp.append("none")
+            pred_y4.append(pred_y_temp)
+
+            # if pred5_price_range / M1.Price_range < 0.618:
+            #     pred_y1.append(pred4_end_price)
+            #     pred_x1.append(x1)
+            #     pred_x2.append(x2)
+            #     start_candle_index.append(start_x)
+            #     start_price.append(start_y)
+            #     hmw_index.append(index)
+    preds.append(pred_y1)
+    preds.append(pred_y2)
+    preds.append(pred_y3)
+    preds.append(pred_y4)
+    # return hmw_index, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4
+    return hmw_index, pred_x1, pred_x2, preds
+
+# pred_list.append([W4.End_price + W3.Direction * ratio * W1.Price_range for ratio in [1.0, 1.62]])
+# pred_list.append([W4.End_price + W3.Direction * ratio * abs(W3.End_price - W1.Start_price) for ratio in [0.382, 0.618, 1.0]])
+# pred_list.append([W4.End_price + W3.Direction * ratio * W4.Price_range for ratio in [1.27, 1.62]])
+# pred_list.append([W2.End_price + W3.Direction * ratio * W2.Price_range for ratio in [2.62, 4.24]])

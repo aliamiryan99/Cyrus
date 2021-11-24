@@ -1,4 +1,4 @@
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
 
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
@@ -6,7 +6,7 @@ from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
 class PivotPoints(RealTimeTool):
 
-    def __init__(self, chart_tool: BasicChartTools, data, window, mode):
+    def __init__(self, chart_tool: MetaTraderBase, data, window, mode):
         super().__init__(chart_tool, data)
 
         self.window = window

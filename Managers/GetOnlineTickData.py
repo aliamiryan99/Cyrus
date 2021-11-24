@@ -5,7 +5,7 @@ import sys
 sys.path.append('../../..')
 
 # Import ZMQ-Strategy from relative path
-from MetaTrader.MQTT_Strategy import DWX_ZMQ_Strategy
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from Configuration.Trade.OnlineConfig import Config
 from Configuration.Trade.InstanceConfig import InstanceConfig
 from MetaTrader.Utility import *
@@ -27,64 +27,67 @@ import copy
 # Class derived from DWZ_ZMQ_Strategy includes Data processor for PULL,SUB Data
 #############################################################################
 
-class OnlineTickDataWriter(DWX_ZMQ_Strategy):
+class OnlineTickDataWriter(MetaTraderBase):
 
     def __init__(self,
-                 _name="Polaris",
-                 _symbols=InstanceConfig.symbols,
-                 _time_frame="D1",
-                 _delay=0.1,
-                 _broker_gmt=3,
-                 _verbose=False):
+                 name="Polaris",
+                 symbols=InstanceConfig.symbols,
+                 time_frame="D1",
+                 w_break=100,
+                 delay=0.01,
+                 broker_gmt=3,
+                 verbose=False):
 
         # call DWX_ZMQ_Strategy constructor and passes itself as Data processor for handling
         # received Data on PULL and SUB ports
-        super().__init__(_name,
-                         _symbols,
-                         _broker_gmt,
+        super().__init__(name,
+                         symbols,
+                         broker_gmt,
                          [self],  # Registers itself as handler of pull Data via self.onPullData()
                          [self],  # Registers itself as handler of sub Data via self.onSubData()
-                         _verbose)
+                         verbose)
 
         # This strategy's variables
-        self._symbols = _symbols
-        self._delay = _delay
-        self._verbose = _verbose
+        self.symbols = symbols
+        self.delay = delay
+        self.verbose = verbose
         self._finished = False
-        self._time_frame = _time_frame
+        self.time_frame = time_frame
 
         # Get Historical Data
         self.management_ratio = InstanceConfig.management_ratio
         self.algorithm_time_frame = InstanceConfig.algorithm_time_frame
         self.trailing_time_frame = InstanceConfig.trailing_time_frame
 
-        time_frame = _time_frame
+        time_frame = time_frame
         time_frame_ratio = 1
         if time_frame in Config.secondary_timefarmes.keys():
             time_frame = Config.secondary_timefarmes[time_frame]
-            algorithm_time_frame_ratio = Config.secondary_timefarmes_ratio[_time_frame]
+            algorithm_time_frame_ratio = Config.secondary_timefarmes_ratio[time_frame]
 
-        self._histories = {}
+        self.histories = {}
         self.tick_history = {}
-        self._time_identifiers = {}
-        for i in range(len(_symbols)):
-            symbol = _symbols[i]
-            self._zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
-                                                  _timeframe=Config.timeframes_dic[time_frame],
-                                                  _count=InstanceConfig.history_size * time_frame_ratio)
-            sleep(2)
-            self._histories[symbol] = self._zmq._History_DB[symbol+'_'+time_frame]
-            for item in self._histories[symbol]:
+        self.time_identifiers = {}
+        for i in range(len(symbols)):
+            symbol = symbols[i]
+            self.connector.send_hist_request(symbol=symbol, timeframe=Config.timeframes_dic[time_frame],
+                                             count=InstanceConfig.history_size * time_frame_ratio)
+            for i in range(w_break):
+                sleep(delay)
+                if symbol + '_' + time_frame in self.connector.history_db.keys():
+                    break
+            self.histories[symbol] = self.connector.history_db[symbol+'_'+time_frame]
+            for item in self.histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
             if time_frame != self.algorithm_time_frame:
-                self._histories[symbol] = self.aggregate_data(self._histories[symbol], self.algorithm_time_frame)
-            self._time_identifiers[symbol] = Functions.get_time_id(self._histories[symbol][-1]['Time'],
-                                                                   self._time_frame)
+                self.histories[symbol] = self.aggregate_data(self.histories[symbol], self.algorithm_time_frame)
+            self.time_identifiers[symbol] = Functions.get_time_id(self.histories[symbol][-1]['Time'],
+                                                                   self.time_frame)
             self.tick_history[symbol] = {'Time': [], 'Ask': [], 'Bid': []}
 
-        for symbol in self._symbols:
+        for symbol in self.symbols:
             print(symbol)
-            print(pd.DataFrame(self._histories[symbol][-10:]))
+            print(pd.DataFrame(self.histories[symbol][-10:]))
         print("_________________________________________________________________________")
 
         # lock for acquire/release of ZeroMQ connector
@@ -124,22 +127,22 @@ class OnlineTickDataWriter(DWX_ZMQ_Strategy):
 
     ##########################################################################
     def update_history(self, time, symbol, bid):
-        time_identifier = Functions.get_time_id(time, self._time_frame)
+        time_identifier = Functions.get_time_id(time, self.time_frame)
 
-        if self._time_identifiers[symbol] != time_identifier:
+        if self.time_identifiers[symbol] != time_identifier:
             # New Candle Open Section
-            self._time_identifiers[symbol] = time_identifier
+            self.time_identifiers[symbol] = time_identifier
             last_candle = {"Time": time, "Open": bid, "High": bid,
                            "Low": bid, "Close": bid, "Volume": 1}
-            self._histories[symbol].append(last_candle)
-            self._histories[symbol].pop(0)
+            self.histories[symbol].append(last_candle)
+            self.histories[symbol].pop(0)
             print(symbol)
-            print(pd.DataFrame(self._histories[symbol][-2:-1]))
+            print(pd.DataFrame(self.histories[symbol][-2:-1]))
             print("________________________________________________________________________________")
-            self.write_history_tick(symbol, self._histories[symbol][-2]['Time'])
+            self.write_history_tick(symbol, self.histories[symbol][-2]['Time'])
         else:
             # Update Last Candle Section
-            self.update_candle_with_tick(self._histories[symbol][-1], bid)
+            self.update_candle_with_tick(self.histories[symbol][-1], bid)
             # Signal Section
 
     def write_history_tick(self, symbol, time: datetime):
@@ -186,7 +189,7 @@ class OnlineTickDataWriter(DWX_ZMQ_Strategy):
         """
         self._finished = False
 
-        # Subscribe to all symbols in self._symbols to receive bid,ask prices
+        # Subscribe to all symbols in self.symbols to receive bid,ask prices
         self.__subscribe_to_price_feeds()
 
     ##########################################################################
@@ -199,62 +202,62 @@ class OnlineTickDataWriter(DWX_ZMQ_Strategy):
         try:
             # Acquire lock
             self._lock.acquire()
-            self._zmq._DWX_MTX_UNSUBSCRIBE_ALL_MARKETDATA_REQUESTS_()
+            self.connector.unsubscribe_all_market_data_request()
             print('Unsubscribing from all topics')
 
         finally:
             # Release lock
             self._lock.release()
-            sleep(self._delay)
+            sleep(self.delay)
 
         try:
             # Acquire lock
             self._lock.acquire()
-            self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_([])
+            self.connector.send_track_price_request([])
             print('Removing symbols list')
-            sleep(self._delay)
-            self._zmq._DWX_MTX_SEND_TRACKRATES_REQUEST_([])
+            sleep(self.delay)
+            self.connector.send_track_rates_request([])
             print('Removing instruments list')
 
         finally:
             # Release lock
             self._lock.release()
-            sleep(self._delay)
+            sleep(self.delay)
 
         self._finished = True
 
     ##########################################################################
     def __subscribe_to_price_feeds(self):
         """
-        Starts the subscription to the self._symbols list setup during construction.
-        1) Setup symbols in Expert Advisor through self._zmq._DWX_MTX_SUBSCRIBE_MARKETDATA_
-        2) Starts price feeding through self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_
+        Starts the subscription to the self.symbols list setup during construction.
+        1) Setup symbols in Expert Advisor through self.connector._DWX_MTX_SUBSCRIBE_MARKETDATA_
+        2) Starts price feeding through self.connector._DWX_MTX_SEND_TRACKPRICES_REQUEST_
         """
-        if len(self._symbols) > 0:
+        if len(self.symbols) > 0:
             # subscribe to all symbols price feeds
-            for _symbol in self._symbols:
+            for _symbol in self.symbols:
                 try:
                     # Acquire lock
                     self._lock.acquire()
-                    self._zmq._DWX_MTX_SUBSCRIBE_MARKETDATA_(_symbol)
+                    self.connector.subscribe_market_data(_symbol)
                     print('Subscribed to {} price feed'.format(_symbol))
 
                 finally:
                     # Release lock
                     self._lock.release()
-                    sleep(self._delay)
+                    sleep(self.delay)
 
             # configure symbols to receive price feeds
             try:
                 # Acquire lock
                 self._lock.acquire()
-                self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_(self._symbols)
-                print('Configuring price feed for {} symbols'.format(len(self._symbols)))
+                self.connector.send_track_price_request(self.symbols)
+                print('Configuring price feed for {} symbols'.format(len(self.symbols)))
 
             finally:
                 # Release lock
                 self._lock.release()
-                sleep(self._delay)
+                sleep(self.delay)
 
 
 """ -----------------------------------------------------------------------------------------------
@@ -267,7 +270,7 @@ if __name__ == "__main__":
 
     # creates object with a predefined configuration: symbol list including EURUSD and GBPUSD
     print('Loading Data Writer...')
-    launcher = OnlineTickDataWriter(_symbols=['EURUSD.I'], _time_frame="H1")
+    launcher = OnlineTickDataWriter(symbols=['EURUSD.I'], time_frame="H1")
 
     # Starts example execution
     print('Running Data Writer...')

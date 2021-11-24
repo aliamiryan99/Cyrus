@@ -2,14 +2,14 @@
 
 class ChartConfig:
 
-    auto_time_frame = True
-    time_frame = "M15"
+    auto_time_frame = False
+    time_frame = "H1"
     date_format = '%Y.%m.%d %H:%M'
     auto_candles = False
-    candles = 4000
+    candles = 5000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
                  "RangeRegion", "SRLevels"]
-    tool_name = 'Elliot'
+    tool_name = 'RangeRegion'
 
     def __init__(self, symbol, data, tool_name, params=None):
 
@@ -39,7 +39,7 @@ class ChartConfig:
             from MetaTraderChartTool.Tools.MinMax import MinMax
             extremum_window = 5
             extremum_mode = 1
-            extremum_show = False
+            extremum_show = True
 
             self.tool = MinMax(data, extremum_window, extremum_mode, extremum_show)
 
@@ -60,12 +60,16 @@ class ChartConfig:
         if tool_name == "Elliot":
             from MetaTraderChartTool.Tools.Elliot import Elliot
 
-            wave4_enable = False
+            wave4_enable = True
             wave5_enable = False
             inside_flat_zigzag_wc = False
-            post_prediction_enable = True
+            post_prediction_enable = False
 
-            self.tool = Elliot(data, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable)
+            price_type = "neo"
+            neo_time_frame = "H4"
+
+            self.tool = Elliot(data, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable,
+                               price_type, self.time_frame, neo_time_frame)
 
         if tool_name == "Harmonics":
             from MetaTraderChartTool.Tools.Harmonics import Harmonics
@@ -90,7 +94,7 @@ class ChartConfig:
 
         if tool_name == "RangeRegion":
             from MetaTraderChartTool.Tools.RangeRegion import RangeRegion
-            range_candle_threshold = 1
+            range_candle_threshold = 3
             up_timeframe = "D1"
             stop_target_margin = 50
             candle_breakout_threshold = 1
@@ -101,7 +105,7 @@ class ChartConfig:
 
             one_stop_in_region = False
 
-            fib_enable = True
+            fib_enable = False
 
             if params is not None:
                 range_candle_threshold = params['RangeCandleThreshold']
@@ -121,9 +125,9 @@ class ChartConfig:
         if tool_name == "SRLevels":
             from MetaTraderChartTool.Tools.SR import SR
 
-            tf2 = "M30"
-            tf3 = 'H1'
+            tf2 = "W1"
+            tf3 = 'MN'
 
-            mode = "Static"
+            mode = "Dynamic"
 
             self.tool = SR(data, symbol, self.time_frame, tf2, tf3, mode)

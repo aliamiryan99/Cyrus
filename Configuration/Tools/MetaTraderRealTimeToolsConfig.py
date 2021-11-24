@@ -1,17 +1,18 @@
 
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTrader.MetaTraderBase import MetaTraderBase
 import copy
 
 
 class ChartConfig:
 
-    time_frame = "M30"
+    auto_time_frame = True
+    time_frame = "D1"
     date_format = '%Y.%m.%d %H:%M'
     candles = 2000
     tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines"]
-    tool_name = 'Elliot'
+    tool_name = 'PivotPoints'
 
-    def __init__(self, chart_tool: BasicChartTools, data, symbol, tool_name):
+    def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name):
 
         data = copy.deepcopy(data)
         if tool_name == "PivotPoints":
@@ -27,10 +28,10 @@ class ChartConfig:
             window_size = 15
             prediction_multiplayer = 4
 
-            vb_h4_enable = True
-            vb_h1_enable = False
+            vb_h4_enable = False
+            vb_h1_enable = True
 
-            gp_enable = True
+            gp_enable = False
 
             save_data = False
 
@@ -56,12 +57,18 @@ class ChartConfig:
         if tool_name == "Elliot":
             from MetaTraderChartTool.RealTimeTools.Elliot import Elliot
 
+            wave4_enable = True
+            wave5_enable = False
+            inside_flat_zigzag_wc = False
+            post_prediction_enable = False
+
             price_type = "neo"
-            neo_time_frame = "H4"
+            neo_time_frame = "D1"
             past_check_num = 5
             window = 128
 
-            self.tool = Elliot(chart_tool, data, price_type, self.time_frame, neo_time_frame, past_check_num, window)
+            self.tool = Elliot(chart_tool, data, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable,
+                               price_type, self.time_frame, neo_time_frame, past_check_num, window)
 
         if tool_name == "SRLines":
             from MetaTraderChartTool.RealTimeTools.SR import SR
@@ -69,6 +76,8 @@ class ChartConfig:
             tf2 = "M30"
             tf3 = 'H1'
 
-            mode = "OSR"
+            mode = "Dynamic"
 
-            self.tool = SR(chart_tool, data, symbol, self.time_frame, tf2, tf3, mode)
+            window = 1000
+
+            self.tool = SR(chart_tool, data, symbol, self.time_frame, tf2, tf3, mode, window)

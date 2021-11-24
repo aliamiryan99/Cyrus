@@ -2,7 +2,6 @@
 
 from pandas import to_datetime
 from time import sleep
-from datetime import datetime
 
 
 class Execution:
@@ -12,11 +11,7 @@ class Execution:
 
     ##########################################################################
 
-    def execute(self,
-                  params,
-                  _delay=0.01,
-                  _wbreak=10,
-                  _type="DRAW"):
+    def execute(self, params, _delay=0.01, _wbreak=10, _type="DRAW"):
 
         _check = ''
 
@@ -33,14 +28,14 @@ class Execution:
         _ws = to_datetime('now')
 
         # While Data not received, sleep until timeout
-        while self._zmq._valid_response_('zmq') == False:
+        while self._zmq._get_response_() is None:
             sleep(_delay)
 
             if (to_datetime('now') - _ws).total_seconds() > (_delay * _wbreak):
                 break
 
         # If Data received, return DataFrame
-        if self._zmq._valid_response_('zmq'):
+        if self._zmq._get_response_() is not None:
 
             response = self._zmq._get_response_()
             if _check in response.keys():

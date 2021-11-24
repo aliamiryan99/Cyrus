@@ -1,6 +1,6 @@
 
 
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from Configuration.Tools.MetaTraderRealTimeToolsConfig import ChartConfig
 from Configuration.Trade.OnlineConfig import Config
 
@@ -20,54 +20,63 @@ from Shared.Functions import Functions
 # Class derived from ChartTools includes Data processor for PULL,SUB Data
 #############################################################################
 
-class MetaTraderRealTimeToolsManager(BasicChartTools):
+class MetaTraderRealTimeToolsManager(MetaTraderBase):
 
-    def __init__(self,
-                 _name="Polaris",
-                 _delay=0.1,
-                 _broker_gmt=3,
-                 _verbose=False):
+    def __init__(self, w_break=500, delay=0.01, broker_gmt=3, verbose=False):
 
-        super().__init__([self],  # Registers itself as handler of pull Data via self.onPullData()
-                         [self],  # Registers itself as handler of sub Data via self.onSubData()
-                         _verbose)
+        super().__init__(pull_data_handlers=[self],  # Registers itself as handler of pull Data via self.onPullData()
+                         sub_data_handlers=[self],  # Registers itself as handler of sub Data via self.onSubData()
+                         verbose=verbose, broker_gmt=broker_gmt)
+        self.new_candle = False
         print("Connected")
         # This strategy's variables
-        self._delay = _delay
-        self._verbose = _verbose
+        self.delay = delay
+        self.verbose = verbose
         self._finished = False
 
         # Get Historical Data
-
         symbol = self.reporting.get_curr_symbol()
 
         if symbol == 0:
             self.connector.shutdown()
-            super().__init__([], [], _verbose)
+            super().__init__([], [], verbose)
             symbol = self.reporting.get_curr_symbol()
 
-        self.time_frame = ChartConfig.time_frame
-        self.symbol = symbol
+        if symbol == 0:
+            self.meta_trader_connection = False
+        else:
+            self.meta_trader_connection = True
+            self.time_frame = ChartConfig.time_frame
+            if ChartConfig.auto_time_frame:
+                period = self.reporting.get_period()
+                self.time_frame = Config.timeframes_dic_rev[period]
 
-        self.connector.send_hist_request(_symbol=symbol,
-                                          _timeframe=Config.timeframes_dic[self.time_frame],
-                                          _count=ChartConfig.candles)
-        sleep(2)
-        self.history = self.connector._History_DB[symbol + '_' + self.time_frame]
-        for item in self.history:
-            item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
-        print(pd.DataFrame(self.history))
+            self.symbol = symbol
 
-        self._time_identifier = Functions.get_time_id(self.history[-1]['Time'], self.time_frame)
+            self.connector.send_hist_request(symbol=symbol, timeframe=Config.timeframes_dic[self.time_frame],
+                                             count=ChartConfig.candles)
 
-        self.chart_config = ChartConfig(self, self.history, symbol, ChartConfig.tool_name)
-        self.tool = self.chart_config.tool
+            ws = pd.to_datetime('now')
+            while symbol + '_' + self.time_frame not in self.connector.history_db.keys():
+                sleep(delay)
+                if (pd.to_datetime('now') - ws).total_seconds() > (delay * w_break):
+                    break
 
-        # lock for acquire/release of ZeroMQ connector
-        self._lock = Lock()
+            self.history = self.connector.history_db[symbol + '_' + self.time_frame]
+            for item in self.history:
+                item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
+            print(pd.DataFrame(self.history))
 
-        self.start_time = datetime.now()
-        self.spend_time = datetime.now() - datetime.now()
+            self.time_identifier = Functions.get_time_id(self.history[-1]['Time'], self.time_frame)
+
+            self.chart_config = ChartConfig(self, self.history, symbol, ChartConfig.tool_name)
+            self.tool = self.chart_config.tool
+
+            # lock for acquire/release of ZeroMQ connector
+            self._lock = Lock()
+
+            self.start_time = datetime.now()
+            self.spend_time = datetime.now() - datetime.now()
 
     def on_pull_data(self, msg):
         pass
@@ -89,9 +98,9 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
     def update_history(self, time, symbol, bid, ask):
         time_identifier = Functions.get_time_id(time, self.time_frame)
 
-        if self._time_identifier != time_identifier:
+        if self.time_identifier != time_identifier:
             # New Candle Open Section
-            self._time_identifier = time_identifier
+            self.time_identifier = time_identifier
             last_candle = {"Time": time, "Open": bid, "High": bid,
                            "Low": bid, "Close": bid, "Volume": 1}
             self.history.append(last_candle)
@@ -140,7 +149,7 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
         finally:
             # Release lock
             self._lock.release()
-            sleep(self._delay)
+            sleep(self.delay)
 
         # configure symbols to receive price feeds
         try:
@@ -152,7 +161,7 @@ class MetaTraderRealTimeToolsManager(BasicChartTools):
         finally:
             # Release lock
             self._lock.release()
-            sleep(self._delay)
+            sleep(self.delay)
 
     ##########################################################################
     def is_finished(self):

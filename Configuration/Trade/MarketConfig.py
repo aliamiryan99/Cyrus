@@ -10,11 +10,11 @@ class MarketConfig:
     symbols = ["EURUSD"]
     tag = "EURUSD"
 
-    time_frame = "M30"
+    time_frame = "H4"
     history_size = 200
 
-    strategies = ['NeuralNetwork', 'SimpleIdea', 'RangeRegion', 'DirectRLVPooyan']
-    strategy_name = 'DirectRLVPooyan'
+    strategies = ['NeuralNetwork', 'SimpleIdea', 'RangeRegion', 'DirectRLVPooyan', 'Elliott', 'RLVRafiei']
+    strategy_name = 'Elliott'
 
     def __init__(self, market: Market, symbol, bid_data, ask_data, strategy_name, params=None):
 
@@ -101,3 +101,22 @@ class MarketConfig:
             data_std = 0.000591
 
             self.strategy = DirectRLVPooyan(market, bid_data, ask_data, symbol, input_shape, weights, bias, feedback_link, data_std)
+
+        if strategy_name == "Elliott":
+            from Strategies.Elliott import Elliott
+
+            wave4_enable = True
+            wave5_enable = False
+            inside_flat_zigzag_wc = False
+            post_prediction_enable = False
+
+            price_type = "neo"
+            neo_time_frame = "D1"
+
+            self.strategy = Elliott(market, bid_data, ask_data, symbol, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable,
+                               price_type, self.time_frame, neo_time_frame)
+
+        if strategy_name == "RLVRafiei":
+            from Strategies.RLVRafiei import RLVRafiei
+
+            self.strategy = RLVRafiei(market, bid_data, ask_data, symbol)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    MQTT_Reporting.py
+    Reporting.py
     --
     @author: Darwinex Labs (www.darwinex.com)
 
@@ -21,8 +21,6 @@ class Reporting:
 
     def __init__(self, _zmq):
         self._zmq = _zmq
-
-    ##########################################################################
 
     def get_curr_symbol(self, _delay=0.1, _wbreak=20):
         # Reset Data output

@@ -90,6 +90,9 @@ def min_max_trend_detect(open, high, low, close, top, bottom, local_min, local_m
                 y_extend_inc[i] = (np.transpose(y[:t + 1]))
                 sell_idx[i] = x_extend_inc[i][-1]
                 sell[i] = close[sell_idx[i]]
+            else:
+                x_extend_inc[i] = (np.transpose(np.arange(local_min[int(x_best_up_trend[i][2])], len(low))))
+                y_extend_inc[i] = (np.transpose(y))
         sell_idx = np.array(list(filter(lambda num: num != 0, sell_idx)))
         sell = np.array(list(filter(lambda num: num != 0, sell)))
     else:
@@ -176,6 +179,10 @@ def min_max_trend_detect(open, high, low, close, top, bottom, local_min, local_m
                 y_extend_dec[i] = (np.transpose(y[: t + 1]))
                 buy_idx[i] = x_extend_dec[i][-1]
                 buy[i] = close[buy_idx[i]]
+            else:
+                x_extend_dec[i] = np.transpose(np.arange([local_max[int(x_best_down_trend[i][2])]], len(high)))
+                y_extend_dec[i] = (np.transpose(y))
+
 
         buy_idx = np.array(list(filter(lambda num: num != 0, buy_idx)))
         buy = np.array(list(filter(lambda num: num != 0, buy)))

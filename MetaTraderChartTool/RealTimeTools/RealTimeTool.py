@@ -1,11 +1,11 @@
 from abc import abstractmethod
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTrader.MetaTraderBase import MetaTraderBase
 
 
 class RealTimeTool:
 
     @abstractmethod
-    def __init__(self, chart_tool: BasicChartTools, data):
+    def __init__(self, chart_tool: MetaTraderBase, data):
         self.chart_tool = chart_tool
         self.data = data
 

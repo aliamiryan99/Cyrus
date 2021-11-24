@@ -67,8 +67,8 @@ class Node:
                         signal[i+int(.25*tempstep)] = df.Low[i+min_idx]
                         signal[i+int(.75*tempstep)] = df.High[i+max_idx]
 
-                    mark.append(i+int(.25*step))
-                    mark.append(i+int(.75*step))
+                    mark.append(i+int(.25*tempstep))
+                    mark.append(i+int(.75*tempstep))
 
                 signal = intermediates_signal(signal, mark)
                 signal[0:mark[0]] = signal[mark[0]]

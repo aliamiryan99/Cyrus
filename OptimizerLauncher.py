@@ -1,5 +1,5 @@
 
-from BackTestTradeManager import BackTestLauncher
+from Managers.BackTestTradeManager import BackTestLauncher
 
 from Optimizers.IchimokuOptimizer import param_list
 

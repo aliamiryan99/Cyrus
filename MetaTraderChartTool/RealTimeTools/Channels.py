@@ -1,4 +1,4 @@
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
 
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
@@ -10,7 +10,7 @@ from AlgorithmFactory.AlgorithmTools.ParallelChannels import get_parallel_channe
 
 class Channel(RealTimeTool):
 
-    def __init__(self, chart_tool: BasicChartTools, data, window, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha, extend_number, type):
+    def __init__(self, chart_tool: MetaTraderBase, data, window, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode, check_window, alpha, extend_number, type):
         super().__init__(chart_tool, data)
 
         self.window = window
@@ -37,7 +37,7 @@ class Channel(RealTimeTool):
         self.width = 1
         self.up_color = "12,50,250"
         self.down_color = "220,50,12"
-        self.extend_style = self.chart_tool.EnumStyle.Dot
+        self.extend_style = self.chart_tool.EnumStyle.DashDotDot
 
         self.draw_channel()
 
@@ -119,7 +119,7 @@ class Channel(RealTimeTool):
             if self.last_up_channel_date is not None:
                 if self.last_up_channel_date != self.data[self.up_channels[-1]['UpLine']['x'][0]]['Time']:
                     x_left = max(min(self.up_channels[-1]['UpLine']['x'][0],
-                                     self.up_channels[-1]['DownLine']['x'][0]) - self.extend_number, 0)
+                                     self.up_channels[-1]['DownLine']['x'][0]) - (self.extend_number//2), 0)
                     y1 = np.polyval(self.up_channels[-1]['UpLine']['line'], x_left)
                     y2 = np.polyval(self.up_channels[-1]['DownLine']['line'], x_left)
                     self.append_line(f"UpChannel_UpLine_LeftExtend{self.up_counter}", x_left, self.up_channels[-1]['UpLine']['x'][0], y1,
@@ -134,7 +134,7 @@ class Channel(RealTimeTool):
                     if self.last_up_channel_date is not None:
                         continue
                     x_left = max(min(self.up_channels[i]['UpLine']['x'][0],
-                                     self.up_channels[i]['DownLine']['x'][0]) - self.extend_number, 0)
+                                     self.up_channels[i]['DownLine']['x'][0]) - (self.extend_number//2), 0)
                     y1 = np.polyval(self.up_channels[i]['UpLine']['line'], x_left)
                     y2 = np.polyval(self.up_channels[i]['DownLine']['line'], x_left)
                     self.append_line(f"UpChannel_UpLine_LeftExtend{i}", x_left, self.up_channels[i]['UpLine']['x'][0], y1,
@@ -251,7 +251,7 @@ class Channel(RealTimeTool):
             if self.last_down_channel_date is not None:
                 if self.last_down_channel_date != self.data[self.down_channels[-1]['UpLine']['x'][0]]['Time']:
                     x_left = max(min(self.down_channels[-1]['UpLine']['x'][0],
-                                     self.down_channels[-1]['DownLine']['x'][0]) - self.extend_number, 0)
+                                     self.down_channels[-1]['DownLine']['x'][0]) - (self.extend_number//2), 0)
                     y1 = np.polyval(self.down_channels[-1]['UpLine']['line'], x_left)
                     y2 = np.polyval(self.down_channels[-1]['DownLine']['line'], x_left)
                     self.append_line(f"DownChannel_UpLine_LeftExtend{self.down_counter}", x_left, self.down_channels[-1]['UpLine']['x'][0],
@@ -266,7 +266,7 @@ class Channel(RealTimeTool):
             else:
                 for i in range(len(self.down_channels)):
                     x_left = max(min(self.down_channels[i]['UpLine']['x'][0],
-                                     self.down_channels[i]['DownLine']['x'][0]) - self.extend_number, 0)
+                                     self.down_channels[i]['DownLine']['x'][0]) - (self.extend_number//2), 0)
                     y1 = np.polyval(self.down_channels[i]['UpLine']['line'], x_left)
                     y2 = np.polyval(self.down_channels[i]['DownLine']['line'], x_left)
                     self.append_line(f"DownChannel_UpLine_LeftExtend{i}", x_left, self.down_channels[i]['UpLine']['x'][0], y1,

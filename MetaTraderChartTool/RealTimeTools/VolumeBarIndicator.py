@@ -1,5 +1,5 @@
 
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
 
 from Indicators.VolumeBarIndicator import VolumeBar
@@ -13,7 +13,7 @@ import pandas as pd
 
 class VolumeBarIndicator(RealTimeTool):
 
-    def __init__(self, chart_tool: BasicChartTools, data, prediction_multiplayer, window_size, vb_target_enable, vb_slow_enable, gp_enable, save_data):
+    def __init__(self, chart_tool: MetaTraderBase, data, prediction_multiplayer, window_size, vb_target_enable, vb_slow_enable, gp_enable, save_data):
         super().__init__(chart_tool, data)
 
         self.window_size = window_size

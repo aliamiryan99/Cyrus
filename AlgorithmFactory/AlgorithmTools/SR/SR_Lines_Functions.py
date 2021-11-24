@@ -211,7 +211,7 @@ def OCH_channel_cross_score(data,channels,win_size_half):
                     channel_width = abs(Y_upper_line[localmax[j]] - Y_lower_line[localmax[j]])
                     if Y_upper_line[localmax[j]] >= data['Low'][localmax[j]] and Y_upper_line[localmax[j]] <= (data['High'][localmax[j]]+(channel_width*channel_percentage_for_cross)):
                         tmp[localmax[j]] = tmp[localmax[j]] + 1
-                        optimas_touch[localmin[j]] = 2
+                        optimas_touch[localmax[j]] = 2
             
             optimas_touch = optimas_touch[np.where(optimas_touch != 0)[0]]
             tmp = tmp[np.where(tmp != 0)[0]]

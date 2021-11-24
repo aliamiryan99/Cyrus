@@ -5,7 +5,7 @@ import sys
 sys.path.append('../../..')
 
 # Import ZMQ-Strategy from relative path
-from MetaTrader.MQTT_Strategy import DWX_ZMQ_Strategy
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from Configuration.Trade.OnlineConfig import Config
 from Configuration.Trade.MarketConfig import MarketConfig
 from MetaTrader.Utility import *
@@ -29,7 +29,7 @@ import copy
 # Class derived from DWZ_ZMQ_Strategy includes Data processor for PULL,SUB Data
 #############################################################################
 
-class OnlineManager(DWX_ZMQ_Strategy):
+class OnlineManager(MetaTraderBase):
 
     def __init__(self,
                  _name="Polaris",
@@ -94,14 +94,14 @@ class OnlineManager(DWX_ZMQ_Strategy):
 
         for i in range(len(_symbols)):
             symbol =_symbols[i]
-            self._zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
-                                                  _timeframe=Config.timeframes_dic[time_frame],
-                                                  _count=MarketConfig.history_size * time_frame_ratio)
+            self.connector.send_hist_request(symbol=symbol,
+                                                        timeframe=Config.timeframes_dic[time_frame],
+                                                        count=MarketConfig.history_size * time_frame_ratio)
             for i in range(_wbreak):
                 sleep(_delay)
-                if symbol+'_'+time_frame in self._zmq._History_DB.keys():
+                if symbol+'_'+time_frame in self.connector._History_DB.keys():
                     break
-            self._histories[symbol] = self._zmq._History_DB[symbol+'_'+time_frame]
+            self._histories[symbol] = self.connector._History_DB[symbol+'_'+time_frame]
             for item in self._histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
             if time_frame != self.time_frame:
@@ -130,7 +130,7 @@ class OnlineManager(DWX_ZMQ_Strategy):
             self.ask[symbol] = 0
             self.bid[symbol] = 0
 
-        self._zmq._DWX_MTX_CLOSE_ALL_TRADES_()
+        self.connector._DWX_MTX_CLOSE_ALL_TRADES_()
         self.balance = self._reporting._get_balance()
         self.equity = self._reporting._get_equity()
         for symbol in self._symbols:
@@ -377,7 +377,7 @@ class OnlineManager(DWX_ZMQ_Strategy):
         try:
             # Acquire lock
             self._lock.acquire()
-            self._zmq._DWX_MTX_UNSUBSCRIBE_ALL_MARKETDATA_REQUESTS_()
+            self.connector._DWX_MTX_UNSUBSCRIBE_ALL_MARKETDATA_REQUESTS_()
             print('Unsubscribing from all topics')
 
         finally:
@@ -388,10 +388,10 @@ class OnlineManager(DWX_ZMQ_Strategy):
         try:
             # Acquire lock
             self._lock.acquire()
-            self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_([])
+            self.connector._DWX_MTX_SEND_TRACKPRICES_REQUEST_([])
             print('Removing symbols list')
             sleep(self._delay)
-            self._zmq._DWX_MTX_SEND_TRACKRATES_REQUEST_([])
+            self.connector._DWX_MTX_SEND_TRACKRATES_REQUEST_([])
             print('Removing instruments list')
 
         finally:
@@ -405,8 +405,8 @@ class OnlineManager(DWX_ZMQ_Strategy):
     def __subscribe_to_price_feeds(self):
         """
         Starts the subscription to the self._symbols list setup during construction.
-        1) Setup symbols in Expert Advisor through self._zmq._DWX_MTX_SUBSCRIBE_MARKETDATA_
-        2) Starts price feeding through self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_
+        1) Setup symbols in Expert Advisor through self.connector._DWX_MTX_SUBSCRIBE_MARKETDATA_
+        2) Starts price feeding through self.connector._DWX_MTX_SEND_TRACKPRICES_REQUEST_
         """
         if len(self._symbols) > 0:
             # subscribe to all symbols price feeds
@@ -414,7 +414,7 @@ class OnlineManager(DWX_ZMQ_Strategy):
                 try:
                     # Acquire lock
                     self._lock.acquire()
-                    self._zmq._DWX_MTX_SUBSCRIBE_MARKETDATA_(_symbol)
+                    self.connector._DWX_MTX_SUBSCRIBE_MARKETDATA_(_symbol)
                     print('Subscribed to {} price feed'.format(_symbol))
 
                 finally:
@@ -426,7 +426,7 @@ class OnlineManager(DWX_ZMQ_Strategy):
             try:
                 # Acquire lock
                 self._lock.acquire()
-                self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_(self._symbols)
+                self.connector._DWX_MTX_SEND_TRACKPRICES_REQUEST_(self._symbols)
                 print('Configuring price feed for {} symbols'.format(len(self._symbols)))
 
             finally:

@@ -1,11 +1,9 @@
 from PyQt5 import QtWidgets, uic
 import sys
 
-from MetaTraderToolsManager import MetaTraderChartToolsManager
-
-from BackTestTradeManager import BackTestLauncher
+from Managers.BackTestTradeManager import BackTestLauncher
 from Simulation import Simulation
-from LocalToolsManager import ChartLauncher
+from Managers.LocalToolsManager import ChartLauncher
 
 
 class Ui(QtWidgets.QMainWindow):

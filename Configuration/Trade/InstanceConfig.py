@@ -25,23 +25,23 @@ class InstanceConfig:
     symbols = ['XAUUSD.I']
     management_ratio = [2, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1]
     history_size = 500
-    algorithm_time_frame = "H1"
-    trailing_time_frame = "H1"
-    tag = "Ichimoku"
+    algorithm_time_frame = "D1"
+    trailing_time_frame = "D1"
+    tag = "SimpleIdea"
 
-    algorithm_name = 'Ichimoku'
+    algorithm_name = 'SimpleIdea'
     repairment_name = 'ReEntrance'
     recovery_name = 'Signal'
     close_mode = 'trailing'
     tp_sl_name = 'Body'
-    trailing_name = 'ReverseSignal'
+    trailing_name = 'Advance'
     account_management_name = 'Balance'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
                  tp_sl_name, trailing_name, account_management_name, management_ratio, params=None):
 
         # Options
-        self.re_entrance_enable = False  # re entrance strategy
+        self.re_entrance_enable = True  # re entrance strategy
         self.recovery_enable = False  # recovery strategy
         self.multi_position = False  # if false only one position with same direction can be placed
         self.algorithm_force_price = False  # if true positions open in algorithm price only (for gaps)

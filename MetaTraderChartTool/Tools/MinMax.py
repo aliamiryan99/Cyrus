@@ -20,6 +20,8 @@ class MinMax(Tool):
         self.extremum_window = extremum_window
         self.extremum_show = extremum_show
 
+
+
         self.local_min_price, self.local_max_price = get_local_extermums(self.data, extremum_window, extremum_mode)
 
         self.x_up_trend, self.y_up_trend, self.x_down_trend, self.y_down_trend, self.x_extend_inc, self.y_extend_inc, \
@@ -28,6 +30,15 @@ class MinMax(Tool):
                                              self.local_min_price, self.local_max_price, True)
 
     def draw(self, chart_tool: BasicChartTools):
+
+        self.extend_line_style = chart_tool.EnumStyle.DashDotDot
+        self.inc_color = "155,255,248"
+        self.dec_color = "255,30,30"
+
+        self.rect_color = "4,129,25"
+        self.rect_x, self.rect_y = 20, 40
+        self.rect_width, self.rect_height = 200, 40
+        self.label = "Min Max Trend Line"
 
         if self.extremum_show:
             local_min_times, local_min_prices, local_min_names = [], [], []
@@ -48,7 +59,7 @@ class MinMax(Tool):
         names_ext, times1_ext, prices1_ext, times2_ext, prices2_ext = [], [], [], [], []
         for i in range(len(self.x_up_trend)):
             names.append(f"MinMaxUpTrend{i}")
-            names_ext.append(f"MinMaxTrendUpExtended{i}")
+
             x, y = self.x_up_trend[i], self.y_up_trend[i]
             x_ext, y_ext = self.x_extend_inc[i], self.y_extend_inc[i]
             times1.append(self.data[x[0]]['Time'])
@@ -56,19 +67,21 @@ class MinMax(Tool):
             times2.append(self.data[x[1]]['Time'])
             prices2.append(y[1])
             if x_ext is not 0:
+                names_ext.append(f"MinMaxTrendUpExtended{i}")
                 times1_ext.append(self.data[x_ext[0]]['Time'])
                 prices1_ext.append(y_ext[0])
                 times2_ext.append(self.data[x_ext[-1]]['Time'])
                 prices2_ext.append(y_ext[-1])
+            else:
+                print("Zero")
 
-        chart_tool.trend_line(names, times1, prices1, times2, prices2, color="255,30,30")
-        chart_tool.trend_line(names_ext, times1_ext, prices1_ext, times2_ext, prices2_ext, color="240,100,30", style=chart_tool.EnumStyle.Dot)
+        chart_tool.trend_line(names, times1, prices1, times2, prices2, color=self.inc_color)
+        chart_tool.trend_line(names_ext, times1_ext, prices1_ext, times2_ext, prices2_ext, color=self.inc_color, style=self.extend_line_style)
 
         names, times1, prices1, times2, prices2 = [], [], [], [], []
         names_ext, times1_ext, prices1_ext, times2_ext, prices2_ext = [], [], [], [], []
         for i in range(len(self.x_down_trend)):
             names.append(f"MinMaxDownTrend{i}")
-            names_ext.append(f"MinMaxTrendDownExtended{i}")
             x, y = self.x_down_trend[i], self.y_down_trend[i]
             x_ext, y_ext = self.x_extend_dec[i], self.y_extend_dec[i]
             times1.append(self.data[x[0]]['Time'])
@@ -76,15 +89,17 @@ class MinMax(Tool):
             times2.append(self.data[x[1]]['Time'])
             prices2.append(y[1])
             if x_ext is not 0:
+                names_ext.append(f"MinMaxTrendDownExtended{i}")
                 times1_ext.append(self.data[x_ext[0]]['Time'])
                 prices1_ext.append(y_ext[0])
                 times2_ext.append(self.data[x_ext[-1]]['Time'])
                 prices2_ext.append(y_ext[-1])
 
-        chart_tool.trend_line(names, times1, prices1, times2, prices2, color="30,30,255")
-        chart_tool.trend_line(names_ext, times1_ext, prices1_ext, times2_ext, prices2_ext, color="30,30,255",
-                              style=chart_tool.EnumStyle.Dot)
+        chart_tool.trend_line(names, times1, prices1, times2, prices2, color=self.dec_color)
+        chart_tool.trend_line(names_ext, times1_ext, prices1_ext, times2_ext, prices2_ext, color=self.dec_color,
+                              style=self.extend_line_style)
 
-        # chart_tool.rectangle_label(["RectLabel1"], [20], [40], [120], [40], back_color="113,105,105", color="200,199,199", border=chart_tool.EnumBorder.Sunken)
-        # chart_tool.label(["Label1"], [40], [50], ["Pivot Points"], anchor=chart_tool.EnumAnchor.LeftUpper, color="230,230,230")
-
+        chart_tool.rectangle_label(["RectLabel"], [self.rect_x], [self.rect_y], [self.rect_width], [self.rect_height],
+                                   back_color=self.rect_color, color="200,199,199", border=chart_tool.EnumBorder.Sunken)
+        chart_tool.label(["Label"], [self.rect_x + (self.rect_width//2)], [self.rect_y + (self.rect_height // 4)],
+                         [self.label], anchor=chart_tool.EnumAnchor.Top, font="Times New Roman", font_size=12)

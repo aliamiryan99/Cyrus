@@ -5,7 +5,7 @@ import sys
 sys.path.append('../../..')
 
 # Import ZMQ-Strategy from relative path
-from MetaTrader.MQTT_Strategy import DWX_ZMQ_Strategy
+from MetaTrader.MetaTraderBase import MetaTraderBase
 from Configuration.Trade.OnlineConfig import Config
 from Configuration.Trade.InstanceConfig import InstanceConfig
 from MetaTrader.Utility import *
@@ -33,33 +33,32 @@ channel_name = "@polarisIchimoku"
 screen_shots_directory = "C:/Users/Polaris-Maju1/AppData/Roaming/MetaQuotes/Terminal/A0CD3313EC8ED5429A4908A9CEAB7D1B/MQL4/Files"
 
 
-class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
+class OnlineMessagingLauncher(MetaTraderBase):
 
     def __init__(self,
-                 _name="Polaris",
-                 _symbols=InstanceConfig.symbols,
-                 _wbreak=100,
-                 _delay=0.1,
-                 _broker_gmt=3,
-                 _verbose=False):
+                 connector="Polaris",
+                 symbols=InstanceConfig.symbols,
+                 w_break=100,
+                 delay=0.1,
+                 broker_gmt=3,
+                 verbose=False):
 
         # call DWX_ZMQ_Strategy constructor and passes itself as Data processor for handling
         # received Data on PULL and SUB ports
-        super().__init__(_name,
-                         _symbols,
-                         _broker_gmt,
+        super().__init__(connector,
+                         symbols,
+                         broker_gmt,
                          [self],  # Registers itself as handler of pull Data via self.onPullData()
                          [self],  # Registers itself as handler of sub Data via self.onSubData()
-                         _verbose,
-                         _PUSH_PORT=32771,  # Port for Sending commands
-                         _PULL_PORT=32772,  # Port for Receiving responses
-                         _SUB_PORT=32773,
-                         )
+                         verbose,
+                         pull_port=32771,  # Port for Sending commands
+                         push_port=32772,  # Port for Receiving responses
+                         sub_port=32773)
 
         # This strategy's variables
-        self._symbols = _symbols
-        self._delay = _delay
-        self._verbose = _verbose
+        self.symbols = symbols
+        self.delay = delay
+        self.verbose = verbose
         self._finished = False
 
         # Shared Variables
@@ -86,17 +85,17 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
             trailing_time_frame_ratio = Config.secondary_timefarmes_ratio[self.trailing_time_frame]
 
         self.configs = {}
-        self._histories = {}
-        self._trailing_histories = {}
-        self._algorithms = {}
-        self._close_modes = {}
-        self._tp_sl_tools = {}
-        self._trailing_tools = {}
-        self._re_entrance_algorithms = {}
-        self._recovery_algorithms = {}
-        self._account_managements = {}
-        self._time_identifiers = {}
-        self._trailing_time_identifiers = {}
+        self.histories = {}
+        self.trailing_histories = {}
+        self.algorithms = {}
+        self.close_modes = {}
+        self.tp_sl_tools = {}
+        self.trailing_tools = {}
+        self.re_entrance_algorithms = {}
+        self.recovery_algorithms = {}
+        self.account_managements = {}
+        self.time_identifiers = {}
+        self.trailing_time_identifiers = {}
         self.open_buy_trades = {}
         self.open_sell_trades = {}
         self.last_buy_closed = {}
@@ -122,33 +121,33 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
         self.signal_price = {}
         self.signal_tp = {}
         self.signal_sl = {}
-        for i in range(len(_symbols)):
-            symbol =_symbols[i]
-            self._zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
-                                                  _timeframe=Config.timeframes_dic[algorithm_time_frame],
-                                                  _count=InstanceConfig.history_size * algorithm_time_frame_ratio)
-            for i in range(_wbreak):
-                sleep(_delay)
-                if symbol + '_' + algorithm_time_frame in self._zmq._History_DB.keys():
+        for i in range(len(symbols)):
+            symbol =symbols[i]
+            self.connector.send_hist_request(symbol=symbol,
+                                             timeframe=Config.timeframes_dic[algorithm_time_frame],
+                                             count=InstanceConfig.history_size * algorithm_time_frame_ratio)
+            for i in range(w_break):
+                sleep(delay)
+                if symbol + '_' + algorithm_time_frame in self.connector.history_db.keys():
                     break
-            self._histories[symbol] = self._zmq._History_DB[symbol+'_'+algorithm_time_frame]
-            for item in self._histories[symbol]:
+            self.histories[symbol] = self.connector.history_db[symbol+'_'+algorithm_time_frame]
+            for item in self.histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
             if algorithm_time_frame != self.algorithm_time_frame:
-                self._histories[symbol] = self.aggregate_data(self._histories[symbol], self.algorithm_time_frame)
-            instance_config = InstanceConfig(symbol, self._histories[symbol], InstanceConfig.algorithm_name,
+                self.histories[symbol] = self.aggregate_data(self.histories[symbol], self.algorithm_time_frame)
+            instance_config = InstanceConfig(symbol, self.histories[symbol], InstanceConfig.algorithm_name,
                                              InstanceConfig.repairment_name, InstanceConfig.recovery_name,
                                              InstanceConfig.close_mode, InstanceConfig.tp_sl_name,
                                              InstanceConfig.trailing_name, InstanceConfig.account_management_name,
                                              self.management_ratio[i])
-            self._algorithms[symbol] = instance_config.algorithm
-            self._close_modes[symbol] = instance_config.close_mode
-            self._tp_sl_tools[symbol] = instance_config.tp_sl_tool
-            self._trailing_tools[symbol] = instance_config.trailing_tool
-            self._re_entrance_algorithms[symbol] = instance_config.repairment_algorithm
-            self._recovery_algorithms[symbol] = instance_config.recovery_algorithm
-            self._account_managements[symbol] = instance_config.account_management
-            self._time_identifiers[symbol] = Functions.get_time_id(self._histories[symbol][-1]['Time'],
+            self.algorithms[symbol] = instance_config.algorithm
+            self.close_modes[symbol] = instance_config.close_mode
+            self.tp_sl_tools[symbol] = instance_config.tp_sl_tool
+            self.trailing_tools[symbol] = instance_config.trailing_tool
+            self.re_entrance_algorithms[symbol] = instance_config.repairment_algorithm
+            self.recovery_algorithms[symbol] = instance_config.recovery_algorithm
+            self.account_managements[symbol] = instance_config.account_management
+            self.time_identifiers[symbol] = Functions.get_time_id(self.histories[symbol][-1]['Time'],
                                                                    self.algorithm_time_frame)
             self.open_buy_trades[symbol] = []
             self.open_sell_trades[symbol] = []
@@ -177,27 +176,30 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
             self.signal_tp[symbol] = 0
             self.signal_sl[symbol] = 0
 
-        for i in range(len(_symbols)):
-            symbol = _symbols[i]
-            self._zmq._DWX_MTX_SEND_HIST_REQUEST_(_symbol=symbol,
-                                                  _timeframe=Config.timeframes_dic[trailing_time_frame],
-                                                  _count=InstanceConfig.history_size * trailing_time_frame_ratio)
-            sleep(0.5)
-            self._trailing_histories[symbol] = self._zmq._History_DB[symbol + '_' + trailing_time_frame]
-            for item in self._trailing_histories[symbol]:
+        for i in range(len(symbols)):
+            symbol = symbols[i]
+            self.connector.send_hist_request(symbol=symbol,
+                                             timeframe=Config.timeframes_dic[trailing_time_frame],
+                                             count=InstanceConfig.history_size * trailing_time_frame_ratio)
+            for i in range(w_break):
+                sleep(delay)
+                if symbol + '_' + algorithm_time_frame in self.connector.history_db.keys():
+                    break
+            self.trailing_histories[symbol] = self.connector._History_DB[symbol + '_' + trailing_time_frame]
+            for item in self.trailing_histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
             if trailing_time_frame != self.trailing_time_frame:
-                self._trailing_histories[symbol] = self.aggregate_data(self._trailing_histories[symbol],
+                self.trailing_histories[symbol] = self.aggregate_data(self.trailing_histories[symbol],
                                                                        self.trailing_time_frame)
-            self._trailing_time_identifiers[symbol] = Functions.get_time_id(self._trailing_histories[symbol][-1]['Time'],
+            self.trailing_time_identifiers[symbol] = Functions.get_time_id(self.trailing_histories[symbol][-1]['Time'],
                                                                             self.trailing_time_frame)
 
-        self._zmq._DWX_MTX_CLOSE_ALL_TRADES_()
-        self.balance = self._reporting._get_balance()
-        self.equity = self._reporting._get_equity()
-        for symbol in self._symbols:
+        self.connector.close_all_trades()
+        self.balance = self.reporting.get_balance()
+        self.equity = self.reporting.get_equity()
+        for symbol in self.symbols:
             print(symbol)
-            print(pd.DataFrame(self._histories[symbol][-10:]))
+            print(pd.DataFrame(self.histories[symbol][-10:]))
         print("_________________________________________________________________________")
 
         # lock for acquire/release of ZeroMQ connector
@@ -235,7 +237,7 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
                         message += "\n"
                     message += f"{InstanceConfig.tag}"
                     sleep(2)
-                    self.send_telegram_photo(data['_name'])
+                    self.send_telegram_photo(data['connector'])
                     self.send_telegram_message(message)
                 elif self.is_algorithm_signal[data['_symbol']] == -1:
                     print("Sell screen shoot taken")
@@ -252,7 +254,7 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
                         message += "\n"
                     message += f"{InstanceConfig.tag}"
                     sleep(2)
-                    self.send_telegram_photo(data['_name'])
+                    self.send_telegram_photo(data['connector'])
                     self.send_telegram_message(message)
 
         else:
@@ -288,7 +290,7 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
         # Account Management Section
         volume = 0
         if signal == 1 or signal == -1:
-            volume = max(round(self._account_managements[symbol].calculate(self.balance, symbol, price, stop_loss),
+            volume = max(round(self.account_managements[symbol].calculate(self.balance, symbol, price, stop_loss),
                                Config.volume_digit), 10 ** -Config.volume_digit)
 
         # Algorithm Section
@@ -300,39 +302,39 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
         time_identifier = Functions.get_time_id(time, self.algorithm_time_frame)
         trailing_time_identifier = Functions.get_time_id(time, self.trailing_time_frame)
 
-        if self._time_identifiers[symbol] != time_identifier:
+        if self.time_identifiers[symbol] != time_identifier:
             # New Candle Open Section
-            self._time_identifiers[symbol] = time_identifier
+            self.time_identifiers[symbol] = time_identifier
             last_candle = {"Time": time, "Open": bid, "High": bid,
                            "Low": bid, "Close": bid, "Volume": 1}
-            self._histories[symbol].append(last_candle)
-            self._histories[symbol].pop(0)
-            signal, price = self._algorithms[symbol].on_data(self._histories[symbol][-1], self.balance)
-            self._recovery_algorithms[symbol].on_data(self._histories[symbol][-1])
+            self.histories[symbol].append(last_candle)
+            self.histories[symbol].pop(0)
+            signal, price = self.algorithms[symbol].on_data(self.histories[symbol][-1], self.balance)
+            self.recovery_algorithms[symbol].on_data(self.histories[symbol][-1])
             print(symbol)
-            print(pd.DataFrame(self._histories[symbol][-2:-1]))
+            print(pd.DataFrame(self.histories[symbol][-2:-1]))
             print("________________________________________________________________________________")
         else:
             # Update Last Candle Section
-            self.update_candle_with_tick(self._histories[symbol][-1], bid)
+            self.update_candle_with_tick(self.histories[symbol][-1], bid)
             # Signal Section
-            signal, price = self._algorithms[symbol].on_tick()
+            signal, price = self.algorithms[symbol].on_tick()
 
-        if self._trailing_time_identifiers[symbol] != trailing_time_identifier:
+        if self.trailing_time_identifiers[symbol] != trailing_time_identifier:
             # New Candle Open Section
-            self._trailing_time_identifiers[symbol] = trailing_time_identifier
+            self.trailing_time_identifiers[symbol] = trailing_time_identifier
             last_candle = {"Time": time, "Open": bid, "High": bid,
                            "Low": bid, "Close": bid, "Volume": 1}
-            self._trailing_histories[symbol].append(last_candle)
-            self._trailing_histories[symbol].pop(0)
+            self.trailing_histories[symbol].append(last_candle)
+            self.trailing_histories[symbol].pop(0)
             self.trade_buy_in_candle_counts[symbol] = 0
             self.trade_sell_in_candle_counts[symbol] = 0
             self.re_entrance_sent[symbol] = False
-            self._trailing_tools[symbol].on_data(self._trailing_histories[symbol][:-1])
-            self._re_entrance_algorithms[symbol].on_data()
+            self.trailing_tools[symbol].on_data(self.trailing_histories[symbol][:-1])
+            self.re_entrance_algorithms[symbol].on_data()
         else:
             # Update Last Candle Section
-            self.update_candle_with_tick(self._trailing_histories[symbol][-1], bid)
+            self.update_candle_with_tick(self.trailing_histories[symbol][-1], bid)
 
         return signal, price
 
@@ -361,9 +363,9 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
     def tp_sl(self, symbol, signal, spread):
         stop_loss, take_profit_buy, stop_loss_buy, take_profit_sell, stop_loss_sell = 0, 0, 0, 0, 0
         if signal == 1 or signal == -1:
-            if self._close_modes[symbol] == 'tp_sl' or self._close_modes[symbol] == 'both':
-                take_profit_buy, stop_loss_buy = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'Buy')
-                take_profit_sell, stop_loss_sell = self._tp_sl_tools[symbol].on_tick(self._histories[symbol], 'Sell')
+            if self.close_modes[symbol] == 'tp_sl' or self.close_modes[symbol] == 'both':
+                take_profit_buy, stop_loss_buy = self.tp_sl_tools[symbol].on_tick(self.histories[symbol], 'Buy')
+                take_profit_sell, stop_loss_sell = self.tp_sl_tools[symbol].on_tick(self.histories[symbol], 'Sell')
                 stop_loss = stop_loss_buy - spread if signal == 1 else stop_loss_sell + spread
                 take_profit_buy = abs(int(take_profit_buy * 10 ** Config.symbols_pip[symbol]))
                 stop_loss_buy = abs(int(stop_loss_buy * 10 ** Config.symbols_pip[symbol]))
@@ -394,7 +396,7 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
                             self.signal_sl[symbol] = stop_loss_buy
 
                             name = f"{symbol}_{InstanceConfig.algorithm_name}"
-                            self._zmq.TAKE_SCREEN_SHOOT(name, _symbol=symbol)
+                            self.connector.take_screen_shot(name, _symbol=symbol)
 
                             # message = f"Buy \nSymbol : {symbol} \nTime : {time} \nPrice : {price} TP: {take_profit_buy} , SL: {stop_loss_buy}"
                             # self.send_telegram_message(message)
@@ -426,7 +428,7 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
                             self.signal_sl[symbol] = stop_loss_sell
 
                             name = f"{symbol}_{InstanceConfig.algorithm_name}"
-                            self._zmq.TAKE_SCREEN_SHOOT(name, _symbol=symbol)
+                            self.connector.take_screen_shot(name, _symbol=symbol)
 
                             # message = f"Sell \nSymbol : {symbol} \nTime : {time} \nPrice : {price} TP: {take_profit_sell} , SL: {stop_loss_sell}"
                             # self.send_telegram_message(message)
@@ -513,7 +515,7 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
         """
         self._finished = False
 
-        # Subscribe to all symbols in self._symbols to receive bid,ask prices
+        # Subscribe to all symbols in self.symbols to receive bid,ask prices
         self.__subscribe_to_price_feeds()
 
     ##########################################################################
@@ -526,62 +528,62 @@ class OnlineMessagingLauncher(DWX_ZMQ_Strategy):
         try:
             # Acquire lock
             self._lock.acquire()
-            self._zmq._DWX_MTX_UNSUBSCRIBE_ALL_MARKETDATA_REQUESTS_()
+            self.connector.unsubscribe_all_market_data_request()
             print('Unsubscribing from all topics')
 
         finally:
             # Release lock
             self._lock.release()
-            sleep(self._delay)
+            sleep(self.delay)
 
         try:
             # Acquire lock
             self._lock.acquire()
-            self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_([])
+            self.connector.send_track_price_request([])
             print('Removing symbols list')
-            sleep(self._delay)
-            self._zmq._DWX_MTX_SEND_TRACKRATES_REQUEST_([])
+            sleep(self.delay)
+            self.connector.send_track_rates_request([])
             print('Removing instruments list')
 
         finally:
             # Release lock
             self._lock.release()
-            sleep(self._delay)
+            sleep(self.delay)
 
         self._finished = True
 
     ##########################################################################
     def __subscribe_to_price_feeds(self):
         """
-        Starts the subscription to the self._symbols list setup during construction.
-        1) Setup symbols in Expert Advisor through self._zmq._DWX_MTX_SUBSCRIBE_MARKETDATA_
-        2) Starts price feeding through self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_
+        Starts the subscription to the self.symbols list setup during construction.
+        1) Setup symbols in Expert Advisor through self.connector._DWX_MTX_SUBSCRIBE_MARKETDATA_
+        2) Starts price feeding through self.connector._DWX_MTX_SEND_TRACKPRICES_REQUEST_
         """
-        if len(self._symbols) > 0:
+        if len(self.symbols) > 0:
             # subscribe to all symbols price feeds
-            for _symbol in self._symbols:
+            for _symbol in self.symbols:
                 try:
                     # Acquire lock
                     self._lock.acquire()
-                    self._zmq._DWX_MTX_SUBSCRIBE_MARKETDATA_(_symbol)
+                    self.connector.unsubscribe_market_data(_symbol)
                     print('Subscribed to {} price feed'.format(_symbol))
 
                 finally:
                     # Release lock
                     self._lock.release()
-                    sleep(self._delay)
+                    sleep(self.delay)
 
             # configure symbols to receive price feeds
             try:
                 # Acquire lock
                 self._lock.acquire()
-                self._zmq._DWX_MTX_SEND_TRACKPRICES_REQUEST_(self._symbols)
-                print('Configuring price feed for {} symbols'.format(len(self._symbols)))
+                self.connector.send_track_price_request(self.symbols)
+                print('Configuring price feed for {} symbols'.format(len(self.symbols)))
 
             finally:
                 # Release lock
                 self._lock.release()
-                sleep(self._delay)
+                sleep(self.delay)
 
 
 """ -----------------------------------------------------------------------------------------------
@@ -604,4 +606,3 @@ if __name__ == "__main__":
     print('Algorithm is running...')
     while not launcher.isFinished():
         sleep(1)
-    print('Bye!!!')
