@@ -1,14 +1,20 @@
 
-from Simulation import Simulation
 from time import sleep
+
+import sys
+from PyQt5 import QtWidgets, uic
 
 managers = ["LocalBackTest", "LocalTools", "OnlineAlgorithm", "OnlineHistoricalTools", "OnlineRealTimeTools",
             "Market", "TelegramMessage", "GetOnlineTick", "Combiner"]
 
-manager = "OnlineAlgorithm"
+setups = ['Ichimoku', 'Setup2', 'Channels']
+
+manager = "OnlineRealTimeTools"
+
 
 if __name__ == "__main__":
     if manager == "LocalBackTest":
+        from Simulation import Simulation
         from Managers.BackTestTradeManager import BackTestLauncher
         launcher = BackTestLauncher()
         market_executed = launcher.run()
@@ -49,6 +55,7 @@ if __name__ == "__main__":
             sleep(1)
 
     if manager == "Market":
+        from Simulation import Simulation
         from Configuration.Trade.MarketConfig import MarketConfig
         from Market.BackTestManager import BackTestManager
         from Market.OnlineManager import OnlineManager
@@ -104,3 +111,24 @@ if __name__ == "__main__":
             combiner = EnterPositionCombiner(backtests, new_time_frame, colors, arrow_size)
 
         combiner.get_output()
+
+    if manager == "Ichimoku":
+        from UIs.IchimokuSetup import Ui
+
+        app = QtWidgets.QApplication(sys.argv)
+        window = Ui()
+        app.exec_()
+
+    if manager == "Setup2":
+        from UIs.setup2 import Ui
+
+        app = QtWidgets.QApplication(sys.argv)
+        window = Ui()
+        app.exec_()
+
+    if manager == "Channels":
+        from UIs.ChannelsSteup import Ui
+
+        app = QtWidgets.QApplication(sys.argv)
+        window = Ui()
+        app.exec_()

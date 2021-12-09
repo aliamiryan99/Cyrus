@@ -335,7 +335,15 @@ class CyrusMetaConnector:
 
         self.remote_send(self.push_socket, msg)
 
-    
+    def set_scale_request(self, symbol, scale):
+        msg = "{};{};{}".format('SET_SCALE', symbol, scale)
+
+        self.remote_send(self.push_socket, msg)
+
+    def set_speed_request(self, speed):
+        msg = "{};{}".format("SET_SPEED", speed)
+
+        self.remote_send(self.push_socket, msg)
     """
     Function to construct messages for sending TRACK_PRICES commands to 
     MetaTrader for real-time price updates
@@ -439,10 +447,6 @@ class CyrusMetaConnector:
 
                 except zmq.error.Again:
                     pass  # resource temporarily unavailable, nothing to print
-                except ValueError:
-                    pass  # No Data returned, passing iteration.
-                except UnboundLocalError:
-                    pass  # _symbol may sometimes get referenced before being assigned.
 
             self.spend_time += datetime.now() - start_time
             self.wait_time += datetime.now() - start_time

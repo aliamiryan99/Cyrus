@@ -21,9 +21,11 @@ extern int PULL_PORT = 32769;
 extern int PUB_PORT = 32770;
 extern int MILLISECOND_TIMER = 1;
 extern int MILLISECOND_TIMER_PRICES = 500;
+extern double BACKTEST_SPEED = 100;
 extern string t0 = "ScreenShot parameters";
 extern int WIDTH = 1200;     // Image width to call ChartScreenShot()
 extern int HEIGHT = 600;     // Image height to call ChartScreenShot()
+
 
 extern string t1 = "--- Trading Parameters ---";
 
@@ -34,7 +36,7 @@ extern bool DMA_MODE = true;
 bool Publish_MarketData  = false;
 bool Publish_MarketRates = false;
 
-bool tick_recieved = false;
+bool tick_received = false;
 
 string names_splitter = "$";
 
@@ -55,6 +57,8 @@ Socket pullSocket(context, ZMQ_PULL);
 
 // CREATE ZMQ_PUB SOCKET
 Socket pubSocket(context, ZMQ_PUB);
+
+int turn = 0;
 
 
 /**
@@ -212,7 +216,20 @@ void OnTick()
    /*
       Use this OnTick() function to send market data to subscribed client.
    */
-   tick_recieved = false;
+   if (IsTesting()){
+      if (Volume[0] == 5){
+         long viSleepUntilTick = GetTickCount() + 100;
+          while( GetTickCount() < viSleepUntilTick ) {
+                  //Do absolutely nothing. Just loop until the desired tick is reached.
+          }
+      }
+      int j=0;
+      for (int i=0; i< 100000000/(Period()*(BACKTEST_SPEED*10)); i++)
+               j+=1;
+      OnTimer();
+   }
+
+   tick_received = false;
 
    lastUpdateMillis = GetTickCount();
 
@@ -266,11 +283,6 @@ void OnTick()
         }
       }
    }
-   if (IsTesting()){
-      while (!tick_recieved){
-         OnTimer();
-      }
-   }
 
   }
 //+------------------------------------------------------------------+
@@ -302,7 +314,7 @@ void OnTimer() {
       }
 
       // update prices regularly in case there was no tick within X milliseconds (for non-chart symbols).
-      if (GetTickCount() >= lastUpdateMillis + MILLISECOND_TIMER_PRICES) OnTick();
+      //if (GetTickCount() >= lastUpdateMillis + MILLISECOND_TIMER_PRICES) OnTick();
    }
 }
 //+------------------------------------------------------------------+
@@ -385,11 +397,14 @@ void InterpretZmqMessage(Socket &pSocket, string &compArray[]) {
       switch_action = 18;
    if(compArray[0] == "TAKE_SCREEN_SHOOT")
       switch_action = 19;
-   if(compArray[0] == "TICK_RECIEVED")
+   if(compArray[0] == "TICK_RECEIVED")
       switch_action = 20;
+   if(compArray[0] == "SET_SCALE")
+      switch_action = 21;
+   if(compArray[0] == "SET_SPEED")
+      switch_action = 22;
 
    Print(compArray[0]);
-
    // IMPORTANT: when adding new functions, also increase the max switch_action in CheckOpsStatus()!
 
    /* Setup processing variables */
@@ -611,10 +626,29 @@ void InterpretZmqMessage(Socket &pSocket, string &compArray[]) {
 
          case 20: // Tick recieved
 
-            tick_recieved = true;
+            tick_received = true;
 
             break;
 
+         case 21: // Set Scale
+
+            zmq_ret = "{";
+
+            SetScale(compArray, zmq_ret);
+
+            InformPullClient(pSocket, zmq_ret + "}");
+
+            break;
+
+          case 22: // Set Speed
+
+            zmq_ret = "{";
+
+            SetSpeed(compArray, zmq_ret);
+
+            InformPullClient(pSocket, zmq_ret + "}");
+
+            break;
 
          default:
             break;
@@ -752,6 +786,21 @@ void GetSymbol(string& zmq_ret){
    // Foramt: GET_SYMBOL
    zmq_ret = zmq_ret + "'_action': 'GET_SYMBOL', '_symbol': '" + ChartSymbol(0) + "'";
 
+}
+
+void SetScale(string& compArray[], string& zmq_ret){
+   string symbol = compArray[1];
+   int scale = StringToInteger(compArray[2]);
+   long chart_id = GetChartID(symbol);
+   ChartSetInteger(chart_id, CHART_SCALE, scale);
+   for (long i=0; i<100000000; i++){}
+   zmq_ret = zmq_ret + "'_action': 'SET_SCALE', '_response': 'seccuss'";
+}
+
+void SetSpeed(string& compArray[], string& zmq_ret){
+   double speed = StringToDouble(compArray[1]);
+   BACKTEST_SPEED = speed;
+   zmq_ret = zmq_ret + "'_action': 'SET_SPEED', '_response': 'seccuss'";
 }
 
 

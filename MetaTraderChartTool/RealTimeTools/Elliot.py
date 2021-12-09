@@ -69,6 +69,8 @@ class Elliot(RealTimeTool):
 
                 In_impulse_prediction_list_w4[i]['Start_time'] = list(np.array(times)[In_x1_list])
                 a = elliott.next_time(times[-1], candle_time_frame, In_x2_list[-1] - len(times) + 1)
+                if a is None:
+                    a = times[-1]
                 # In_zigzag_flat_prediction_list[i]['End_time'] = list(np.array(times)[inter_x2_list])
                 In_impulse_prediction_list_w4[i]['End_time'] = list(np.array(times)[In_x2_list[:-1]])
                 In_impulse_prediction_list_w4[i]['End_time'].append(a)
@@ -494,22 +496,24 @@ class Elliot(RealTimeTool):
                                           width=self.width, style=self.chart_tool.EnumStyle.Dot)
 
         if self.wave4_enable:
-            if len(In_impulse_prediction_list_w4) != 0:
+            if len(In_impulse_prediction_list_w4[0]['X1']) != 0:
                 if self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time'] > self.last_prediction_w4_time:
                     self.last_prediction_w4_index += 1
                     self.last_prediction_w4_time = self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']
                     for j in range(4):
 
-                        start_times = [self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']]
-                        if In_impulse_prediction_list_w4[0]['X2'][-1] >= len(self.data):
-                            end_times = [self.data[-1]['Time'] + (In_impulse_prediction_list_w4[0]['X2'][-1] - len(self.data))\
-                                         * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])]
-                        else:
-                            end_times = [self.data[In_impulse_prediction_list_w4[0]['X2'][-1]]['Time']]
+                        #start_times = [self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']]
+                        start_times = [candle['Time']]
+                        end_times = [candle['Time'] + (In_impulse_prediction_list_w4[0]['X2'][-1] -In_impulse_prediction_list_w4[0]['X1'][-1]) \
+                                     * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])]
+                        # if In_impulse_prediction_list_w4[0]['X2'][-1] >= len(self.data):
+                        #     end_times = [self.data[-1]['Time'] + ((In_impulse_prediction_list_w4[0]['X2'][-1]-In_impulse_prediction_list_w4[0]['X1'][-1]) - len(self.data))\
+                        #                  * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])]
+                        # else:
+                        #     end_times = [self.data[In_impulse_prediction_list_w4[0]['X2'][-1]]['Time']]
 
                         # Shift prediction times 3 candles for synchronization
-                        start_times[0] += 3 * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])
-                        end_times[0] += 3 * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])
+
                         # start_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
                         # end_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
                         start_prices = In_impulse_prediction_list_w4[0]['Y1'][j][-1]

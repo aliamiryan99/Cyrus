@@ -21,10 +21,10 @@ class Channels(Tool):
     def draw(self, chart_tool: BasicChartTools):
 
         ray = 0
-        width = 1
-        up_color = "12,50,250"
-        down_color = "220,50,12"
-        extend_style = chart_tool.EnumStyle.Dot
+        width = 2
+        up_color = "80,197,133"
+        down_color = "255,36,36"
+        extend_style = chart_tool.EnumStyle.DashDotDot
 
         # # Main Up Channel
         names_up, times1_up, prices1_up, times2_up, prices2_up = [], [], [], [], []
@@ -48,7 +48,7 @@ class Channels(Tool):
         names_up, times1_up, prices1_up, times2_up, prices2_up = [], [], [], [], []
         names_down, times1_down, prices1_down, times2_down, prices2_down = [], [], [], [], []
         for i in range(len(self.up_channels)):
-            x_left = max(min(self.up_channels[i]['UpLine']['x'][0], self.up_channels[i]['DownLine']['x'][0]) - self.extend_number, 0)
+            x_left = max(min(self.up_channels[i]['UpLine']['x'][0], self.up_channels[i]['DownLine']['x'][0]) - (self.extend_number//2), 0)
             y1 = np.polyval(self.up_channels[i]['UpLine']['line'], x_left)
             y2 = np.polyval(self.up_channels[i]['DownLine']['line'], x_left)
             self.append_line(f"UpChannel_UpLine_LeftExtend{i}", x_left, self.up_channels[i]['UpLine']['x'][0], y1,
@@ -106,7 +106,7 @@ class Channels(Tool):
         names_down, times1_down, prices1_down, times2_down, prices2_down = [], [], [], [], []
         for i in range(len(self.down_channels)):
             x_left = max(min(self.down_channels[i]['UpLine']['x'][0],
-                         self.down_channels[i]['DownLine']['x'][0]) - self.extend_number, 0)
+                         self.down_channels[i]['DownLine']['x'][0]) - (self.extend_number//2), 0)
             y1 = np.polyval(self.down_channels[i]['UpLine']['line'], x_left)
             y2 = np.polyval(self.down_channels[i]['DownLine']['line'], x_left)
             self.append_line(f"DownChannel_UpLine_LeftExtend{i}", x_left, self.down_channels[i]['UpLine']['x'][0], y1,
@@ -119,7 +119,7 @@ class Channels(Tool):
         chart_tool.trend_line(names_up, times1_up, prices1_up, times2_up, prices2_up, color=down_color,
                               ray=ray, style=extend_style)
         chart_tool.trend_line(names_down, times1_down, prices1_down, times2_down, prices2_down, color=down_color,
-                              width=width, ray=ray, style=extend_style)
+                              ray=ray, style=extend_style)
 
         # Right Extend Down Channel
         names_up, times1_up, prices1_up, times2_up, prices2_up = [], [], [], [], []
@@ -139,7 +139,7 @@ class Channels(Tool):
         chart_tool.trend_line(names_up, times1_up, prices1_up, times2_up, prices2_up, color=down_color,
                               ray=ray, style=extend_style)
         chart_tool.trend_line(names_down, times1_down, prices1_down, times2_down, prices2_down, color=down_color,
-                              width=width, ray=ray, style=extend_style)
+                              ray=ray, style=extend_style)
 
     def append_line(self, name, x1, x2, y1, y2, names, times1, prices1, times2, prices2):
         names.append(name)

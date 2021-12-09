@@ -2,14 +2,14 @@
 
 class ChartConfig:
 
-    auto_time_frame = False
-    time_frame = "H1"
+    auto_time_frame = True
+    time_frame = "W1"
     date_format = '%Y.%m.%d %H:%M'
     auto_candles = False
     candles = 5000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
                  "RangeRegion", "SRLevels"]
-    tool_name = 'RangeRegion'
+    tool_name = 'Impulse'
 
     def __init__(self, symbol, data, tool_name, params=None):
 
@@ -32,7 +32,7 @@ class ChartConfig:
             extremum_window = 40
             extremum_mode = 1
             candles_tr = 2
-            extremum_show = False
+            extremum_show = True
 
             self.tool = Impulse(data, extremum_window, extremum_mode, candles_tr, extremum_show)
         if tool_name == "MinMax":
@@ -51,7 +51,7 @@ class ChartConfig:
             extremum_mode = 1
             check_window = 3
             alpha = 0.05
-            extend_number = 40
+            extend_number = 30
             type = 'monotone'   # 'betweenness' , 'monotone'
 
             self.tool = Channels(data, extremum_window_start, extremum_window_end, extremum_window_step, extremum_mode,
@@ -125,9 +125,10 @@ class ChartConfig:
         if tool_name == "SRLevels":
             from MetaTraderChartTool.Tools.SR import SR
 
-            tf2 = "W1"
-            tf3 = 'MN'
+            static_leverage_degree = 7
+            tf2 = "M30"
+            tf3 = 'H1'
 
-            mode = "Dynamic"
+            mode = "Static"
 
             self.tool = SR(data, symbol, self.time_frame, tf2, tf3, mode)

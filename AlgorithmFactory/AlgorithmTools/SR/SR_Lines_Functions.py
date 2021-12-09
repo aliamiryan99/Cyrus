@@ -15,7 +15,7 @@ def OSR_find_potential_main_complement_lines(data,win_size_half=7,price_type='HL
         d2 = np.minimum(data['Open'], data['Close'])
 
     #down trends:
-    max_indices = local_extrema_sliding_window(data['High'],win_size_half,consider=False)[1]
+    max_indices = local_extrema_sliding_window(data['High'], win_size_half, consider=False)[1]
 
     s = len(max_indices)
     #number of trends is number of total permutations of optimas:
@@ -334,6 +334,7 @@ def Oblique_channel_and_SRLines(data_inp, one_pip):
     prices = np.array([data['Open'][-1], data['Close'][-1], data['High'][-1], data['Low'][-1]])
     data_len = len(data_inp['High'])
     offset = data_len - OCH_prev_candles_dynamic
+
     
     if trend_type == -1: #down trend
         trend_flags[1] = 1
@@ -342,6 +343,8 @@ def Oblique_channel_and_SRLines(data_inp, one_pip):
         #######################################################################################################################
         #find potential OSR:
         _, _, down_trend_lines, down_trend_lines_complement = OSR_find_potential_main_complement_lines(data,win_size_half,'HL')
+        down_trend_lines_score = None
+        down_trend_lines_complement_score = None
         #filter OSRs:
         #down trends:
         if down_trend_lines.shape[0] > 0:
@@ -382,23 +385,23 @@ def Oblique_channel_and_SRLines(data_inp, one_pip):
                 current_lines[1,:] = down_trend_lines_complement_score[0,:3]
                 #set indices based on input data indexing:
                 current_lines[1,0] += offset
-        #######################################################################################################################
-        #                                           OCH Part (pair of lines!)                                                 #
-        #######################################################################################################################
-        if down_trend_lines_score.shape[0] > 0 and down_trend_lines_complement_score.shape[0] > 0:
+            #######################################################################################################################
+            #                                           OCH Part (pair of lines!)                                                 #
+            #######################################################################################################################
+        if down_trend_lines_score is not None and down_trend_lines_score.shape[0] > 0 and down_trend_lines_complement_score is not None and down_trend_lines_complement_score.shape[0] > 0:
             #channels contain 6 cols:[x1 y1 s1 x2 y2 s2]
             potential_down_channels = np.concatenate([down_trend_lines_score[0,:3], down_trend_lines_complement_score[0,:3]])
             potential_down_channels = potential_down_channels.reshape(-1,6)
             #these are extra computations: (in case of multiple channels are useful. but not here which there is only one CH!):
             down_channels_cross_score, optimas_touch = OCH_channel_cross_score(data,potential_down_channels,win_size_half)
             down_channels_area_score = OCH_AreaOfTrendLinesAndPrice_score(data,potential_down_channels,'AB-mid')
-            
+
             if down_channels_cross_score > 2:
                 down_channels_score = np.concatenate([potential_down_channels[0,:], down_channels_cross_score, down_channels_area_score])
-                
+
                 X = np.linspace(0,OCH_prev_candles_dynamic-1,OCH_prev_candles_dynamic)
-                Y1 = (down_channels_score[2] * (X-down_channels_score[0])) + down_channels_score[1]; #y = m(x-x1)+y1 upper line (main line)
-                Y2 = (down_channels_score[5] * (X-down_channels_score[3])) + down_channels_score[4]; #y = m(x-x1)+y1 lower line
+                Y1 = (down_channels_score[2] * (X-down_channels_score[0])) + down_channels_score[1] #y = m(x-x1)+y1 upper line (main line)
+                Y2 = (down_channels_score[5] * (X-down_channels_score[3])) + down_channels_score[4] #y = m(x-x1)+y1 lower line
 
                 current_CH = down_channels_score[:6]
                 #set indices based on input data indexing:
@@ -410,7 +413,7 @@ def Oblique_channel_and_SRLines(data_inp, one_pip):
                 elif data['High'][-1] < Y2[-1]:
                     trend_flags[2] = 1
                     break_flags[1,0] = 1
-                
+
                 tmp1 = prices > Y1[-1]
                 break_flags[0,1:5] = tmp1*1
                 tmp2 = prices < Y2[-1]
@@ -428,6 +431,8 @@ def Oblique_channel_and_SRLines(data_inp, one_pip):
         #######################################################################################################################
         #find potential OSR:
         up_trend_lines, up_trend_lines_complement, _, _ = OSR_find_potential_main_complement_lines(data,win_size_half,'HL')
+        up_trend_lines_score = None
+        up_trend_lines_complement_score = None
         #filter OSRs:
         #down trends:
         if up_trend_lines.shape[0] > 0:
@@ -468,20 +473,20 @@ def Oblique_channel_and_SRLines(data_inp, one_pip):
                 current_lines[1,:] = up_trend_lines_complement_score[0,:3]
                 #set indices based on input data indexing:
                 current_lines[1,0] += offset
-        #######################################################################################################################
-        #                                           OCH Part (pair of lines!)                                                 #
-        #######################################################################################################################
-        if up_trend_lines_score.shape[0] > 0 and up_trend_lines_complement_score.shape[0] > 0:
+            #######################################################################################################################
+            #                                           OCH Part (pair of lines!)                                                 #
+            #######################################################################################################################
+        if up_trend_lines_score is not None and up_trend_lines_score.shape[0] > 0 and up_trend_lines_complement_score is not None and up_trend_lines_complement_score.shape[0] > 0:
             #channels contain 6 cols:[x1 y1 s1 x2 y2 s2]
             potential_up_channels = np.concatenate([up_trend_lines_score[0,:3], up_trend_lines_complement_score[0,:3]])
             potential_up_channels = potential_up_channels.reshape(-1,6)
             #these are extra computations: (in case of multiple channels are useful. but not here which there is only one CH!):
             up_channels_cross_score, optimas_touch = OCH_channel_cross_score(data,potential_up_channels,win_size_half)
             up_channels_area_score = OCH_AreaOfTrendLinesAndPrice_score(data,potential_up_channels,'AB-mid')
-            
+
             if up_channels_cross_score > 2:
                 up_channels_score = np.concatenate([potential_up_channels[0,:], up_channels_cross_score, up_channels_area_score])
-                
+
                 X = np.linspace(0,OCH_prev_candles_dynamic-1,OCH_prev_candles_dynamic)
                 Y1 = (up_channels_score[2] * (X-up_channels_score[0])) + up_channels_score[1]; #y = m(x-x1)+y1 lower line (main line)
                 Y2 = (up_channels_score[5] * (X-up_channels_score[3])) + up_channels_score[4]; #y = m(x-x1)+y1 upper line
@@ -496,12 +501,12 @@ def Oblique_channel_and_SRLines(data_inp, one_pip):
                 elif data['Low'][-1] > Y2[-1]:
                     trend_flags[2] = 1
                     break_flags[0,0] = 1
-                
+
                 tmp1 = prices < Y1[-1]
                 break_flags[1,1:5] = tmp1*1
                 tmp2 = prices > Y2[-1]
                 break_flags[0,1:5] = tmp2*1
-                
+
                 tmp1 = abs(prices - Y1[-1]) < SR_bound2
                 touch_flags[1,:4] = tmp1*1
                 tmp2 = abs(prices - Y2[-1]) < SR_bound2
@@ -517,7 +522,7 @@ def Oblique_channel_and_SRLines(data_inp, one_pip):
     
     line_coordinates = np.array([[start_date, start_price1, end_date, end_price1], [start_date, start_price2, end_date, end_price2]])
 
-    return line_coordinates, current_lines,current_CH,number_of_prev_candles,trend_flags,break_flags,touch_flags,optimas_touch
+    return line_coordinates, current_lines,current_CH,number_of_prev_candles,trend_flags,break_flags,touch_flags
 
 
 

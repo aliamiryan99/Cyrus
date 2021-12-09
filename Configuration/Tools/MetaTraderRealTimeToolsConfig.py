@@ -6,13 +6,15 @@ import copy
 class ChartConfig:
 
     auto_time_frame = True
-    time_frame = "D1"
+    time_frame = "M15"
     date_format = '%Y.%m.%d %H:%M'
-    candles = 2000
-    tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines"]
-    tool_name = 'PivotPoints'
+    candles = 5000
+    tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "CandleStick", "Pattern"]
+    tool_name = 'Pattern'
 
-    def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name):
+    def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
+
+        self.telegram = False
 
         data = copy.deepcopy(data)
         if tool_name == "PivotPoints":
@@ -43,16 +45,27 @@ class ChartConfig:
             window = 300
 
             extremum_window_start = 1
-            extremum_window_end = 20
-            extremum_window_step = 5
+            extremum_window_end = 30
+            extremum_window_step = 6
             extremum_mode = 1
             check_window = 3
             alpha = 0.05
-            extend_number = 40
+            extend_multiplier = 0.6
             type = 'monotone'  # 'betweenness' , 'monotone'
 
-            self.tool = Channel(chart_tool, data, window, extremum_window_start, extremum_window_end,
-                                extremum_window_step, extremum_mode, check_window, alpha, extend_number, type)
+            if params is not None:
+                window = params['Window']
+                extremum_window_start = params['ExtWindowStart']
+                extremum_window_end = params['ExtWindowEnd']
+                extremum_window_step = params['ExtWindowStep']
+                extremum_mode = params['ExtMode']
+                check_window = params['CheckWindow']
+                alpha = params['Alpha']
+                extend_multiplier = params['ExtendMultiplier']
+                type = params['Type']  # 'betweenness' , 'monotone'
+
+            self.tool = Channel(chart_tool, data, symbol, window, extremum_window_start, extremum_window_end,
+                                extremum_window_step, extremum_mode, check_window, alpha, extend_multiplier, type, self.telegram)
 
         if tool_name == "Elliot":
             from MetaTraderChartTool.RealTimeTools.Elliot import Elliot
@@ -73,11 +86,32 @@ class ChartConfig:
         if tool_name == "SRLines":
             from MetaTraderChartTool.RealTimeTools.SR import SR
 
+            static_leverage_degree = 7
             tf2 = "M30"
             tf3 = 'H1'
 
-            mode = "Dynamic"
+            mode = "Static"
 
-            window = 1000
+            with_area = False
+            base_area = 50
 
-            self.tool = SR(chart_tool, data, symbol, self.time_frame, tf2, tf3, mode, window)
+            window = 2000
+
+            self.tool = SR(chart_tool, data, symbol, static_leverage_degree, self.time_frame, tf2, tf3, mode, window,
+                           with_area, base_area)
+
+        if tool_name == "CandleStick":
+            from MetaTraderChartTool.RealTimeTools.CandleStick import CandleStick
+
+            candle_type = "InvertHammer"   # Doji , Hammer , InvertHammer , Engulfing
+
+            self.tool = CandleStick(chart_tool, data, candle_type)
+
+        if tool_name == "Pattern":
+            from MetaTraderChartTool.RealTimeTools.Patterns import Pattern
+
+            pattern_type = "DoubleTop"
+            extremum_window = 5
+            extremum_mode = 1
+
+            self.tool = Pattern(chart_tool, data, pattern_type, extremum_window, extremum_mode)

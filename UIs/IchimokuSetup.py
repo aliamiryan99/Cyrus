@@ -9,7 +9,7 @@ from Managers.LocalToolsManager import ChartLauncher
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
-        uic.loadUi('Ichimoku.ui', self)
+        uic.loadUi('UIs/Ichimoku.ui', self)
 
         self.back_test_btn = self.findChild(QtWidgets.QPushButton, 'back_test_btn')
 

@@ -7,6 +7,7 @@ from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 from AlgorithmFactory.AlgorithmTools.SR.SR_Levels_Functions import *
 from AlgorithmFactory.AlgorithmTools.SR.SR_Lines_Functions import *
 from AlgorithmFactory.AlgorithmTools.DataFormatters import dictionary_list_to_list_dictionary
+from AlgorithmFactory.AlgorithmTools.StrongNumberTools import get_strong_number
 from Configuration.Trade.OnlineConfig import Config
 
 from AlgorithmFactory.AlgorithmTools.Channels import coordinate_lines
@@ -14,7 +15,8 @@ from AlgorithmFactory.AlgorithmTools.Channels import coordinate_lines
 
 class SR(RealTimeTool):
 
-    def __init__(self, chart_tool: MetaTraderBase, data, symbol, tf1, tf2, tf3, mode, window):
+    def __init__(self, chart_tool: MetaTraderBase, data, symbol, static_leverage_degree, tf1, tf2, tf3, mode, window,
+                 with_area, area_base):
         super().__init__(chart_tool, data)
 
         self.data = data
@@ -24,6 +26,9 @@ class SR(RealTimeTool):
         self.window = window
         self.cnt = 0
         self.cnt_tr = 10
+
+        self.with_area = with_area
+        self.area_base = area_base
 
         self.pre_osr_lines_style = chart_tool.EnumStyle.DashDotDot
 
@@ -45,7 +50,7 @@ class SR(RealTimeTool):
         elif mode == "Static":
             self.sr_data1 = dictionary_list_to_list_dictionary(self.data)
 
-            self.sr_levels = Static_SR_levels(self.sr_data1)[0]
+            self.sr_levels = Static_SR_levels(self.sr_data1, level_degree=static_leverage_degree)[0]
             self.draw_lines()
             self.pre_sr_levels = self.sr_levels
         elif mode == "OSR":
@@ -62,7 +67,8 @@ class SR(RealTimeTool):
         pass
 
     def on_data(self, candle):
-        self.data.pop(0)
+        if len(self.data) > self.window:
+            self.data.pop(0)
 
         self.cnt += 1
         self.delete_lines()
@@ -125,11 +131,25 @@ class SR(RealTimeTool):
             self.pre_osr_lines = self.osr_lines
         else:
             names, prices = [], []
+
             for i in range(len(self.sr_levels)):
                 names.append(f"{self.mode} SR Level {i}")
                 prices.append(self.sr_levels[i][1])
+
             self.chart_tool.h_line(names, prices)
             self.pre_sr_levels = self.sr_levels
+
+            if self.with_area:
+                area_names, times1, prices1, times2, prices2 = [], [], [], [], []
+                for i in range(len(self.sr_levels)):
+                    pip = Config.symbols_pip[self.symbol]
+                    pre_strong_price = get_strong_number(self.sr_levels[i][1], self.area_base, pip)
+                    area_names.append(f"{self.mode} Area Sr Level {i}")
+                    times1.append(self.data[0]["Time"])
+                    prices1.append(pre_strong_price)
+                    times2.append(self.data[-1]["Time"] + (self.data[-1]["Time"] - self.data[-2]['Time']) * 2)
+                    prices2.append(pre_strong_price + self.area_base / 10 ** pip)
+                self.chart_tool.rectangle(area_names, times1, prices1, times2, prices2, back=1)
 
     def delete_lines(self):
         if self.mode == "OSR":
@@ -140,9 +160,13 @@ class SR(RealTimeTool):
             self.chart_tool.delete(names)
         else:
             names = []
+            area_names = []
             for i in range(len(self.pre_sr_levels)):
                 names.append(f"{self.mode} SR Level {i}")
+                area_names.append(f"{self.mode} Area Sr Level {i}")
             self.chart_tool.delete(names)
+            if self.with_area:
+                self.chart_tool.delete(area_names)
 
     def coordinate_osr_lines(self):
         lines = self.osr_lines[0]

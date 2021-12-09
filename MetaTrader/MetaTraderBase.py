@@ -3,6 +3,7 @@ from MetaTrader.Api.CyrusMetaConnector import CyrusMetaConnector
 from MetaTrader.Modules.Execution import Execution
 from MetaTrader.Modules.Reporting import Reporting
 from AlgorithmFactory.AlgorithmTools.FiboTools import get_fib_levels
+import requests
 
 
 class MetaTraderBase:
@@ -52,7 +53,9 @@ class MetaTraderBase:
         self.name = name
         self.symbols = symbols
         self.broker_gmt = broker_gmt
-        
+
+        self.token = "2131560525:AAH4ajtB__uKllIFGnDTKEcenGjfyBMOO_s"
+        self.screen_shots_directory = "C:/Users/Polaris-Maju1/AppData/Roaming/MetaQuotes/Terminal/A0CD3313EC8ED5429A4908A9CEAB7D1B/tester/Files"
         # Not entirely necessary here.
         self.connector = CyrusMetaConnector(pull_data_handlers=pull_data_handlers, sub_data_handlers=sub_data_handlers,
                                             verbose=verbose, push_port=push_port,  pull_port=pull_port, sub_port=sub_port)
@@ -66,6 +69,15 @@ class MetaTraderBase:
     
     def __del__(self):
         self.connector.shutdown()
+
+    def send_telegram_message(self, message, channel_name):
+        request_url = f"https://api.telegram.org/bot{self.token}/sendMessage?chat_id={channel_name}&text={message}"
+        requests.get(request_url)
+
+    def send_telegram_photo(self, photo_directory, channel_name):
+        url = f"https://api.telegram.org/bot{self.token}/"
+        requests.post(url + 'sendPhoto', data={'chat_id': channel_name},
+                      files={'photo': open(f"{photo_directory}", 'rb')})
 
     def _take_order(self, type, symbol, volume, tp, sl):
         order = self.connector.generate_default_order_dict()
@@ -100,6 +112,15 @@ class MetaTraderBase:
 
     def get_open_positions(self):
         return self.reporting.get_open_trades()
+
+    def take_screen_shot(self, name, symbol):
+        self.execution.screenshot_execute(name, symbol)
+
+    def set_scale(self, symbol, scale):
+        self.execution.set_settings_execute(symbol, scale, type="Scale")
+
+    def set_speed(self, speed):
+        self.execution.set_settings_execute("", speed, "Speed")
 
     def clear(self):
         self.connector.send_clear_request()

@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, uic
 import sys
 
 from Managers.MetaTraderHistoricalToolsManager import MetaTraderChartToolsManager
+from Configuration.Tools.MetaTraderHistoricalToolsConfig import ChartConfig
 
 from Market.BackTestManager import BackTestManager
 from Simulation import Simulation
@@ -11,7 +12,9 @@ from Managers.LocalToolsManager import ChartLauncher
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
-        uic.loadUi('setup2.ui', self)
+        uic.loadUi('UIs/setup2.ui', self)
+
+        ChartConfig.tool_name = "RangeRegion"
 
         self.plot_btn = self.findChild(QtWidgets.QPushButton, 'plot_btn')
         self.clear_btn = self.findChild(QtWidgets.QPushButton, 'clear_btn')
@@ -64,8 +67,8 @@ class Ui(QtWidgets.QMainWindow):
             self.message_lbl.setText("")
 
     def clear(self):
-        from MetaTraderChartTool.BasicChartTools import BasicChartTools
-        meta_trader = BasicChartTools()
+        from MetaTrader.MetaTraderBase import MetaTraderBase
+        meta_trader = MetaTraderBase()
         meta_trader.clear()
         meta_trader.connector.shutdown()
 

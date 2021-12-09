@@ -16,9 +16,11 @@ import pandas as pd
 from Shared.Functions import Functions
 
 
+
 #############################################################################
 # Class derived from ChartTools includes Data processor for PULL,SUB Data
 #############################################################################
+
 
 class MetaTraderRealTimeToolsManager(MetaTraderBase):
 
@@ -27,56 +29,16 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
         super().__init__(pull_data_handlers=[self],  # Registers itself as handler of pull Data via self.onPullData()
                          sub_data_handlers=[self],  # Registers itself as handler of sub Data via self.onSubData()
                          verbose=verbose, broker_gmt=broker_gmt)
-        self.new_candle = False
         print("Connected")
+
         # This strategy's variables
         self.delay = delay
         self.verbose = verbose
+        self.w_break = w_break
         self._finished = False
 
-        # Get Historical Data
-        symbol = self.reporting.get_curr_symbol()
-
-        if symbol == 0:
-            self.connector.shutdown()
-            super().__init__([], [], verbose)
-            symbol = self.reporting.get_curr_symbol()
-
-        if symbol == 0:
-            self.meta_trader_connection = False
-        else:
-            self.meta_trader_connection = True
-            self.time_frame = ChartConfig.time_frame
-            if ChartConfig.auto_time_frame:
-                period = self.reporting.get_period()
-                self.time_frame = Config.timeframes_dic_rev[period]
-
-            self.symbol = symbol
-
-            self.connector.send_hist_request(symbol=symbol, timeframe=Config.timeframes_dic[self.time_frame],
-                                             count=ChartConfig.candles)
-
-            ws = pd.to_datetime('now')
-            while symbol + '_' + self.time_frame not in self.connector.history_db.keys():
-                sleep(delay)
-                if (pd.to_datetime('now') - ws).total_seconds() > (delay * w_break):
-                    break
-
-            self.history = self.connector.history_db[symbol + '_' + self.time_frame]
-            for item in self.history:
-                item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
-            print(pd.DataFrame(self.history))
-
-            self.time_identifier = Functions.get_time_id(self.history[-1]['Time'], self.time_frame)
-
-            self.chart_config = ChartConfig(self, self.history, symbol, ChartConfig.tool_name)
-            self.tool = self.chart_config.tool
-
-            # lock for acquire/release of ZeroMQ connector
-            self._lock = Lock()
-
-            self.start_time = datetime.now()
-            self.spend_time = datetime.now() - datetime.now()
+        self.start_time = datetime.now()
+        self.spend_time = datetime.now() - datetime.now()
 
     def on_pull_data(self, msg):
         pass
@@ -108,9 +70,6 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
             self.tool.on_data(self.history[-1])
             print(symbol)
             print(pd.DataFrame(self.history[-2:-1]))
-            print(f"SpendTime {self.spend_time}")
-            print(f"ConnectorTime {self.connector.spend_time}")
-            print(f"SleepTime {self.connector.sleep_time}")
             print(f"SocketTime {self.connector.socket_time}")
             print(f"ReceiveTime {self.connector.receive_time}")
             print(f"HndTime {self.connector.hnd_time}")
@@ -129,8 +88,86 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
         candle['Close'] = tick
         candle['Volume'] += 1
 
-    def run(self):
-        self.subscribe_to_price_feeds()
+    def run(self, params=None):
+        # Get Historical Data
+        symbol = self.reporting.get_curr_symbol()
+
+        if symbol == 0:
+            self.connector.shutdown()
+            super().__init__(pull_data_handlers=[self],
+                             # Registers itself as handler of pull Data via self.onPullData()
+                             sub_data_handlers=[self],  # Registers itself as handler of sub Data via self.onSubData()
+                             verbose=self.verbose, broker_gmt=self.broker_gmt)
+            symbol = self.reporting.get_curr_symbol()
+
+        if symbol == 0:
+            self.meta_trader_connection = False
+        else:
+            self.meta_trader_connection = True
+            self.time_frame = ChartConfig.time_frame
+            if ChartConfig.auto_time_frame:
+                period = self.reporting.get_period()
+                self.time_frame = Config.timeframes_dic_rev[period]
+
+            self.symbol = symbol
+
+            self.connector.history_db = {}
+            self.connector.send_hist_request(symbol=symbol, timeframe=Config.timeframes_dic[self.time_frame],
+                                             count=ChartConfig.candles)
+
+            ws = pd.to_datetime('now')
+            while symbol + '_' + self.time_frame not in self.connector.history_db.keys():
+                sleep(self.delay)
+                if (pd.to_datetime('now') - ws).total_seconds() > (self.delay * self.w_break):
+                    break
+
+            self.history = self.connector.history_db[symbol + '_' + self.time_frame]
+            for item in self.history:
+                item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
+            print(pd.DataFrame(self.history))
+
+            self.time_identifier = Functions.get_time_id(self.history[-1]['Time'], self.time_frame)
+
+            self.chart_config = ChartConfig(self, self.history, symbol, ChartConfig.tool_name, params)
+            self.tool = self.chart_config.tool
+
+            # lock for acquire/release of ZeroMQ connector
+            self._lock = Lock()
+
+            self.subscribe_to_price_feeds()
+
+    def stop(self):
+        """
+        unsubscribe from all market symbols and exits
+        """
+
+        # remove subscriptions and stop symbols price feeding
+        try:
+            # Acquire lock
+            self._lock.acquire()
+            self.connector.unsubscribe_all_market_data_request()
+            print('Unsubscribing from all topics')
+
+        finally:
+            # Release lock
+            self._lock.release()
+            sleep(self.delay)
+
+        try:
+            # Acquire lock
+            self._lock.acquire()
+            self.connector.send_track_price_request([])
+            print('Removing symbols list')
+            sleep(self.delay)
+            self.connector.send_track_rates_request([])
+            print('Removing instruments list')
+
+        finally:
+            # Release lock
+            self._lock.release()
+            sleep(self.delay)
+
+        self._finished = True
 
     ##########################################################################
     def subscribe_to_price_feeds(self):

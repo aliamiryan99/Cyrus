@@ -54,7 +54,7 @@ class PivotPoints(RealTimeTool):
                 texts1.append(self.data[local_min[i]]['Low'])
                 names1.append(f"LocalMinPython{self.last_min_id}")
                 self.last_min_id += 1
-            self.chart_tool.text(names1, times1, prices1, texts1, anchor=self.chart_tool.EnumAnchor.Top, color="12,83,211")
+            self.chart_tool.arrow_up(names1, times1, prices1, anchor=self.chart_tool.EnumArrowAnchor.Top, color="12,83,211")
         if len(local_max) != 0:
             times2, prices2, texts2, names2 = [], [], [], []
             for i in range(len(local_max)):
@@ -63,4 +63,4 @@ class PivotPoints(RealTimeTool):
                 texts2.append(self.data[local_max[i]]['High'])
                 names2.append(f"LocalMaxPython{self.last_max_id}")
                 self.last_max_id += 1
-            self.chart_tool.text(names2, times2, prices2, texts2, anchor=self.chart_tool.EnumAnchor.Bottom, color="211,83,12")
+            self.chart_tool.arrow_down(names2, times2, prices2, anchor=self.chart_tool.EnumArrowAnchor.Bottom, color="211,83,12")

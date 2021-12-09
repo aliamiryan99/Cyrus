@@ -205,8 +205,6 @@ def find_trend_begining_HHLL(data,win_size_half,SR_bound,HHLL_num=2):
 
     return prev_range, trend_type, price_fluctuation
 
-    a=0
-
 
 
 
