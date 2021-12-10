@@ -178,3 +178,14 @@ def update_local_extremum_list(data_window, local_min, local_max, extremum_windo
     local_min = update_new_local_extremum(local_min, new_local_min, len(data_window), window_size)
     local_max = update_new_local_extremum(local_max, new_local_max, len(data_window), window_size)
     return local_min, local_max
+
+
+def find_next_extremum(extremums, index):
+    start, end = 0, len(extremums)-1
+    while start < end-1:
+        middle = (start + end) // 2
+        if extremums[middle] < index:
+            start = middle
+        else:
+            end = middle
+    return end

@@ -31,14 +31,14 @@ def get_candlesticks(data, type):
     for i in range(1, len(data)):
         if type == "Doji":
             if is_doji(data[i]):
-                detected_list.append((i, 1))
+                detected_list.append({'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Direction': 1})
         elif type == "Hammer":
             if is_hammer(data[i]):
-                detected_list.append((i, 1))
+                detected_list.append({'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Direction': 1})
         elif type == "InvertHammer":
             if is_invert_hammer(data[i]):
-                detected_list.append((i, 1))
+                detected_list.append({'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Direction': 1})
         elif type == "Engulfing":
             if is_engulfing(data[i-1], data[i]) != 0:
-                detected_list.append((i, is_engulfing(data[i-1], data[i])))
+                detected_list.append({'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Direction': is_engulfing(data[i-1], data[i])})
     return detected_list

@@ -10,7 +10,7 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     candles = 5000
     tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "CandleStick", "Pattern"]
-    tool_name = 'Pattern'
+    tool_name = 'CandleStick'
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
 
@@ -19,7 +19,7 @@ class ChartConfig:
         data = copy.deepcopy(data)
         if tool_name == "PivotPoints":
             from MetaTraderChartTool.RealTimeTools.PivotPoints import PivotPoints
-            extremum_window = 5
+            extremum_window = 10
             extremum_mode = 1
 
             self.tool = PivotPoints(chart_tool, data, extremum_window, extremum_mode)
@@ -103,15 +103,16 @@ class ChartConfig:
         if tool_name == "CandleStick":
             from MetaTraderChartTool.RealTimeTools.CandleStick import CandleStick
 
-            candle_type = "InvertHammer"   # Doji , Hammer , InvertHammer , Engulfing
+            candle_type = "Engulfing"   # Doji , Hammer , InvertHammer , Engulfing
 
             self.tool = CandleStick(chart_tool, data, candle_type)
 
         if tool_name == "Pattern":
             from MetaTraderChartTool.RealTimeTools.Patterns import Pattern
 
-            pattern_type = "DoubleTop"
-            extremum_window = 5
-            extremum_mode = 1
+            pattern_type = "HeadAndShoulder"    # DoubleTopAndBottom , HeadAndShoulder
 
-            self.tool = Pattern(chart_tool, data, pattern_type, extremum_window, extremum_mode)
+            double_top_bottom_coefficient = 20
+            scales = [5]
+
+            self.tool = Pattern(chart_tool, data, pattern_type, double_top_bottom_coefficient, scales)
