@@ -55,7 +55,7 @@ class MetaTraderBase:
         self.broker_gmt = broker_gmt
 
         self.token = "2131560525:AAH4ajtB__uKllIFGnDTKEcenGjfyBMOO_s"
-        self.screen_shots_directory = "C:/Users/Polaris-Maju1/AppData/Roaming/MetaQuotes/Terminal/A0CD3313EC8ED5429A4908A9CEAB7D1B/tester/Files"
+        self.screen_shots_directory = "C:/Users/ailam/AppData/Roaming/MetaQuotes/Terminal/63603D13555081059CD774AC70BBC63B/tester/Files"
         # Not entirely necessary here.
         self.connector = CyrusMetaConnector(pull_data_handlers=pull_data_handlers, sub_data_handlers=sub_data_handlers,
                                             verbose=verbose, push_port=push_port,  pull_port=pull_port, sub_port=sub_port)
@@ -74,9 +74,9 @@ class MetaTraderBase:
         request_url = f"https://api.telegram.org/bot{self.token}/sendMessage?chat_id={channel_name}&text={message}"
         requests.get(request_url)
 
-    def send_telegram_photo(self, photo_directory, channel_name):
+    def send_telegram_photo(self, photo_directory, channel_name, caption=""):
         url = f"https://api.telegram.org/bot{self.token}/"
-        requests.post(url + 'sendPhoto', data={'chat_id': channel_name},
+        requests.post(url + 'sendPhoto', data={'chat_id': channel_name, 'caption': caption},
                       files={'photo': open(f"{photo_directory}", 'rb')})
 
     def _take_order(self, type, symbol, volume, tp, sl):

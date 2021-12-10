@@ -75,6 +75,7 @@ def get_new_result_index(results, origin_data, target_data, origin_time_frame):
             end = j
         j = start
         new_results.append({'Start': start, 'End': end, 'BottomRegion': results[i]['BottomRegion'], 'TopRegion': results[i]['TopRegion']})
+        j = start
     return new_results
 
 

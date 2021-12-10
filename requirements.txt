@@ -24,7 +24,6 @@ scipy~=1.7.1
 future~=0.18.2
 PyAutoGUI~=0.9.53
 requests~=2.26.0
-torch~=1.10.0+cu113
 ZigZag~=0.2.2
 sklearn~=0.0
 scikit-learn~=1.0.1

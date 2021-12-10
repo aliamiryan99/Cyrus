@@ -401,7 +401,7 @@ def candlestick_plot(df, position_df, name, df_balance, df_equity, start, trends
     # Finalise the figure
     fig.x_range.js_on_change('start', callback)
 
-    curstate().file.title = name
+    curstate().file['title'] = name
     show(column(top_fig, fig, sizing_mode='stretch_both'))
 
 
