@@ -11,9 +11,9 @@ class ChartConfig:
     secondary_fig_height = 300
     visualizer_set = ['Divergence', 'Harmonic', 'Impulse', 'SupportResistance', 'Indicator', 'MinMax', 'Regression',
                       'Channel', 'RangeRegion', 'RsiPattern']
-    visualizer = 'Indicator'
+    visualizer = 'Regression'
 
-    with_back_test = True
+    with_back_test = False
     backtest = ["H1_H1_M1", "Ichimoku", "Ichimoku"]
 
     def __init__(self, data, visualizer, params=None):

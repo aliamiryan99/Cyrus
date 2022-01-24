@@ -6,10 +6,10 @@ class ChartConfig:
     time_frame = "W1"
     date_format = '%Y.%m.%d %H:%M'
     auto_candles = False
-    candles = 5000
+    candles = 1000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
                  "RangeRegion", "SRLevels"]
-    tool_name = 'Impulse'
+    tool_name = 'SupportResistance'
 
     def __init__(self, symbol, data, tool_name, params=None):
 
@@ -21,10 +21,10 @@ class ChartConfig:
             self.tool = PivotPoints(data, extremum_window, extremum_mode)
         if tool_name == "SupportResistance":
             from MetaTraderChartTool.Tools.SupportResistance import SupportResistance
-            extremum_window = 40
+            extremum_window = 20
             extremum_mode = 1
-            sections = 8
-            extremum_show = False
+            sections = 10
+            extremum_show = True
 
             self.tool = SupportResistance(data, extremum_window, extremum_mode, sections, extremum_show)
         if tool_name == "Impulse":
@@ -37,7 +37,7 @@ class ChartConfig:
             self.tool = Impulse(data, extremum_window, extremum_mode, candles_tr, extremum_show)
         if tool_name == "MinMax":
             from MetaTraderChartTool.Tools.MinMax import MinMax
-            extremum_window = 5
+            extremum_window = 20
             extremum_mode = 1
             extremum_show = True
 

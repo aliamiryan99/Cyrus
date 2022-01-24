@@ -9,7 +9,7 @@ managers = ["LocalBackTest", "LocalTools", "OnlineAlgorithm", "OnlineHistoricalT
 
 setups = ['Ichimoku', 'Setup2', 'Channels']
 
-manager = "OnlineRealTimeTools"
+manager = "LocalBackTest"
 
 
 if __name__ == "__main__":

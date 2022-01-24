@@ -21,7 +21,8 @@ extern int PULL_PORT = 32769;
 extern int PUB_PORT = 32770;
 extern int MILLISECOND_TIMER = 1;
 extern int MILLISECOND_TIMER_PRICES = 500;
-extern double BACKTEST_SPEED = 100;
+extern double BACKTEST_SPEED = 1000;
+extern double START_CANDLE_DELAY_TICKS = 50;
 extern string t0 = "ScreenShot parameters";
 extern int WIDTH = 1200;     // Image width to call ChartScreenShot()
 extern int HEIGHT = 600;     // Image height to call ChartScreenShot()
@@ -217,8 +218,8 @@ void OnTick()
       Use this OnTick() function to send market data to subscribed client.
    */
    if (IsTesting()){
-      if (Volume[0] == 5){
-         long viSleepUntilTick = GetTickCount() + 100;
+      if (Volume[0] < START_CANDLE_DELAY_TICKS){
+         long viSleepUntilTick = GetTickCount() + 10;
           while( GetTickCount() < viSleepUntilTick ) {
                   //Do absolutely nothing. Just loop until the desired tick is reached.
           }
@@ -403,6 +404,8 @@ void InterpretZmqMessage(Socket &pSocket, string &compArray[]) {
       switch_action = 21;
    if(compArray[0] == "SET_SPEED")
       switch_action = 22;
+   if(compArray[0] == "SET_START_CANDLE_DELAY_TICKS")
+      switch_action = 23;
 
    Print(compArray[0]);
    // IMPORTANT: when adding new functions, also increase the max switch_action in CheckOpsStatus()!
@@ -648,6 +651,16 @@ void InterpretZmqMessage(Socket &pSocket, string &compArray[]) {
 
             InformPullClient(pSocket, zmq_ret + "}");
 
+            break
+
+         case 22: // Set Start Candle Delay Ticks
+
+            zmq_ret = "{";
+
+            SetSpeed(compArray, zmq_ret);
+
+            InformPullClient(pSocket, zmq_ret + "}");
+
             break;
 
          default:
@@ -798,10 +811,15 @@ void SetScale(string& compArray[], string& zmq_ret){
 }
 
 void SetSpeed(string& compArray[], string& zmq_ret){
-   double speed = StringToDouble(compArray[1]);
-   BACKTEST_SPEED = speed;
+   BACKTEST_SPEED = StringToDouble(compArray[1]);
    zmq_ret = zmq_ret + "'_action': 'SET_SPEED', '_response': 'seccuss'";
 }
+
+void SetStartCandleDelayTicks(string& compArray[], string& zmq_ret){
+   START_CANDLE_DELAY_TICKS = StringToDouble(compArray[1]);
+   zmq_ret = zmq_ret + "'_action': 'SET_START_CANDLE_DELAY_TICKS', '_response': 'seccuss'";
+}
+
 
 
 void GetSymbols(string& zmq_ret){

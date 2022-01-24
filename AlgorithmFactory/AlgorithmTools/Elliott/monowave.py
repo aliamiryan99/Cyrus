@@ -3784,10 +3784,11 @@ class MonoWave:
             M2 = hyper_monowaves[index + 1]
             M3 = hyper_monowaves[index + 2]
 
-            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,
-                                                                                               ':F3')
-                    and (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(
-                        M3.Structure_list_label, ':s5'))
+            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,':F3')
+                    and (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label, ':s5'))
+                    and not check_subitem_in_list(M1.Structure_list_label, ':L3') and not check_subitem_in_list(M1.Structure_list_label, ':L5')
+                    and not check_subitem_in_list(M2.Structure_list_label, ':L3') and not check_subitem_in_list(M2.Structure_list_label, ':L5')
+                    and not check_subitem_in_list(M3.Structure_list_label, ':L3') and not check_subitem_in_list(M3.Structure_list_label, ':L5')
                     and M1.Price_range >= M2.Price_range and M2.Price_range <= M3.Price_range):
                 start_x = M1.Start_candle_index
                 start_y = M1.Start_price

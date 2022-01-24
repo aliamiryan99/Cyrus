@@ -4,7 +4,7 @@ import copy
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
 
-def min_max_trend_detect(open, high, low, close, top, bottom, local_min, local_max, is_visual):
+def min_max_trend_detect(open, high, low, close, top, bottom, local_min, local_max, is_visual=True):
     x_up_trend, y_up_trend, x_down_trend, y_down_trend, x_extend_inc, y_extend_inc, x_extend_dec, y_extend_dec = \
         [], [], [], [], [], [], [], []
 
@@ -180,7 +180,7 @@ def min_max_trend_detect(open, high, low, close, top, bottom, local_min, local_m
                 buy_idx[i] = x_extend_dec[i][-1]
                 buy[i] = close[buy_idx[i]]
             else:
-                x_extend_dec[i] = np.transpose(np.arange([local_max[int(x_best_down_trend[i][2])]], len(high)))
+                x_extend_dec[i] = np.transpose(np.arange(local_max[int(x_best_down_trend[i][2])], len(high)))
                 y_extend_dec[i] = (np.transpose(y))
 
 

@@ -941,7 +941,7 @@ def print_solution(positions, df_profit_history, df_free_margin_history, df_marg
     outputs_list.append(['Sharpe ratio', Outputs.sharpe_ratio])
     print(f"average holding period : {Outputs.average_holding_period}")
     outputs_list.append(['Average holding period', Outputs.average_holding_period])
-    print(f"annualized turnover : {Outputs.annualized_turnover}")
+    print(f"annualized turnover : {Outputs.annualized_turnover}%")
     outputs_list.append(['Annualized turnover', Outputs.annualized_turnover])
     print(f"total trades: {len(positions)}")
     outputs_list.append(['Total trades', len(positions)])

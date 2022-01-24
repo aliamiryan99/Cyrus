@@ -146,7 +146,7 @@ def get_base_fig(df, name):
 
     # Finalise the figure
     fig.x_range.js_on_change('start', callback)
-    curstate().file['title'] = name
+    curstate().file.title = name
 
     return fig
 

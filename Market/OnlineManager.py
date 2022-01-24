@@ -99,9 +99,9 @@ class OnlineManager(MetaTraderBase):
                                                         count=MarketConfig.history_size * time_frame_ratio)
             for i in range(_wbreak):
                 sleep(_delay)
-                if symbol+'_'+time_frame in self.connector._History_DB.keys():
+                if symbol+'_'+time_frame in self.connector.history_db.keys():
                     break
-            self._histories[symbol] = self.connector._History_DB[symbol+'_'+time_frame]
+            self._histories[symbol] = self.connector.history_db[symbol+'_'+time_frame]
             for item in self._histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
             if time_frame != self.time_frame:
@@ -130,9 +130,9 @@ class OnlineManager(MetaTraderBase):
             self.ask[symbol] = 0
             self.bid[symbol] = 0
 
-        self.connector._DWX_MTX_CLOSE_ALL_TRADES_()
-        self.balance = self._reporting._get_balance()
-        self.equity = self._reporting._get_equity()
+        self.connector.close_all_trades()
+        self.balance = self.reporting.get_balance()
+        self.equity = self.reporting.get_equity()
         for symbol in self._symbols:
             print(symbol)
             print(pd.DataFrame(self._histories[symbol][-10:]))
@@ -260,8 +260,8 @@ class OnlineManager(MetaTraderBase):
             self._ask_histories[symbol].append(last_ask_candle)
             self._ask_histories[symbol].pop(0)
             self._strategies[symbol].on_data(self._histories[symbol][-1], self._ask_histories[symbol][-1])
-            self._reporting._get_balance()
-            self._reporting._get_equity()
+            self.reporting.get_balance()
+            self.reporting.get_equity()
             self.trade_buy_in_candle_counts[symbol] = 0
             self.trade_sell_in_candle_counts[symbol] = 0
             print(symbol)
@@ -365,7 +365,7 @@ class OnlineManager(MetaTraderBase):
         self._finished = False
 
         # Subscribe to all symbols in self._symbols to receive bid,ask prices
-        self.__subscribe_to_price_feeds()
+        self.subscribe_to_price_feeds()
 
     ##########################################################################
     def stop(self):
@@ -377,7 +377,7 @@ class OnlineManager(MetaTraderBase):
         try:
             # Acquire lock
             self._lock.acquire()
-            self.connector._DWX_MTX_UNSUBSCRIBE_ALL_MARKETDATA_REQUESTS_()
+            self.connector.unsubscribe_all_market_data_request()
             print('Unsubscribing from all topics')
 
         finally:
@@ -388,10 +388,10 @@ class OnlineManager(MetaTraderBase):
         try:
             # Acquire lock
             self._lock.acquire()
-            self.connector._DWX_MTX_SEND_TRACKPRICES_REQUEST_([])
+            self.connector.send_track_price_request([])
             print('Removing symbols list')
             sleep(self._delay)
-            self.connector._DWX_MTX_SEND_TRACKRATES_REQUEST_([])
+            self.connector.send_track_rates_request([])
             print('Removing instruments list')
 
         finally:
@@ -402,7 +402,7 @@ class OnlineManager(MetaTraderBase):
         self._finished = True
 
     ##########################################################################
-    def __subscribe_to_price_feeds(self):
+    def subscribe_to_price_feeds(self):
         """
         Starts the subscription to the self._symbols list setup during construction.
         1) Setup symbols in Expert Advisor through self.connector._DWX_MTX_SUBSCRIBE_MARKETDATA_
@@ -414,7 +414,7 @@ class OnlineManager(MetaTraderBase):
                 try:
                     # Acquire lock
                     self._lock.acquire()
-                    self.connector._DWX_MTX_SUBSCRIBE_MARKETDATA_(_symbol)
+                    self.connector.subscribe_market_data(_symbol)
                     print('Subscribed to {} price feed'.format(_symbol))
 
                 finally:
@@ -426,7 +426,7 @@ class OnlineManager(MetaTraderBase):
             try:
                 # Acquire lock
                 self._lock.acquire()
-                self.connector._DWX_MTX_SEND_TRACKPRICES_REQUEST_(self._symbols)
+                self.connector.send_track_price_request(self._symbols)
                 print('Configuring price feed for {} symbols'.format(len(self._symbols)))
 
             finally:

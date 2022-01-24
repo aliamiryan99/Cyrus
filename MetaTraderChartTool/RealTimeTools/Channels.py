@@ -5,14 +5,14 @@ from time import sleep
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
 
-from AlgorithmFactory.AlgorithmTools.NewChannels import get_channels
+from AlgorithmFactory.AlgorithmTools.Channels import get_channels
 from AlgorithmFactory.AlgorithmTools.ParallelChannels import get_parallel_channels
 
 
 class Channel(RealTimeTool):
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, window, extremum_window_start, extremum_window_end,
-                 extremum_window_step, extremum_mode, check_window, alpha, extend_multiplier, type, telegram):
+                 extremum_window_step, extremum_mode, check_window, alpha, beta, convergence, divergence, extend_multiplier, type, telegram):
         super().__init__(chart_tool, data)
 
         self.telegram_channel_name = "@polaris_channels"
@@ -26,7 +26,10 @@ class Channel(RealTimeTool):
         self.extremum_mode = extremum_mode
         self.check_window = check_window
         self.alpha = alpha
+        self.beta = beta
         self.type = type
+        self.convergence = convergence
+        self.divergence = divergence
         self.telegram = telegram
 
         self.last_up_channel_date = None
@@ -48,11 +51,18 @@ class Channel(RealTimeTool):
 
         self.caclulate()
         self.draw()
+        if self.last_up_channel_date is None:
+            self.last_up_channel_date = self.data[-1]['Time']
+        if self.last_down_channel_date is None:
+            self.last_down_channel_date = self.data[-1]['Time']
 
         if self.telegram:
             self.chart_tool.clear()
 
         self.data = self.data[-self.window:]
+
+        self.chart_tool.set_speed(1000)
+        self.chart_tool.set_candle_start_delay(10)
 
     def on_tick(self, time, bid, ask):
         pass
@@ -70,11 +80,11 @@ class Channel(RealTimeTool):
         if self.type == 'monotone':
             self.up_channels, self.down_channels = get_channels(self.data, self.extremum_window_start, self.extremum_window_end,
                                                                 self.extremum_window_step, self.extremum_mode, self.check_window,
-                                                                self.alpha, 2)
+                                                                self.alpha, self.beta, self.convergence, self.divergence, 2)
         elif self.type == 'betweenness':
             self.up_channels, self.down_channels = get_parallel_channels(self.data, self.extremum_window_start,
                                                                          self.extremum_window_end, self.extremum_window_step,
-                                                                         self.extremum_mode, self.check_window, self.alpha)
+                                                                         self.extremum_mode, self.check_window, self.alpha, self.beta)
 
     def draw(self):
         # # Up Channel
@@ -105,7 +115,7 @@ class Channel(RealTimeTool):
         self.chart_tool.send_telegram_message(f"{name} Detected\nSymbol : {self.symbol}"
                                               f"\nTime : {self.data[-1]['Time']}\nScale : {last_channel['Window']}",
                                               self.telegram_channel_name)
-        self.chart_tool.set_speed(100)
+        self.chart_tool.set_speed(1000)
 
     def calculate_scale(self, last_channel):
         bars = (len(self.data) - min(last_channel['UpLine']['x'][0], last_channel['DownLine']['x'][0])) * 2
@@ -190,13 +200,13 @@ class Channel(RealTimeTool):
         names_up, times1_up, prices1_up, times2_up, prices2_up = [], [], [], [], []
         names_down, times1_down, prices1_down, times2_down, prices2_down = [], [], [], [], []
         if last_channel_date is not None:
-            if last_channel_date < self.data[max(channels[-1]['UpLine']['x'][1],
-                                                         channels[-1]['DownLine']['x'][1])]['Time']:
+            new_channel_time = self.data[max(channels[-1]['UpLine']['x'][1],
+                                                         channels[-1]['DownLine']['x'][1])]['Time']
+            if last_channel_date < new_channel_time and self.data[-channels[-1]['Window']-2]['Time'] < new_channel_time:
                 if last_channel is None or not self.is_similar(channels[-1], last_channel):
                     # Main line
                     if self.telegram:
                         self.chart_tool.clear()
-                        sleep(0.01)
                     new_channel = True
                     last_channel = channels[-1]
                     counter += 1

@@ -104,7 +104,7 @@ class Execution:
             if check in response.keys():
                 return response
 
-    def set_settings_execute(self, symbol, value, type, delay=0.01, w_break=200):
+    def set_settings_execute(self, symbol, value, type, delay=0.01, w_break=20):
         check = ''
 
         self.connector.set_response(None)
@@ -113,6 +113,8 @@ class Execution:
             self.connector.set_scale_request(symbol, value)
         elif type == "Speed":
             self.connector.set_speed_request(value)
+        elif type == "CandleDelay":
+            self.connector.set_start_candle_delay_request(value)
 
         ws = to_datetime('now')
         # While Data not received, sleep until timeout

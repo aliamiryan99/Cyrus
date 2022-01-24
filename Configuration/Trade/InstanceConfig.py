@@ -22,12 +22,12 @@ back_test_all_symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD', 'US30USD', 'OIL
 
 class InstanceConfig:
     # Hyper Parameters
-    symbols = ['XAUUSD.I']
-    management_ratio = [2, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1]
-    history_size = 500
+    symbols = ['US30USD', 'XAUUSD']
+    management_ratio = [2, 2, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1]
+    history_size = 100
     algorithm_time_frame = "D1"
     trailing_time_frame = "D1"
-    tag = "SimpleIdea"
+    tag = "US30USD"
 
     algorithm_name = 'SimpleIdea'
     repairment_name = 'ReEntrance'
@@ -35,7 +35,7 @@ class InstanceConfig:
     close_mode = 'trailing'
     tp_sl_name = 'Body'
     trailing_name = 'Advance'
-    account_management_name = 'Balance'
+    account_management_name = 'Step'
 
     def __init__(self, symbol, data, algorithm_name, repairment_name, recovery_name, close_mode,
                  tp_sl_name, trailing_name, account_management_name, management_ratio, params=None):
@@ -59,7 +59,7 @@ class InstanceConfig:
         if repairment_name == 'ReEntrance':
             from AlgorithmFactory.AlgorithmsOfRepairment.ReEntranceAlgorithm import ReEntrance
             self.force_re_entrance_price = False
-            distance_limit = 6
+            distance_limit = 3
             loss_enable = False
             loss_limit = 2
             loss_threshold = 0  # loss pip threshold
@@ -237,6 +237,10 @@ class InstanceConfig:
         elif account_management_name == "Fix":
             from AlgorithmFactory.AccountManagment.FixVolume import FixVolume
             self.account_management = FixVolume(self.management_ratio)
+        elif account_management_name == "Step":
+            from AlgorithmFactory.AccountManagment.StepManagement import StepManagement
+            step = 0.2
+            self.account_management = StepManagement(self.management_ratio, step)
 
     @staticmethod
     def select_algorithm(symbol, data, algorithm_name, params):
@@ -244,8 +248,8 @@ class InstanceConfig:
         data = copy.deepcopy(data)
         if algorithm_name == 'SimpleIdea':
             from AlgorithmFactory.Algorithms.SimpleIdea import SimpleIdea
-            si_win_inc = 2
-            si_win_dec = 2
+            si_win_inc = 3
+            si_win_dec = 3
             si_shadow_threshold = 10
             si_body_threshold = 0
             si_mode = 1  # mode 1 : simple , mode 2 : average condition , mode 3 : impulse condition

@@ -11,7 +11,7 @@ class CyrusMetaConnector:
 
     def __init__(self,
                  client_id='CyrusMetaConnector',  # Unique ID for this client
-                 host='localhost',  # Host to connect to
+                 host='172.16.1.166',  # Host to connect to
                  protocol='tcp',  # Connection protocol
                  push_port=32768,  # Port for Sending commands
                  pull_port=32769,  # Port for Receiving responses
@@ -342,6 +342,11 @@ class CyrusMetaConnector:
 
     def set_speed_request(self, speed):
         msg = "{};{}".format("SET_SPEED", speed)
+
+        self.remote_send(self.push_socket, msg)
+
+    def set_start_candle_delay_request(self, delay_ticks_number):
+        msg = "{};{}".format("SET_START_CANDLE_DELAY_TICKS", delay_ticks_number)
 
         self.remote_send(self.push_socket, msg)
     """

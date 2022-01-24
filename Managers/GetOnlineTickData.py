@@ -21,6 +21,7 @@ from threading import Thread, Lock
 from time import sleep
 from datetime import datetime
 import copy
+import os
 
 
 #############################################################################
@@ -33,7 +34,7 @@ class OnlineTickDataWriter(MetaTraderBase):
                  name="Polaris",
                  symbols=InstanceConfig.symbols,
                  time_frame="D1",
-                 w_break=100,
+                 w_break=1000,
                  delay=0.01,
                  broker_gmt=3,
                  verbose=False):
@@ -48,18 +49,23 @@ class OnlineTickDataWriter(MetaTraderBase):
                          verbose)
 
         # This strategy's variables
-        self.symbols = symbols
+        symbol = self.reporting.get_curr_symbol()
+        if symbol is not 0:
+            symbols = [symbol]
+            self.symbols = [symbol]
         self.delay = delay
         self.verbose = verbose
         self._finished = False
-        self.time_frame = time_frame
 
         # Get Historical Data
         self.management_ratio = InstanceConfig.management_ratio
         self.algorithm_time_frame = InstanceConfig.algorithm_time_frame
         self.trailing_time_frame = InstanceConfig.trailing_time_frame
 
-        time_frame = time_frame
+        period = self.reporting.get_period()
+        time_frame = Config.timeframes_dic_rev[period]
+
+        self.time_frame = time_frame
         time_frame_ratio = 1
         if time_frame in Config.secondary_timefarmes.keys():
             time_frame = Config.secondary_timefarmes[time_frame]
@@ -79,15 +85,27 @@ class OnlineTickDataWriter(MetaTraderBase):
             self.histories[symbol] = self.connector.history_db[symbol+'_'+time_frame]
             for item in self.histories[symbol]:
                 item['Time'] = datetime.strptime(item['Time'], Config.date_format)
-            if time_frame != self.algorithm_time_frame:
-                self.histories[symbol] = self.aggregate_data(self.histories[symbol], self.algorithm_time_frame)
+            # if time_frame != self.algorithm_time_frame:
+            #     self.histories[symbol] = self.aggregate_data(self.histories[symbol], self.algorithm_time_frame)
             self.time_identifiers[symbol] = Functions.get_time_id(self.histories[symbol][-1]['Time'],
                                                                    self.time_frame)
             self.tick_history[symbol] = {'Time': [], 'Ask': [], 'Bid': []}
 
+        self.output_dir = f"Data/MetaTrader/{symbol}/TickData/"
+        if not os.path.isdir(self.output_dir):
+            os.makedirs(self.output_dir)
+
+        history_dir = f"Data/MetaTrader/{symbol}/{time_frame}/"
+        if not os.path.isdir(history_dir):
+            os.makedirs(history_dir)
+
+        time_start = self.histories[symbol][0]['Time'].strftime("%Y.%m.%d %H.%M.%S")
+        time_end = self.histories[symbol][-1]['Time'].strftime("%Y.%m.%d %H.%M.%S")
+        pd.DataFrame(self.histories[symbol]).to_csv(f"{history_dir}{time_start}_{time_end}.csv", index=False)
+
         for symbol in self.symbols:
             print(symbol)
-            print(pd.DataFrame(self.histories[symbol][-10:]))
+            print(pd.DataFrame(self.histories[symbol]))
         print("_________________________________________________________________________")
 
         # lock for acquire/release of ZeroMQ connector
@@ -99,14 +117,14 @@ class OnlineTickDataWriter(MetaTraderBase):
         return self._finished
 
     ##########################################################################
-    def onPullData(self, data):
+    def on_pull_data(self, data):
         """
         Callback to process new Data received through the PULL port
         """
         pass
 
     ##########################################################################
-    def onSubData(self, data):
+    def on_sub_data(self, data):
         """
         Callback to process new Data received through the SUB port
         """
@@ -147,7 +165,7 @@ class OnlineTickDataWriter(MetaTraderBase):
 
     def write_history_tick(self, symbol, time: datetime):
         time_str = time.strftime("%Y.%m.%d %H.%M.%S")
-        pd.DataFrame(self.tick_history[symbol]).to_csv(f"MetaTrader/TickData/{symbol}-{time_str}.csv", index=False)
+        pd.DataFrame(self.tick_history[symbol]).to_csv(f"{self.output_dir}{time_str}.csv", index=False)
         self.clear_history_tick(symbol)
 
     def clear_history_tick(self, symbol):

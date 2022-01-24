@@ -6,15 +6,16 @@ import copy
 class ChartConfig:
 
     auto_time_frame = True
-    time_frame = "M15"
+    time_frame = "D1"
     date_format = '%Y.%m.%d %H:%M'
-    candles = 5000
-    tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "CandleStick", "Pattern"]
-    tool_name = 'Pattern'
+    candles = 8000
+    tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "CandleStick", "Pattern", "MinMaxTrend"]
+    tool_name = 'Channel'
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
 
-        self.telegram = True
+        self.telegram_enable = False
+        self.trade_enable = False
 
         data = copy.deepcopy(data)
         if tool_name == "PivotPoints":
@@ -44,13 +45,16 @@ class ChartConfig:
 
             window = 300
 
-            extremum_window_start = 1
+            extremum_window_start = 2
             extremum_window_end = 30
-            extremum_window_step = 6
+            extremum_window_step = 4
             extremum_mode = 1
             check_window = 3
-            alpha = 0.05
+            alpha = 0.1
+            beta = 0
             extend_multiplier = 0.6
+            convergence = True
+            divergence = False
             type = 'monotone'  # 'betweenness' , 'monotone'
 
             if params is not None:
@@ -65,7 +69,7 @@ class ChartConfig:
                 type = params['Type']  # 'betweenness' , 'monotone'
 
             self.tool = Channel(chart_tool, data, symbol, window, extremum_window_start, extremum_window_end,
-                                extremum_window_step, extremum_mode, check_window, alpha, extend_multiplier, type, self.telegram)
+                                extremum_window_step, extremum_mode, check_window, alpha, beta, convergence, divergence, extend_multiplier, type, self.telegram_enable)
 
         if tool_name == "Elliot":
             from MetaTraderChartTool.RealTimeTools.Elliot import Elliot
@@ -80,8 +84,8 @@ class ChartConfig:
             past_check_num = 5
             window = 128
 
-            self.tool = Elliot(chart_tool, data, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable,
-                               price_type, self.time_frame, neo_time_frame, past_check_num, window)
+            self.tool = Elliot(chart_tool, data, symbol, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable,
+                               price_type, self.time_frame, neo_time_frame, past_check_num, window, self.trade_enable)
 
         if tool_name == "SRLines":
             from MetaTraderChartTool.RealTimeTools.SR import SR
@@ -90,29 +94,40 @@ class ChartConfig:
             tf2 = "M30"
             tf3 = 'H1'
 
-            mode = "Static"
+            mode = "OSR"
+            osr_second_time_frame = "H4"
 
             with_area = False
-            base_area = 50
+            base_area = 250
 
             window = 2000
 
             self.tool = SR(chart_tool, data, symbol, static_leverage_degree, self.time_frame, tf2, tf3, mode, window,
-                           with_area, base_area)
+                           with_area, base_area, osr_second_time_frame)
 
         if tool_name == "CandleStick":
             from MetaTraderChartTool.RealTimeTools.CandleStick import CandleStick
 
             candle_type = "Doji"   # Doji , Hammer , InvertHammer , Engulfing
 
-            self.tool = CandleStick(chart_tool, data, symbol, candle_type, self.telegram)
+            self.tool = CandleStick(chart_tool, data, symbol, candle_type, self.trade_enable, self.telegram_enable)
 
         if tool_name == "Pattern":
             from MetaTraderChartTool.RealTimeTools.Patterns import Pattern
 
-            pattern_type = "HeadAndShoulder"    # DoubleTopAndBottom , HeadAndShoulder
+            pattern_type = "DoubleTopAndBottom"    # DoubleTopAndBottom , HeadAndShoulder
 
             double_top_bottom_coefficient = 20
             scales = [10]
+            window = 200
 
-            self.tool = Pattern(chart_tool, data, pattern_type, double_top_bottom_coefficient, scales)
+            self.tool = Pattern(chart_tool, data, pattern_type, double_top_bottom_coefficient, scales, window)
+
+        if tool_name == "MinMaxTrend":
+            from MetaTraderChartTool.RealTimeTools.MinMaxTrend import MinMaxTrendTool
+
+            extremum_window = 4
+            extremum_mode = 1
+            extremum_show = True
+
+            self.tool = MinMaxTrendTool(chart_tool, data, symbol, extremum_window, extremum_mode, extremum_show, self.trade_enable, self.telegram_enable)

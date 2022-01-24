@@ -108,6 +108,7 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
             if ChartConfig.auto_time_frame:
                 period = self.reporting.get_period()
                 self.time_frame = Config.timeframes_dic_rev[period]
+                ChartConfig.time_frame = self.time_frame
 
             self.symbol = symbol
 

@@ -4,7 +4,8 @@ from AlgorithmFactory.AlgorithmTools.CandleTools import *
 import numpy as np
 
 
-def get_channels(data, extremum_start_window, extremum_end_window, extremum_window_step, extremum_mode, check_window, alpha, right_window):
+def get_channels(data, extremum_start_window, extremum_end_window, extremum_window_step, extremum_mode, check_window,
+                 alpha, beta, convergence, divergence, right_window):
     open, high, low, close = get_ohlc(data)
     bottom, top = get_bottom_top(data)
 
@@ -16,12 +17,14 @@ def get_channels(data, extremum_start_window, extremum_end_window, extremum_wind
     right_local_min, right_local_max = get_local_extermums(data, right_window, extremum_mode)
     for window in range(extremum_start_window, extremum_end_window+1, extremum_window_step):
         local_min, local_max = get_local_extermums(data, window, extremum_mode)
-        local_min = np.append(local_min, [right_local_min[-1]])
-        local_max = np.append(local_max, [right_local_max[-1]])
+        if local_min[-1] != right_local_min[-1]:
+            local_min = np.append(local_min, [right_local_min[-1]])
+        if local_max[-1] != right_local_max[-1]:
+            local_max = np.append(local_max, [right_local_max[-1]])
         min_pointer, max_pointer = check_window-1, check_window-1
         while min_pointer < len(local_min) and max_pointer < len(local_max):
-            up_channel = check_up_channel(data, price_up, price_down, local_min, local_max, min_pointer, max_pointer, check_window, alpha, window)
-            down_channel = check_down_channel(data, price_up, price_down, local_min, local_max, min_pointer, max_pointer, check_window, alpha, window)
+            up_channel = check_up_channel(data, price_up, price_down, local_min, local_max, min_pointer, max_pointer, check_window, alpha, beta, convergence, divergence, window)
+            down_channel = check_down_channel(data, price_up, price_down, local_min, local_max, min_pointer, max_pointer, check_window, alpha, beta, convergence, divergence, window)
             # Save Channels
             if up_channel is not None:
                 for i in range(len(up_channels)):
@@ -45,27 +48,29 @@ def get_channels(data, extremum_start_window, extremum_end_window, extremum_wind
     return up_channels, down_channels
 
 
-def check_up_channel(data, price_up, price_down, local_min, local_max, local_min_pointer, local_max_pointer, check_window, alpha, window):
+def check_up_channel(data, price_up, price_down, local_min, local_max, local_min_pointer, local_max_pointer, check_window, alpha, beta, convergence, divergence, window):
     if check_ascending(price_up, local_max[local_max_pointer-check_window+1:local_max_pointer+1]):
         if check_ascending(price_down, local_min[local_min_pointer-check_window+1:local_min_pointer+1]):
             up_line, up_slop = get_up_convex_line(price_up, local_max[local_max_pointer-check_window+1:local_max_pointer+1], data)
             down_line, down_slop = get_down_convex_line(price_down, local_min[local_min_pointer-check_window+1:local_min_pointer+1], data)
             if down_line is 0 or up_line is 0:
                 return None
-            if abs((up_slop - down_slop)/(up_slop + down_slop)) < alpha:
-                return {'UpLine': up_line, 'DownLine': down_line, 'Window': window}
+            if beta < abs((up_slop - down_slop)/(up_slop + down_slop)) < alpha:
+                if ((up_slop - down_slop) <= 0 and convergence) or ((up_slop - down_slop) >= 0 and divergence):
+                    return {'UpLine': up_line, 'DownLine': down_line, 'Window': window}
     return None
 
 
-def check_down_channel(data, price_up, price_down, local_min, local_max, local_min_pointer, local_max_pointer, check_window, alpha, window):
+def check_down_channel(data, price_up, price_down, local_min, local_max, local_min_pointer, local_max_pointer, check_window, alpha, beta, convergence, divergence, window):
     if check_descending(price_up, local_max[local_max_pointer-check_window+1:local_max_pointer+1]):
         if check_descending(price_down, local_min[local_min_pointer-check_window+1:local_min_pointer+1]):
             up_line, up_slop = get_up_convex_line(price_up, local_max[local_max_pointer-check_window+1:local_max_pointer+1], data)
             down_line, down_slop = get_down_convex_line(price_down, local_min[local_min_pointer-check_window+1:local_min_pointer+1], data)
             if down_line is 0 or up_line is 0:
                 return None
-            if abs((up_slop - down_slop)/(up_slop + down_slop)) < alpha:
-                return {'UpLine': up_line, 'DownLine': down_line, 'Window': window}
+            if beta < abs((up_slop - down_slop)/(up_slop + down_slop)) < alpha:
+                if ((up_slop - down_slop) <= 0 and convergence) or ((up_slop - down_slop) >= 0 and divergence):
+                    return {'UpLine': up_line, 'DownLine': down_line, 'Window': window}
     return None
 
 
