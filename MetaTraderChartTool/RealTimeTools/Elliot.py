@@ -6,15 +6,25 @@ from AlgorithmFactory.AlgorithmTools.Elliott import elliott
 
 import pandas as pd
 import numpy as np
+from Utilities.Statistics import *
+import pickle
 
 
 class Elliot(RealTimeTool):
 
-    def __init__(self, chart_tool: MetaTraderBase, data, symbol, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable, price_type, candle_time_frame, neo_time_frame, past_check_num, window, trade_enable):
+    def __init__(self, chart_tool: MetaTraderBase, data, symbol, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable, price_type, candle_time_frame, neo_time_frame, past_check_num, window, statistic_window, trade_enable):
         super().__init__(chart_tool, data)
 
         self.chart_tool.set_speed(10000)
         self.chart_tool.set_candle_start_delay(40)
+
+        self.color = "40,180,60"
+        self.width = 1
+
+        self.rect_color = "4,129,25"
+        self.rect_x, self.rect_y = 20, 40
+        self.rect_width, self.rect_height = 300, 250
+        self.label = f"Elliot"
 
         self.symbol = symbol
         self.trade_enable = trade_enable
@@ -33,6 +43,14 @@ class Elliot(RealTimeTool):
 
         monowave_list, polywave_list, post_prediction_list, In_impulse_prediction_list_w4 , In_impulse_prediction_list_w5, In_zigzag_flat_prediction_list =\
         elliott.calculate(pd.DataFrame(data), self.wave4_enable, self.wave5_enable, self.inside_flat_zigzag_wc, self.post_prediction_enable, price_type=self.price_type, candle_timeframe=candle_time_frame, neo_timeframe=neo_time_frame)
+
+        pickle_out = open("data.pickle", "wb")
+        pickle.dump(self.data, pickle_out)
+        pickle_out.close()
+
+        pickle_out = open("monowave.pickle", "wb")
+        pickle.dump(monowave_list, pickle_out)
+        pickle_out.close()
 
         self.pre_monowave_time = self.data[monowave_list[0]['Start_candle_index'][len(monowave_list[0]['Start_candle_index'])-self.past_check_num]]['Time']
 
@@ -64,6 +82,23 @@ class Elliot(RealTimeTool):
                 x1_list = post_prediction_list[i]['X1']
                 x2_list = post_prediction_list[i]['X2']
 
+                directions_list = post_prediction_list[i]['Dr']
+
+                buy_indexes, sell_indexes = [], []
+                for l in range(len(x1_list)):
+                    if directions_list[l] == 1:
+                        sell_indexes.append(x1_list[l])
+                    else:
+                        buy_indexes.append(x1_list[l])
+
+                self.get_statistics(buy_indexes, statistic_window)
+                self.label = f"Elliot Buy ({statistic_window}) Post Prediction"
+                self.draw_statistics()
+                self.get_statistics(sell_indexes, statistic_window)
+                self.rect_x, self.rect_y = 20, self.rect_height + 60
+                self.label = f"Elliot Sell ({statistic_window}) Post Prediction"
+                self.draw_statistics()
+
                 post_prediction_list[i]['Start_time'] = list(np.array(times)[x1_list])
                 post_prediction_list[i]['End_time'] = list(np.array(times)[x2_list])
 
@@ -72,6 +107,24 @@ class Elliot(RealTimeTool):
             if self.wave4_enable:
                 In_x1_list = In_impulse_prediction_list_w4[i]['X1']
                 In_x2_list = In_impulse_prediction_list_w4[i]['X2']
+
+                directions_list = In_impulse_prediction_list_w4[i]['Dr']
+
+                buy_indexes, sell_indexes = [], []
+                for l in range(len(In_x1_list)):
+                    if directions_list[l] == 1:
+                        sell_indexes.append(In_x1_list[l])
+                    else:
+                        buy_indexes.append(In_x1_list[l])
+
+                self.get_statistics(buy_indexes, statistic_window)
+                self.label = f"Elliot Buy ({statistic_window}) W4"
+                self.draw_statistics()
+                self.get_statistics(sell_indexes, statistic_window)
+                self.rect_x, self.rect_y = 20, self.rect_height + 60
+                self.label = f"Elliot Sell ({statistic_window}) W4"
+                self.draw_statistics()
+
 
                 In_impulse_prediction_list_w4[i]['Start_time'] = list(np.array(times)[In_x1_list])
                 a = elliott.next_time(times[-1], candle_time_frame, In_x2_list[-1] - len(times) + 1)
@@ -88,11 +141,35 @@ class Elliot(RealTimeTool):
                 In_x1_list = In_impulse_prediction_list_w5[i]['X1']
                 In_x2_list = In_impulse_prediction_list_w5[i]['X2']
 
+                directions_list = In_impulse_prediction_list_w5[i]['Dr']
+
+                buy_indexes, sell_indexes = [], []
+                for l in range(len(In_x1_list)):
+                    if directions_list[l] == 1:
+                        sell_indexes.append(In_x1_list[l])
+                    else:
+                        buy_indexes.append(In_x1_list[l])
+
+
+                self.get_statistics(buy_indexes, statistic_window)
+                self.label = f"Elliot Buy ({statistic_window}) W5"
+                self.draw_statistics()
+                self.get_statistics(sell_indexes, statistic_window)
+                self.rect_x, self.rect_y = 20, self.rect_height + 60
+                self.label = f"Elliot Sell ({statistic_window}) W5"
+                self.draw_statistics()
+
                 In_impulse_prediction_list_w5[i]['Start_time'] = list(np.array(times)[In_x1_list])
-                In_impulse_prediction_list_w5[i]['End_time'] = list(np.array(times)[In_x2_list])
+                a = elliott.next_time(times[-1], candle_time_frame, In_x2_list[-1] - len(times) + 1)
+                if a is None:
+                    a = times[-1]
+                # In_zigzag_flat_prediction_list[i]['End_time'] = list(np.array(times)[inter_x2_list])
+                In_impulse_prediction_list_w5[i]['End_time'] = list(np.array(times)[In_x2_list[:-1]])
+                In_impulse_prediction_list_w5[i]['End_time'].append(a)
 
                 index = "In_Pr_w5" + str(i)
                 self.result_final[index] = In_impulse_prediction_list_w5[i]
+
             ###########
             #zigzag-flat inter prediction
             if self.inside_flat_zigzag_wc:
@@ -206,24 +283,37 @@ class Elliot(RealTimeTool):
                 self.last_prediction_w4_index = In_impulse_prediction_list_w4[0]['X1'][-1]
 
             if self.wave5_enable:
-                # color1 = "0,0,200"
-                color2 = "200,0,0"
-                start_times =[]
-                # for j in range(4):
-                names = [f"In_Prediction_w5 {j}-{i}" for i in
-                            range(len(self.result_final['In_Pr_w50']['Start_time']))]
-                start_times = self.result_final['In_Pr_w50']['Start_time']
-                end_times = self.result_final['In_Pr_w50']['End_time']
-                start_prices = self.result_final['In_Pr_w50']['Y1']
-                end_prices = self.result_final['In_Pr_w50']['Y1']
-                if (start_times != []):
-                    # if (j==0 and start_prices !="none"):
-                    chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=color2,
-                                style=chart_tool.EnumStyle.Dot , width=2)
-                    # pass
-                # else:
-                #     chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=color1,
-                #                 style=chart_tool.EnumStyle.Dot , width=2)
+                self.color1 = "200,200,0"
+                self.color2 = "200,200,0"
+                self.color3 = "255,128,128"
+                start_times = []
+                for j in range(len(self.result_final['In_Pr_w50']['Y1'][0])):
+                    names = [f"In_Prediction_w5 {j}-{k}" for k in
+                                range(len(self.result_final['In_Pr_w50']['Start_time']))]
+                    start_times = self.result_final['In_Pr_w50']['Start_time']
+                    end_times = self.result_final['In_Pr_w50']['End_time']
+                    # start_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
+                    # end_prices = self.result_final['In_Pr_w40']['Y'+str(j+1)]
+                    start_prices = [self.result_final['In_Pr_w50']['Y1'][l][j] for l in range(len(self.result_final['In_Pr_w50']['Y1']))]
+                    end_prices = start_prices
+                    # if (start_times != []):
+                        # if (j == 0):
+                    chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=self.color2,
+                                                    style=chart_tool.EnumStyle.DashDot, width=2)
+                            # pass
+                        # else:
+                        #     for k in range(len(start_prices[0])):
+                        #         chart_tool.trend_line(names, start_times, [item1[k] for item1 in start_prices],
+                        #                               end_times,
+                        #                               [item2[k] for item2 in end_prices], color=self.color1,
+                        #                               style=chart_tool.EnumStyle.DashDot, width=2)
+                        #         chart_tool.v_line([name + str(k) + '1' for name in names], times=start_times,
+                        #                           style=chart_tool.EnumStyle.DashDot)
+                        #         chart_tool.v_line([name + str(k) + '2' for name in names], times=end_times,
+                        #                           style=chart_tool.EnumStyle.DashDot, color=self.color3)
+
+                self.last_prediction_w5_time = self.result_final['In_Pr_w50']['Start_time'][-1]
+                self.last_prediction_w5_index = In_impulse_prediction_list_w5[0]['X1'][-1]
 
             if self.inside_flat_zigzag_wc:
                 # zigzag flat inter prediction
@@ -318,13 +408,14 @@ class Elliot(RealTimeTool):
 
         if self.wave4_enable:
             if len(In_impulse_prediction_list_w4[0]['X1']) != 0:
-                if self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time'] > self.last_prediction_w4_time:
+                if self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time'] > self.last_prediction_w4_time \
+                and self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time'] == self.data[monowave_list[0]['Start_candle_index'][mw_len -1]]['Time']:
                     self.last_prediction_w4_index += 1
                     self.last_prediction_w4_time = self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']
                     tp_list = []
                     for j in range(4):
-
-                        #start_times = [self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']]
+             
+                        # start_times = [self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']]
                         start_times = [candle['Time']]
                         end_times = [candle['Time'] + (In_impulse_prediction_list_w4[0]['X2'][-1] -In_impulse_prediction_list_w4[0]['X1'][-1]) \
                                      * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])]
@@ -364,10 +455,44 @@ class Elliot(RealTimeTool):
                     if len(tp_list) != 0 and self.trade_enable:
                         tp = abs(tp_list[0] - self.data[-1]['Close']) * 10 ** Config.symbols_pip[self.symbol]
                         if tp_list[0] > self.data[-1]['Close']:
-                            self.chart_tool.buy(self.symbol, 0.1, tp, 400)
+                            self.chart_tool.buy(self.symbol, 0.1, tp, 100)
                         else:
-                            self.chart_tool.sell(self.symbol, 0.1, tp, 400)
+                            self.chart_tool.sell(self.symbol, 0.1, tp, 100)
 
+        if self.wave5_enable:
+            if len(In_impulse_prediction_list_w5[0]['X1']) != 0:
+                if self.data[In_impulse_prediction_list_w5[0]['X1'][-1]]['Time'] > self.last_prediction_w5_time:
+                    self.last_prediction_w5_index += 1
+                    self.last_prediction_w5_time = self.data[In_impulse_prediction_list_w5[0]['X1'][-1]]['Time']
+                    tp_list = []
+                    for j in range(4):
+
+                        #start_times = [self.data[In_impulse_prediction_list_w4[0]['X1'][-1]]['Time']]
+                        start_times = [candle['Time']]
+                        end_times = [candle['Time'] + (In_impulse_prediction_list_w5[0]['X2'][-1] -In_impulse_prediction_list_w5[0]['X1'][-1]) \
+                                     * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])]
+                        start_prices = In_impulse_prediction_list_w5[0]['Y1'][j][-1]
+                        end_prices = In_impulse_prediction_list_w5[0]['Y1'][j][-1]
+
+                        tp_list += start_prices
+
+
+                        names = [f"In_Prediction_w5{j}-{self.last_prediction_w5_index}-{i}" for i in range(len(start_prices))]
+                        start_times = start_times*len(start_prices)
+                        end_times = end_times * len(start_prices)
+                        if (start_times != []):
+                            if (j == 0):
+                                self.chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=self.color2,
+                                                      style=self.chart_tool.EnumStyle.DashDot, width=2)
+                            # pass
+                            else:
+                                self.chart_tool.trend_line(names, start_times, start_prices,
+                                                          end_times,end_prices, color=self.color1,
+                                                          style=self.chart_tool.EnumStyle.DashDot, width=2)
+                                self.chart_tool.v_line([f"{names[-1]}_1"], times=[start_times[0]],
+                                                  style=self.chart_tool.EnumStyle.DashDot)
+                                self.chart_tool.v_line([f"{names[-1]}_2"], times=[end_times[0]],
+                                                  style=self.chart_tool.EnumStyle.DashDot, color=self.color3)
 
         if self.post_prediction_enable:
             color = "200,255,0"
@@ -378,7 +503,7 @@ class Elliot(RealTimeTool):
                     for j in range(3):
                         start_prices = post_prediction_list[0]['Y'+str(j+1)]
                         end_prices = post_prediction_list[0]['Y'+str(j+1)]
-                        names = [f"Post_Prediction{j}-{i}" for i in range(len(start_prices))]
+                        names = [f"Post_Prediction{j}-{self.last_post_prediction_index}-{i}" for i in range(len(start_prices))]
                         start_times = [candle['Time']]*len(start_prices)
                         end_times = ([candle['Time'] + (post_prediction_list[0]['X2'][-1] -post_prediction_list[0]['X1'][-1]) \
                                             * min(self.data[-1]['Time'] - self.data[-2]['Time'], self.data[-2]['Time'] - self.data[-3]['Time'])])* len(start_prices)
@@ -444,3 +569,49 @@ class Elliot(RealTimeTool):
         self.chart_tool.text(names2, times2, prices2, texts2, anchor=self.chart_tool.EnumAnchor.Top)
 
         self.data.append(candle)
+
+    def get_statistics(self, index_list, statistic_window):
+        results = get_bullish_bearish_ratio(self.data, index_list, statistic_window)
+        self.bullish_ratio_min, self.bullish_ratio_max, self.bullish_ratio_mean = get_min_max_mean(
+            [result['BullishRatio'] for result in results])
+        self.bearish_ratio_min, self.bearish_ratio_max, self.bearish_ratio_mean = get_min_max_mean(
+            [result['BearishRatio'] for result in results])
+        self.first_bullish_cnt, self.first_bearish_cnt = 0, 0
+        for result in results:
+            if result['FirstIncome'] == "Bull":
+                self.first_bullish_cnt += 1
+            else:
+                self.first_bearish_cnt += 1
+
+    def draw_statistics(self):
+        self.chart_tool.rectangle_label([f"RectLabel {self.label}"], [self.rect_x + self.rect_width], [self.rect_y],
+                                        [self.rect_width], [self.rect_height],
+                                        back_color=self.rect_color, color="200,199,199",
+                                        border=self.chart_tool.EnumBorder.Sunken,
+                                        corner=self.chart_tool.EnumBaseCorner.RightUpper)
+        division = 10
+        names, x, y, texts = [f"NameLabel {self.label}"], [self.rect_x + (self.rect_width // 2)], [
+            self.rect_y + 0.5 * (self.rect_height // division)], [self.label]
+        self.add_label(f"BullishRatioMean {self.label}", self.rect_x + (self.rect_width // 2),
+                       self.rect_y + 2.5 * (self.rect_height // division),
+                       f"Bullish Ratio Mean = {abs(round(self.bullish_ratio_mean, 3))} %", names, x, y, texts)
+        self.add_label(f"BearishRatioMean {self.label}", self.rect_x + (self.rect_width // 2),
+                       self.rect_y + 4.5 * (self.rect_height // division),
+                       f"Bearish Ratio Mean = {abs(round(self.bearish_ratio_mean, 3))} %", names, x, y, texts)
+        self.add_label(f"BullishFirstIncome {self.label}", self.rect_x + (self.rect_width // 2),
+                       self.rect_y + 6.5 * (self.rect_height // division),
+                       f"Bullish First Income = {self.first_bullish_cnt}", names, x, y, texts)
+        self.add_label(f"BearishFirstIncome {self.label}", self.rect_x + (self.rect_width // 2),
+                       self.rect_y + 8.5 * (self.rect_height // division),
+                       f"Bearish First Income = {self.first_bearish_cnt}", names, x, y, texts)
+
+        self.chart_tool.label(names, x, y, texts, corner=self.chart_tool.EnumBaseCorner.RightUpper,
+                              anchor=self.chart_tool.EnumAnchor.Top, font="Times New Roman", font_size=12)
+
+    def add_label(self, name, x, y, text, name_list, x_list, y_list, text_list):
+        name_list.append(name)
+        x_list.append(x)
+        y_list.append(y)
+        text_list.append(text)
+
+

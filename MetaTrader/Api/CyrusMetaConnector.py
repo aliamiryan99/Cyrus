@@ -11,7 +11,7 @@ class CyrusMetaConnector:
 
     def __init__(self,
                  client_id='CyrusMetaConnector',  # Unique ID for this client
-                 host='172.16.1.166',  # Host to connect to
+                 host='localhost',  # Host to connect to
                  protocol='tcp',  # Connection protocol
                  push_port=32768,  # Port for Sending commands
                  pull_port=32769,  # Port for Receiving responses

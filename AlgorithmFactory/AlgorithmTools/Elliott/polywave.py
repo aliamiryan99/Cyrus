@@ -63,6 +63,7 @@ class PolyWave:
         pred_y1 = []
         pred_y2 = []
         pred_y3 = []
+        directions = []
 
         for i in range(len(self.polywaveList)):
             if self.polywaveList.loc[i].EW_type != []:
@@ -81,6 +82,7 @@ class PolyWave:
                     pred_y1.append(res[2])
                     pred_y2.append(res[3])
                     pred_y3.append(res[4])
+                    directions.append(res[5])
 
                 elif check_subitem_in_list(self.polywaveList.loc[i, 'EW_type'], 'Flat') or check_subitem_in_list(
                         self.polywaveList.loc[i, 'EW_type'], 'Zigzag'):
@@ -90,8 +92,9 @@ class PolyWave:
                     pred_y1.append(res[2])
                     pred_y2.append(res[3])
                     pred_y3.append(res[4])
+                    directions.append(res[5])
 
-        return start_candle_idx, end_candle_idx, start_price, end_price, ew_type, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3
+        return start_candle_idx, end_candle_idx, start_price, end_price, ew_type, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3 , directions
 
     def candidate_patterns(self):
         n = len(self.polywaveList)
@@ -862,13 +865,13 @@ class PolyWave:
 
         xc = Mc.End_candle_index
         yc = Mc.End_price
-
+        dir = Mc.Direction
         x = xc + xc - xb
 
         # post market action must break the "0-B" trendline in the same amount of time (or less) that wave-c took to form
         xr1, yr1 = intersection(xa, ya, xb, yb, x, yc, x, yb)
         xr2, yr2 = intersection(xa, ya, xb, yb, xc, yc, x, yb)
-        return int(xc), int(xr1), yr1, yr2, yb
+        return int(xc), int(xr1), yr1, yr2, yb , dir
 
     def impulsions_prediction(self, index):
         stIndex = self.polywaveList.loc[index].PWstartIndex
@@ -886,9 +889,10 @@ class PolyWave:
         y4 = M4.End_price
 
         x5 = M5.End_candle_index
+        dir = M5.Direction
         y5 = M5.End_price
         x6 = x5 + x5 - x4
 
         xr1, yr1 = intersection(x2, y2, x4, y4, x6, y5, x6, y4)
         xr2, yr2 = intersection(x2, y2, x4, y4, x5, y5, x6, y4)
-        return int(x5), int(xr1), yr1, yr2, y4
+        return int(x5), int(xr1), yr1, yr2, y4 , dir

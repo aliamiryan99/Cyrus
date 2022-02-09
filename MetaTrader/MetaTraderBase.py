@@ -55,7 +55,7 @@ class MetaTraderBase:
         self.broker_gmt = broker_gmt
 
         self.token = "2131560525:AAH4ajtB__uKllIFGnDTKEcenGjfyBMOO_s"
-        self.screen_shots_directory = "C:/Users/Polaris-Maju1/AppData/Roaming/MetaQuotes/Terminal/A0CD3313EC8ED5429A4908A9CEAB7D1B/tester/Files"
+        self.screen_shots_directory = "C:/Users/Polaris-Maju1/AppData/Roaming/MetaQuotes/Terminal/4694969650DF66FD9340C36ED4D0052A/tester/Files"
         # Not entirely necessary here.
         self.connector = CyrusMetaConnector(pull_data_handlers=pull_data_handlers, sub_data_handlers=sub_data_handlers,
                                             verbose=verbose, push_port=push_port,  pull_port=pull_port, sub_port=sub_port)

@@ -17,7 +17,7 @@ class ChartToolConnector:
 
     def __init__(self,
                  _ClientID='cyrus_chart_tool_engine',    # Unique ID for this client
-                 _host='localhost',         # Host to connect to
+                 _host='192.168.137.121',         # Host to connect to
                  _protocol='tcp',           # Connection protocol
                  _PUSH_PORT=32771,          # Port for Sending commands
                  _PULL_PORT=32772,          # Port for Receiving responses

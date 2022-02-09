@@ -14,6 +14,7 @@ from datetime import datetime
 import pandas as pd
 
 from Shared.Functions import Functions
+from Shared.Variables import Variables
 
 
 
@@ -128,6 +129,8 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
             print(pd.DataFrame(self.history))
 
             self.time_identifier = Functions.get_time_id(self.history[-1]['Time'], self.time_frame)
+
+            Variables.config = Config
 
             self.chart_config = ChartConfig(self, self.history, symbol, ChartConfig.tool_name, params)
             self.tool = self.chart_config.tool

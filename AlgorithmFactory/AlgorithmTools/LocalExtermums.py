@@ -25,6 +25,35 @@ def get_local_extermums(data, window, mode):         # mode 1: High Low , mode 2
     return local_min, local_max
 
 
+def filter_extremums(data, window, mode, local_min, local_max, atr_tr):
+    open, high, low, close = get_ohlc(data)
+    bottom, top = get_bottom_top(data)
+
+    price_up, price_down = high, low
+    if mode == 2:
+        price_up, price_down = top, bottom
+
+    atr = get_body_mean(data, len(data))
+
+    new_local_min = []
+    for i in range(len(local_min)):
+        if calculate_area_diff(price_down, window, local_min[i]) >= atr_tr * atr:
+            new_local_min.append(local_min[i])
+    new_local_max = []
+    for i in range(len(local_max)):
+        if calculate_area_diff(price_up, window, local_max[i]) >= atr_tr * atr:
+            new_local_max.append(local_max[i])
+
+    return new_local_min, new_local_max
+
+
+def calculate_area_diff(price, window, index):
+    diff_sum = 0
+    for i in range(max(0, index-2 * window), min(len(price)-1, index+2*window)):
+        diff_sum += abs(price[i] - price[index])
+    return abs(diff_sum/(2*window))
+
+
 def get_indicator_local_extermums(max_data, min_data, window):
     max_data = np.array(max_data)
     min_data = np.array(min_data)

@@ -6,11 +6,11 @@ import copy
 class ChartConfig:
 
     auto_time_frame = True
-    time_frame = "D1"
+    time_frame = "H4"
     date_format = '%Y.%m.%d %H:%M'
-    candles = 8000
-    tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "CandleStick", "Pattern", "MinMaxTrend"]
-    tool_name = 'Channel'
+    candles = 1000
+    tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "CandleStick", "Pattern", "MinMaxTrend", "SupplyAndDemand"]
+    tool_name = 'SupplyAndDemand'
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
 
@@ -21,7 +21,7 @@ class ChartConfig:
         if tool_name == "PivotPoints":
             from MetaTraderChartTool.RealTimeTools.PivotPoints import PivotPoints
             extremum_window = 10
-            extremum_mode = 1
+            extremum_mode = 2
 
             self.tool = PivotPoints(chart_tool, data, extremum_window, extremum_mode)
 
@@ -33,9 +33,7 @@ class ChartConfig:
 
             vb_h4_enable = False
             vb_h1_enable = True
-
             gp_enable = False
-
             save_data = False
 
             self.tool = VolumeBarIndicator(chart_tool, data, prediction_multiplayer, window_size, vb_h1_enable, vb_h4_enable, gp_enable, save_data)
@@ -65,7 +63,10 @@ class ChartConfig:
                 extremum_mode = params['ExtMode']
                 check_window = params['CheckWindow']
                 alpha = params['Alpha']
+                beta = params['Beta']
                 extend_multiplier = params['ExtendMultiplier']
+                convergence = params['Convergence']
+                divergence = params['Divergence']
                 type = params['Type']  # 'betweenness' , 'monotone'
 
             self.tool = Channel(chart_tool, data, symbol, window, extremum_window_start, extremum_window_end,
@@ -74,18 +75,19 @@ class ChartConfig:
         if tool_name == "Elliot":
             from MetaTraderChartTool.RealTimeTools.Elliot import Elliot
 
-            wave4_enable = True
+            wave4_enable = False
             wave5_enable = False
             inside_flat_zigzag_wc = False
-            post_prediction_enable = False
+            post_prediction_enable = True
 
             price_type = "neo"
             neo_time_frame = "D1"
             past_check_num = 5
             window = 128
+            statistic_window = 15
 
             self.tool = Elliot(chart_tool, data, symbol, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable,
-                               price_type, self.time_frame, neo_time_frame, past_check_num, window, self.trade_enable)
+                               price_type, self.time_frame, neo_time_frame, past_check_num, window, statistic_window, self.trade_enable)
 
         if tool_name == "SRLines":
             from MetaTraderChartTool.RealTimeTools.SR import SR
@@ -108,9 +110,11 @@ class ChartConfig:
         if tool_name == "CandleStick":
             from MetaTraderChartTool.RealTimeTools.CandleStick import CandleStick
 
-            candle_type = "Doji"   # Doji , Hammer , InvertHammer , Engulfing
+            candle_type = "Doji"   # Doji , Hammer , InvertHammer , Engulfing, SimpleIdea
 
-            self.tool = CandleStick(chart_tool, data, symbol, candle_type, self.trade_enable, self.telegram_enable)
+            filter_direction = 1    # 1:buy , -1:sell , 0 : all
+
+            self.tool = CandleStick(chart_tool, data, symbol, candle_type, filter_direction, self.trade_enable, self.telegram_enable)
 
         if tool_name == "Pattern":
             from MetaTraderChartTool.RealTimeTools.Patterns import Pattern
@@ -131,3 +135,14 @@ class ChartConfig:
             extremum_show = True
 
             self.tool = MinMaxTrendTool(chart_tool, data, symbol, extremum_window, extremum_mode, extremum_show, self.trade_enable, self.telegram_enable)
+
+        if tool_name == "SupplyAndDemand":
+            from MetaTraderChartTool.RealTimeTools.SupplyAndDemand import SupplyAndDemand
+
+            tr = 1
+            minimum_candles = 3
+            tr2 = 2
+            minimum_candles2 = 1
+            swing_filter = True
+
+            self.tool = SupplyAndDemand(chart_tool, data, tr, minimum_candles, tr2, minimum_candles2, swing_filter)

@@ -32,3 +32,11 @@ def simple_idea(symbol, data, win_inc, win_dec, shadow_threshold, body_threshold
 
     return 0
 
+
+def get_detected_simple_idea(data, symbol, window, shadow_threshold, body_threshold, mode, mean_window):
+    detected_list = []
+    for i in range(window+5, len(data)):
+        result = simple_idea(symbol, data[i-window-4:i], window, window, shadow_threshold, body_threshold, mode, mean_window)
+        if result != 0:
+            detected_list.append({'Index': i-1, 'Time': data[i-1]['Time'], 'Price':data[i-1]['Low'], 'Direction': result})
+    return detected_list

@@ -198,11 +198,11 @@ def calculate(df, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_predic
         polywaves1.candidate_patterns()
         valid_pairs = polywaves1.analyzing_rules()
 
-        start_candle_idx, end_candle_idx, start_price, end_price, ew_type, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3 = polywaves1.visualize_valid_polywave()
+        start_candle_idx, end_candle_idx, start_price, end_price, ew_type, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, directions = polywaves1.visualize_valid_polywave()
         polywave_list.append({"Start_index": start_candle_idx, "Start_price": start_price, "End_index": end_candle_idx,
                               "End_price": end_price, "Type": ew_type})
         if post_prediction_enable:
-            post_prediction_list.append({"X1": pred_x1, "X2": pred_x2, "Y1": pred_y1, "Y2": pred_y2, "Y3": pred_y3})
+            post_prediction_list.append({"X1": pred_x1, "X2": pred_x2, "Y1": pred_y1, "Y2": pred_y2, "Y3": pred_y3 , "Dr": directions})
 
         hyper_monowaves_list.append(pd.DataFrame(hyper_monowaves))
         # hyper_monowaves = compaction(hyper_monowaves, valid_pairs)
@@ -211,13 +211,12 @@ def calculate(df, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_predic
         if wave4_enable:
             # index1, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4 = monowaves1.Impulse_In_prediction_zone_label_M4(hyper_monowaves , step)
             # In_impulse_prediction_list_w4.append({"idx":index1 , "X1": pred_x1, "X2": pred_x2,"Y1":pred_y1, "Y2":pred_y2 , "Y3":pred_y3, "Y4":pred_y4})
-            index1, pred_x1, pred_x2, preds = monowaves1.Impulse_In_prediction_zone_label_M4(hyper_monowaves, step)
-            In_impulse_prediction_list_w4.append({"idx": index1, "X1": pred_x1, "X2": pred_x2, "Y1": preds})
+            index1, pred_x1, pred_x2, preds, directions = monowaves1.Impulse_In_prediction_zone_label_M4(hyper_monowaves, step)
+            In_impulse_prediction_list_w4.append({"idx": index1, "X1": pred_x1, "X2": pred_x2, "Y1": preds, "Dr": directions})
 
         if wave5_enable:
-            index1, pred_x1, pred_x2, pred_y1 = monowaves1.Impulse_In_prediction_zone_label_M5_truncated(
-                hyper_monowaves, step)
-            In_impulse_prediction_list_w5.append({"idx": index1, "X1": pred_x1, "X2": pred_x2, "Y1": pred_y1})
+            index1, pred_x1, pred_x2, preds, directions = monowaves1.Impulse_In_prediction_zone_label_M5(hyper_monowaves, step)
+            In_impulse_prediction_list_w5.append({"idx": index1, "X1": pred_x1, "X2": pred_x2, "Y1": preds, "Dr": directions})
 
         if inside_flat_zigzag_wc:
             index1, pred_xb, pred_yb, pred_xc, pred1_yc, pred2_yc, pred3_yc = monowaves1.Zigzag_prediction_zone_label_Mc(

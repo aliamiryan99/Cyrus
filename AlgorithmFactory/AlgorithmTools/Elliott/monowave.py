@@ -3765,6 +3765,7 @@ class MonoWave:
         pred_y4 = []
         preds = []
         pred_x1 = []
+        directions = []
         pred_x2 = []
 
         pred4_price_range2 = []
@@ -3820,6 +3821,7 @@ class MonoWave:
                 # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382]])
 
                 pred_x1.append(x1)
+                directions.append(M3.Direction)
                 pred_x2.append(x2)
                 start_candle_index.append(start_x)
                 start_price.append(start_y)
@@ -3878,7 +3880,144 @@ class MonoWave:
         preds.append(pred_y3)
         preds.append(pred_y4)
         # return hmw_index, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4
-        return hmw_index, pred_x1, pred_x2, preds
+        return hmw_index, pred_x1, pred_x2, preds, directions
+
+    def Impulse_In_prediction_zone_label_M5(self, hyper_monowaves, step):
+        pred_y = []
+        pred_y2 = []
+        pred_y3 = []
+        pred_y4 = []
+        directions = []
+        preds = []
+        pred_x1 = []
+        pred_x2 = []
+        pred5_end_price1 = []
+        pred5_end_price2 = []
+        pred5_end_price3 = []
+        pred5_end_price4 = []
+        start_candle_index = []
+        start_price = []
+        hmw_index = []
+        validation = []
+        ii = -1
+
+        for index in range(len(hyper_monowaves) - 4):
+            
+            M1 = hyper_monowaves[index]
+            M2 = hyper_monowaves[index + 1]
+            M3 = hyper_monowaves[index + 2]
+            M4 = hyper_monowaves[index + 3]
+
+            if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,':F3') and
+                    (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label,':s5')) and
+                    check_subitem_in_list(M4.Structure_list_label, ':F3')
+                    and not check_subitem_in_list(M1.Structure_list_label, ':L3') and not check_subitem_in_list(M1.Structure_list_label, ':L5')
+                    and not check_subitem_in_list(M2.Structure_list_label, ':L3') and not check_subitem_in_list(M2.Structure_list_label, ':L5')
+                    and not check_subitem_in_list(M3.Structure_list_label, ':L3') and not check_subitem_in_list(M3.Structure_list_label, ':L5')
+                    and not check_subitem_in_list(M4.Structure_list_label, ':L3') and not check_subitem_in_list(M4.Structure_list_label, ':L5')
+                    and M1.Price_range >= M2.Price_range and M2.Price_range <= M3.Price_range and M3.Price_range >= M4.Price_range):
+
+                start_x = M1.Start_candle_index
+                start_y = M1.Start_price
+                x1 = M4.End_candle_index
+                y1 = M4.End_price
+                x2 = x1 + int(step / 2)
+                ii += 1
+
+                # pred4_price_range2 = M2.Price_range
+                # pred4_price_range2_1 = 1.62 * M2.Price_range
+                # pred4_price_range3 = 0.382 * M3.Price_range
+                # pred5_price_range3_1 = 0.5 * M3.Price_range
+                # pred5_price_range3_2 = 0.618 * M3.Price_range
+                # pred4_price_range4 = 0.236 * abs(M3.End_price - M1.Start_price)
+                # pred5_price_range4_1 = 0.382 * abs(M3.End_price - M1.Start_price)
+                # pred5_price_range4_2 = 0.5 * abs(M3.End_price - M1.Start_price)
+                # pred5_price_range4_3 = 0.618 * abs(M3.End_price - M1.Start_price)
+
+                pred5_end_price1.append([y1 - M4.Direction *ratio * M1.Price_range for ratio in [1.0, 1.62]])
+                pred5_end_price2.append([y1 - M4.Direction *ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382, 0.618, 1.0]])
+                pred5_end_price3.append([y1 - M4.Direction *ratio * M4.Price_range for ratio in [1.27, 1.62]])
+                pred5_end_price4.append([y1 - M4.Direction *ratio * M2.Price_range for ratio in [2.62, 4.24]])
+                # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [1.0, 1.62]])
+                # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.382, 0.5, 0.618]])
+                # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.236, 0.382, 0.5, 0.618]])
+                # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [0.62, 1.00]])
+                # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.236, 0.5]])
+                # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382]])
+
+                directions.append(M4.Direction)
+                pred_x1.append(x1)
+                pred_x2.append(x2)
+                start_candle_index.append(start_x)
+                start_price.append(start_y)
+                hmw_index.append(index)
+
+                # for i in range(3):
+                #     pred5_end_price = y1 - (pred5_price_range[ii][i] * M4.Direction)
+                #     pred_y.append(pred5_end_price)
+
+                   
+
+                # # pred_y.append(pred4_end_price)
+                # if pred5_price_range1 / M1.Price_range < 0.618 and pred5_price_range1 / M3.Price_range < (
+                #         M2.Price_range / M1.Price_range) \
+                #         and M3.Price_range >= pred5_price_range1:
+                #     pred5_end_price1 = y1 - (pred5_price_range1 * M4.Direction)
+                #     pred_y1.append([pred5_end_price1])
+                # else:
+                #     pred_y1.append(["none"])
+
+                # pred_y_temp = []
+                # for i in range(2):
+                #     if pred5_price_range2[ii][i] / M1.Price_range < 0.618 and pred5_price_range2[ii][i] / M3.Price_range < (
+                #             M2.Price_range / M1.Price_range) \
+                #             and M3.Price_range >= pred5_price_range2[ii][i]:
+                #         pred5_end_price2 = M4.End_price - M4.Direction * pred5_price_range2[ii][i]
+                #         pred_y_temp.append(pred5_end_price2)
+                #     else:
+                #         pred_y_temp.append("none")
+                # pred_y2.append(pred_y_temp)
+
+                # pred_y_temp = []
+                # for i in range(3):
+                #     if pred5_price_range3[ii][i] / M1.Price_range < 0.618 and pred5_price_range3[ii][i] / M3.Price_range < (
+                #             M2.Price_range / M1.Price_range) \
+                #             and M3.Price_range >= pred5_price_range3[ii][i]:
+                #         pred5_end_price3 = M3.End_price - M3.Direction * pred5_price_range3[ii][i]
+                #         pred_y_temp.append(pred5_end_price3)
+                #     else:
+                #         pred_y_temp.append("none")
+                # pred_y3.append(pred_y_temp)
+
+                # pred_y_temp = []
+                # for i in range(4):
+                #     if pred5_price_range4[ii][i] / M1.Price_range < 0.618 and pred5_price_range4[ii][i] / M3.Price_range < (
+                #             M2.Price_range / M1.Price_range) \
+                #             and M3.Price_range >= pred5_price_range4[ii][i]:
+                #         pred5_end_price4 = M3.End_price - M3.Direction * pred5_price_range4[ii][i]
+                #         pred_y_temp.append(pred5_end_price4)
+                #     else:
+                #         pred_y_temp.append("none")
+                # pred_y4.append(pred_y_temp)
+
+                # if pred5_price_range / M1.Price_range < 0.618:
+                #     pred_y1.append(pred4_end_price)
+                #     pred_x1.append(x1)
+                #     pred_x2.append(x2)
+                #     start_candle_index.append(start_x)
+                #     start_price.append(start_y)
+                #     hmw_index.append(index)
+
+        preds = np.hstack([pred5_end_price1 , pred5_end_price2 , pred5_end_price3 , pred5_end_price4])
+        # preds.append(pred5_end_price1)
+        # preds.append(, pred5_end_price2, pred5_end_price3, pred5_end_price4)
+        # preds.flat()
+        # preds.append(pred_y2)
+        # preds.append(pred_y3)
+        # preds.append(pred_y4)
+        # return hmw_index, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4
+        return hmw_index, pred_x1, pred_x2, preds, directions
+
 
     def Impulse_In_prediction_zone_label_M5_truncated(self, hyper_monowaves, step):
 
@@ -3922,129 +4061,3 @@ class MonoWave:
         return hmw_index, pred_x1, pred_x2, pred_y
 
 
-def Impulse_In_prediction_zone_label_M5(self, hyper_monowaves, step):
-    pred_y1 = []
-    pred_y2 = []
-    pred_y3 = []
-    pred_y4 = []
-    preds = []
-    pred_x1 = []
-    pred_x2 = []
-    pred5_price_range1 = []
-    pred5_price_range2 = []
-    pred5_price_range3 = []
-    pred5_price_range4 = []
-    start_candle_index = []
-    start_price = []
-    hmw_index = []
-    validation = []
-    ii = -1
-
-    for index in range(len(hyper_monowaves) - 3):
-        if index == 101:
-            y = 1
-
-        M1 = hyper_monowaves[index]
-        M2 = hyper_monowaves[index + 1]
-        M3 = hyper_monowaves[index + 2]
-        M4 = hyper_monowaves[index + 3]
-
-        if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,
-                                                                                           ':F3') and
-                (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label,
-                                                                                               ':s5')) and
-                check_subitem_in_list(M3.Structure_list_label, ':F3')):
-
-            start_x = M1.Start_candle_index
-            start_y = M1.Start_price
-            x1 = M4.End_candle_index
-            y1 = M4.End_price
-            x2 = x1 + int(step / 2)
-            ii += 1
-
-            # pred4_price_range2 = M2.Price_range
-            # pred4_price_range2_1 = 1.62 * M2.Price_range
-            # pred4_price_range3 = 0.382 * M3.Price_range
-            # pred5_price_range3_1 = 0.5 * M3.Price_range
-            # pred5_price_range3_2 = 0.618 * M3.Price_range
-            # pred4_price_range4 = 0.236 * abs(M3.End_price - M1.Start_price)
-            # pred5_price_range4_1 = 0.382 * abs(M3.End_price - M1.Start_price)
-            # pred5_price_range4_2 = 0.5 * abs(M3.End_price - M1.Start_price)
-            # pred5_price_range4_3 = 0.618 * abs(M3.End_price - M1.Start_price)
-
-            pred5_price_range1.append([ratio * M1.Price_range for ratio in [1.0, 1.62]])
-            pred5_price_range2.append([ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382, 0.618, 1.0]])
-            pred5_price_range3.append([ratio * M4.Price_range for ratio in [1.27, 1.62]])
-            pred5_price_range4.append([ratio * M2.Price_range for ratio in [2.62, 4.24]])
-            # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [1.0, 1.62]])
-            # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.382, 0.5, 0.618]])
-            # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.236, 0.382, 0.5, 0.618]])
-            # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [0.62, 1.00]])
-            # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.236, 0.5]])
-            # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382]])
-
-            pred_x1.append(x1)
-            pred_x2.append(x2)
-            start_candle_index.append(start_x)
-            start_price.append(start_y)
-            hmw_index.append(index)
-            # pred_y.append(pred4_end_price)
-            if pred5_price_range1 / M1.Price_range < 0.618 and pred5_price_range1 / M3.Price_range < (
-                    M2.Price_range / M1.Price_range) \
-                    and M3.Price_range >= pred5_price_range1:
-                pred4_end_price1 = y1 - (pred5_price_range1 * M3.Direction)
-                pred_y1.append([pred4_end_price1])
-            else:
-                pred_y1.append(["none"])
-
-            pred_y_temp = []
-            for i in range(2):
-                if pred5_price_range2[ii][i] / M1.Price_range < 0.618 and pred5_price_range2[ii][i] / M3.Price_range < (
-                        M2.Price_range / M1.Price_range) \
-                        and M3.Price_range >= pred5_price_range2[ii][i]:
-                    pred4_end_price2 = M3.End_price - M3.Direction * pred5_price_range2[ii][i]
-                    pred_y_temp.append(pred4_end_price2)
-                else:
-                    pred_y_temp.append("none")
-            pred_y2.append(pred_y_temp)
-
-            pred_y_temp = []
-            for i in range(3):
-                if pred5_price_range3[ii][i] / M1.Price_range < 0.618 and pred5_price_range3[ii][i] / M3.Price_range < (
-                        M2.Price_range / M1.Price_range) \
-                        and M3.Price_range >= pred5_price_range3[ii][i]:
-                    pred4_end_price3 = M3.End_price - M3.Direction * pred5_price_range3[ii][i]
-                    pred_y_temp.append(pred4_end_price3)
-                else:
-                    pred_y_temp.append("none")
-            pred_y3.append(pred_y_temp)
-
-            pred_y_temp = []
-            for i in range(4):
-                if pred5_price_range4[ii][i] / M1.Price_range < 0.618 and pred5_price_range4[ii][i] / M3.Price_range < (
-                        M2.Price_range / M1.Price_range) \
-                        and M3.Price_range >= pred5_price_range4[ii][i]:
-                    pred4_end_price4 = M3.End_price - M3.Direction * pred5_price_range4[ii][i]
-                    pred_y_temp.append(pred4_end_price4)
-                else:
-                    pred_y_temp.append("none")
-            pred_y4.append(pred_y_temp)
-
-            # if pred5_price_range / M1.Price_range < 0.618:
-            #     pred_y1.append(pred4_end_price)
-            #     pred_x1.append(x1)
-            #     pred_x2.append(x2)
-            #     start_candle_index.append(start_x)
-            #     start_price.append(start_y)
-            #     hmw_index.append(index)
-    preds.append(pred_y1)
-    preds.append(pred_y2)
-    preds.append(pred_y3)
-    preds.append(pred_y4)
-    # return hmw_index, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4
-    return hmw_index, pred_x1, pred_x2, preds
-
-# pred_list.append([W4.End_price + W3.Direction * ratio * W1.Price_range for ratio in [1.0, 1.62]])
-# pred_list.append([W4.End_price + W3.Direction * ratio * abs(W3.End_price - W1.Start_price) for ratio in [0.382, 0.618, 1.0]])
-# pred_list.append([W4.End_price + W3.Direction * ratio * W4.Price_range for ratio in [1.27, 1.62]])
-# pred_list.append([W2.End_price + W3.Direction * ratio * W2.Price_range for ratio in [2.62, 4.24]])
