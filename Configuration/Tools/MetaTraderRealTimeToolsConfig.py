@@ -6,9 +6,9 @@ import copy
 class ChartConfig:
 
     auto_time_frame = True
-    time_frame = "H4"
+    time_frame = "H1"
     date_format = '%Y.%m.%d %H:%M'
-    candles = 1000
+    candles = 5000
     tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "CandleStick", "Pattern", "MinMaxTrend", "SupplyAndDemand"]
     tool_name = 'SupplyAndDemand'
 

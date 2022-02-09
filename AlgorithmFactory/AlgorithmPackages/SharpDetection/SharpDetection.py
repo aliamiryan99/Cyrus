@@ -61,6 +61,8 @@ class SharpDetection:
                 max_i = np.argmax(price[extremums[j]:self.sharp_areas[i]['Start']]) + extremums[j]
                 if price[self.sharp_areas[i]['Max']] > price[max_i]:
                     results.append(self.sharp_areas[i])
+            else:
+                j = 0
             i += 1
         return results
 
