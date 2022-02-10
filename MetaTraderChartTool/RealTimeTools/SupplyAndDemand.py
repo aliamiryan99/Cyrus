@@ -12,35 +12,49 @@ class SupplyAndDemand(RealTimeTool):
     def __init__(self, chart_tool: MetaTraderBase, data, tr, minimum_candles, tr2, minimum_candles2, swing_filter):
         super().__init__(chart_tool, data)
 
+        self.demand_color = "20,100,200"
+        self.supply_color = "240,100,50"
+
         self.min_extremums, self.max_extremums = get_local_extermums(data, 10, 2)
 
         self.sharp_detection = SharpDetection(tr, minimum_candles)
         self.sharp_detection2 = SharpDetection(tr2, minimum_candles2)
 
         open, high, low, close = get_ohlc(data)
-        self.result = self.sharp_detection.get_sharps(data, close)
-        self.result2 = self.sharp_detection2.get_sharps(data, close)
+        self.result_up, self.result_down = self.sharp_detection.get_sharps(data, close)
+        self.result2_up, self.result2_down = self.sharp_detection2.get_sharps(data, close)
 
-        self.result2 = self.sharp_detection2.filter_intersections(self.result)
-        self.sharp_detection2.set_sharp_area(self.result2)
+        self.result2_up = self.sharp_detection2.filter_intersections("Demand", self.result_up)
+        self.result2_down = self.sharp_detection2.filter_intersections("Supply", self.result_down)
+        self.sharp_detection2.set_sharp_area_up(self.result2_up)
+        self.sharp_detection2.set_sharp_area_down(self.result2_down)
         if swing_filter:
-            self.result = self.sharp_detection.filter_swings(self.min_extremums, close, 10)
-            self.sharp_detection.set_sharp_area(self.result)
-            self.result2 = self.sharp_detection2.filter_swings(self.min_extremums, close, 10)
-            self.sharp_detection2.set_sharp_area(self.result2)
+            self.result_up = self.sharp_detection.filter_swings("Demand", self.min_extremums, close, 10)
+            self.sharp_detection.set_sharp_area_up(self.result_up)
+            self.result_down = self.sharp_detection.filter_swings("Supply", self.min_extremums, close, 10)
+            self.sharp_detection.set_sharp_area_down(self.result_down)
+            self.result2_up = self.sharp_detection2.filter_swings("Demand", self.min_extremums, close, 10)
+            self.sharp_detection2.set_sharp_area_up(self.result2_up)
+            self.result2_down = self.sharp_detection2.filter_swings("Supply", self.min_extremums, close, 10)
+            self.sharp_detection2.set_sharp_area_down(self.result2_down)
 
-        self.sources = self.sharp_detection.get_source_of_movement(data)
-        self.sources += self.sharp_detection2.get_source_of_movement(data)
+        self.demand_sources = self.sharp_detection.get_source_of_movement("Demand", data)
+        self.demand_sources += self.sharp_detection2.get_source_of_movement("Demand", data)
+
+        self.supply_sources = self.sharp_detection.get_source_of_movement("Supply", data)
+        self.supply_sources += self.sharp_detection2.get_source_of_movement("Supply", data)
 
         self.area_id = 1
         self.source_area_id = 1
         self.last_min_id = 1
         self.last_max_id = 1
         self.draw_local_extremum(self.min_extremums, self.max_extremums)
-        self.draw(self.result)
-        self.draw(self.result2)
-        self.draw_sources(self.sources)
-
+        self.draw_sharps(self.result_up)
+        self.draw_sharps(self.result2_up)
+        self.draw_sources(self.demand_sources, self.demand_color)
+        self.draw_sharps(self.result_down)
+        self.draw_sharps(self.result2_down)
+        self.draw_sources(self.supply_sources, self.supply_color)
 
     def on_tick(self, time, bid, ask):
         pass
@@ -50,20 +64,20 @@ class SupplyAndDemand(RealTimeTool):
 
         self.data.append(candle)
 
-    def draw(self, results):
+    def draw_sharps(self, results):
 
         if len(results) != 0:
             names1, times1, prices1, times2, prices2 = [], [], [], [], []
             for i in range(len(results)):
                 times1.append(self.data[results[i]['Start']]['Time'])
                 prices1.append(self.data[results[i]['Start']]['Open'])
-                times2.append(self.data[results[i]['Max']+1]['Time'])
-                prices2.append(self.data[results[i]['Max']+1]['Open'])
+                times2.append(self.data[results[i]['Ext']+1]['Time'])
+                prices2.append(self.data[results[i]['Ext']+1]['Open'])
                 names1.append(f"SharpArea{self.area_id}")
                 self.area_id += 1
             self.chart_tool.rectangle(names1, times1, prices1, times2, prices2, back=1)
 
-    def draw_sources(self, results):
+    def draw_sources(self, results, color):
         if len(results) != 0:
             names1, times1, prices1, times2, prices2 = [], [], [], [], []
             for i in range(len(results)):
@@ -73,7 +87,7 @@ class SupplyAndDemand(RealTimeTool):
                 prices2.append(results[i]['DownPrice'])
                 names1.append(f"SourceArea{self.source_area_id}")
                 self.source_area_id += 1
-            self.chart_tool.rectangle(names1, times1, prices1, times2, prices2, back=1, color="20,100,200")
+            self.chart_tool.rectangle(names1, times1, prices1, times2, prices2, back=1, color=color)
 
     def draw_local_extremum(self, local_min, local_max):
 
