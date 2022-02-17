@@ -144,5 +144,6 @@ class ChartConfig:
             tr2 = 2
             minimum_candles2 = 1
             swing_filter = True
+            fresh_window = 100
 
-            self.tool = SupplyAndDemand(chart_tool, data, tr, minimum_candles, tr2, minimum_candles2, swing_filter)
+            self.tool = SupplyAndDemand(chart_tool, data, symbol, tr, minimum_candles, tr2, minimum_candles2, swing_filter, fresh_window)

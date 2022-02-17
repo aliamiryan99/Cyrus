@@ -2,6 +2,7 @@
 from AlgorithmFactory.AlgorithmTools.CandleTools import *
 from copy import deepcopy
 
+
 class SharpDetection:
 
     def __init__(self, atr_tr, minimum_candles):
@@ -108,7 +109,8 @@ class SharpDetection:
                 while j < len(data)-1 and data[j]['High'] < down_price:
                     j += 1
             end = j
-            results.append({"Start": start, "End": end, "UpPrice": up_price, "DownPrice": down_price})
+            results.append({"Start": start, "End": end, "UpPrice": up_price, "DownPrice": down_price,
+                           "StartTime": data[start]['Time'], "EndTime": data[end]['Time'], "Type": type})
             i += 1
         return results
 
