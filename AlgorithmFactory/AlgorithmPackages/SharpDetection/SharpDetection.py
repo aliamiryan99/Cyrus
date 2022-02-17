@@ -90,6 +90,7 @@ class SharpDetection:
     def get_source_of_movement(self, type, data):
         results = []
         sharp_areas = self.sharp_areas_up if type == "Demand" else self.sharp_areas_down
+        atr = get_body_mean(data, len(data))
         i = 0
         while i < len(sharp_areas):
             j = sharp_areas[i]['Start'] - 1
@@ -101,6 +102,16 @@ class SharpDetection:
                     j -= 1
             start = j
             up_price, down_price = data[start]['High'], data[start]['Low']
+
+            if type == "Demand":
+                down_price -= 0.5 * atr
+                if up_price - down_price > 2 * atr:
+                    up_price = (up_price + down_price) / 2
+            if type == "Supply":
+                up_price += 0.5 * atr
+                if up_price - down_price > 2 * atr:
+                    down_price = (up_price + down_price) / 2
+
             j = sharp_areas[i]['End']
             if type == "Demand":
                 while j < len(data)-1 and data[j]['Low'] > up_price:
@@ -109,6 +120,7 @@ class SharpDetection:
                 while j < len(data)-1 and data[j]['High'] < down_price:
                     j += 1
             end = j
+
             results.append({"Start": start, "End": end, "UpPrice": up_price, "DownPrice": down_price,
                            "StartTime": data[start]['Time'], "EndTime": data[end]['Time'], "Type": type})
             i += 1
