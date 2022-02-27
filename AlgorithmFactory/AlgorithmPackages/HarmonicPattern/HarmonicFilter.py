@@ -1,7 +1,6 @@
 import numpy as np
 import math
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
 # ---------- filter patterns function
@@ -10,7 +9,7 @@ def filter_results(high, low, res, middle, harmonic_name, trend_direction, alpha
         return []
 
     # define Candle Size
-    res = get_pattern_size(res)  # 1 to 5 from very small to very large.very small, small, medium, large, very large
+    # res = get_pattern_size(res)  # 1 to 5 from very small to very large.very small, small, medium, large, very large
 
     res = eliminate_duplicate_patterns(res, trend_direction)
     filter_mode = 'non'

@@ -2,7 +2,7 @@
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 from AlgorithmFactory.AlgorithmTools.Impulse import get_impulses
-from MetaTraderChartTool.Tools.Tool import Tool
+from MetaTrader.Tools import Tool
 
 
 class Impulse(Tool):

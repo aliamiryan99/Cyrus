@@ -1,59 +1,61 @@
-
 from pandas import to_datetime
 from time import sleep
 from MetaTrader.Api.CyrusMetaConnector import CyrusMetaConnector
 
 
 class Execution:
-    
-    def __init__(self, connector:CyrusMetaConnector):
+
+    def __init__(self, connector: CyrusMetaConnector):
         self.connector = connector
-    
+
     ##########################################################################
-    
-    def trade_execute(self, exec_dict, verbose=False,  delay=0.01, w_break=100):
-        
+
+    def trade_execute(self, exec_dict, verbose=False, delay=0.01, w_break=10, wo_delay=False):
+
         check = ''
-        
+
         # Reset thread Data output
         self.connector.set_response(None)
-        
+
         # OPEN TRADE
         if exec_dict['_action'] == 'OPEN':
-            
+
             check = '_action'
             self.connector.new_trade(order=exec_dict)
-            
+
         # CLOSE TRADE
         elif exec_dict['_action'] == 'CLOSE':
-            
+
             check = '_response_value'
             self.connector.close_by_ticket(exec_dict['_ticket'])
 
         # MODIFY TRADE
         elif exec_dict['_action'] == 'MODIFY':
             self.connector.modify_by_ticket(exec_dict['_ticket'], exec_dict['_SL'], exec_dict['_TP'])
-            
+
         if verbose:
             print('\n[{}] {} -> MetaTrader'.format(exec_dict['_comment'],
                                                    str(exec_dict)))
-            
-        # While loop start time reference            
-        ws = to_datetime('now')
-        
-        # While Data not received, sleep until timeout
-        while self.connector.get_response() is None:
-            sleep(delay)
-            
-            if (to_datetime('now') - ws).total_seconds() > (delay * w_break):
-                break
-        
-        # If Data received, return DataFrame
-        if self.connector.get_response() is not None:
 
-            response = self.connector.get_response()
-            if check in response.keys():
-                return response
+        if not wo_delay:
+            # While loop start time reference
+            ws = to_datetime('now')
+
+            # While Data not received, sleep until timeout
+            while self.connector.get_response() is None:
+                sleep(delay)
+
+                if (to_datetime('now') - ws).total_seconds() > (delay * w_break):
+                    break
+
+            # If Data received, return DataFrame
+            if self.connector.get_response() is not None:
+
+                response = self.connector.get_response()
+                if check in response.keys():
+                    return response
+        else:
+            return None
 
     def draw_execute(self, params, delay=0.01, w_break=10, type="DRAW"):
         check = ''
@@ -82,7 +84,7 @@ class Execution:
             if check in response.keys():
                 return response
 
-    def screenshot_execute(self,  name, symbol, delay=0.01, w_break=200):
+    def screenshot_execute(self, name, symbol, delay=0.01, w_break=200):
         check = ''
 
         self.connector.set_response(None)
@@ -108,7 +110,7 @@ class Execution:
         check = ''
 
         self.connector.set_response(None)
-        
+
         if type == "Scale":
             self.connector.set_scale_request(symbol, value)
         elif type == "Speed":

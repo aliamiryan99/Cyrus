@@ -19,19 +19,35 @@ def waves_are_fib_related(pd1, pd2, fib_r=fib_ratio, order=False):
         flag = (fib_r - fib_ratio_precision) < (first / second) < (fib_r + fib_ratio_precision)
     return flag
 
-
-def compare_ratio_waves(pd1, pd2, ratio=fib_ratio, lesser=False):
+def compare_ratio_waves(pd1, pd2, ratio=fib_ratio, lesser=False, ordered=False):
     """Returns True if the value of pd1 and pd2 are compared by the ratio, where pd is price or duration"""
     flag = False
-    first = min(pd1, pd2)
-    second = max(pd1, pd2)
+    if ordered:
+        first = pd1
+        second = pd2
+    else:
+        first = min(pd1, pd2)
+        second = max(pd1, pd2)
     ratio_precision = ratio * 0.05
     if (second != 0):
-        if (lesser == False):
-            flag = (ratio - ratio_precision) <= (first / second)
-        else:
+        if lesser:
             flag = (first / second) <= (ratio + ratio_precision)
+        else:
+            flag = (ratio - ratio_precision) <= (first / second)
     return flag
+
+# def compare_ratio_waves(pd1, pd2, ratio=fib_ratio, lesser=False):
+#     """Returns True if the value of pd1 and pd2 are compared by the ratio, where pd is price or duration"""
+#     flag = False
+#     first = min(pd1, pd2)
+#     second = max(pd1, pd2)
+#     ratio_precision = ratio * 0.05
+#     if (second != 0):
+#         if (lesser == False):
+#             flag = (ratio - ratio_precision) <= (first / second)
+#         else:
+#             flag = (first / second) <= (ratio + ratio_precision)
+#     return flag
 
 
 def wave_overlap(W1, W2):
@@ -205,3 +221,35 @@ def count_labels(hmw: list) -> int:
         int: return total number of structural list numbers in all hypermonowaves
     """
     return np.sum([len(m.Structure_list_label) for m in hmw], dtype=int)
+
+def balance_similarity(M0, M1, M2, M3=None, M4=None, small_middle=False):
+    _lesser = True
+    # _ratio = 1/3
+    _ratio = 2 / 5
+    _ordered = small_middle
+    if M3 is None and M4 is None:
+        return (
+            (
+                compare_ratio_waves(M1.Price_range, M0.Price_range, _ratio, _lesser, _ordered) or
+                compare_ratio_waves(M0.Duration, M1.Duration, _ratio, _lesser,)
+            ) and (
+                compare_ratio_waves(M1.Price_range, M2.Price_range, _ratio, _lesser, _ordered) or
+                compare_ratio_waves(M1.Duration, M2.Duration, _ratio, _lesser,)
+            )
+        )
+
+    if M3 is not None and M4 is not None:
+        if ((compare_ratio_waves(M0.Price_range, M1.Price_range, 1 / 3) or
+             compare_ratio_waves(M0.Duration, M1.Duration, 1 / 3)) and
+
+                (compare_ratio_waves(M1.Price_range, M2.Price_range, 1 / 3) or
+                     compare_ratio_waves(M1.Duration, M2.Duration, 1 / 3)) and
+
+                (compare_ratio_waves(M2.Price_range, M3.Price_range, 1 / 3) or
+                     compare_ratio_waves(M2.Duration, M3.Duration, 1 / 3)) and
+
+                (compare_ratio_waves(M3.Price_range, M4.Price_range, 1 / 3) or
+                 compare_ratio_waves(M3.Duration, M4.Duration, 1 / 3))):
+            return True
+
+    return False

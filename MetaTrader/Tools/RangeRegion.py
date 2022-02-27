@@ -1,6 +1,6 @@
 
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
-from MetaTraderChartTool.Tools.Tool import Tool
+from MetaTrader.Tools import Tool
 from AlgorithmFactory.AlgorithmTools.Range import *
 from Configuration.Trade.OnlineConfig import Config
 from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data

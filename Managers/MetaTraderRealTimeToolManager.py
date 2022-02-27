@@ -12,10 +12,10 @@ from threading import Lock
 from time import sleep
 from datetime import datetime
 import pandas as pd
+import copy
 
 from Shared.Functions import Functions
 from Shared.Variables import Variables
-
 
 
 #############################################################################
@@ -38,11 +38,72 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
         self.w_break = w_break
         self._finished = False
 
+        Variables.config = Config
+
         self.start_time = datetime.now()
         self.spend_time = datetime.now() - datetime.now()
 
-    def on_pull_data(self, msg):
-        pass
+    def on_pull_data(self, data):
+        if '_action' in list(data.keys()):
+            if data['_action'] == 'GET_BALANCE':
+                self.balance = list(data['_balance'])[0]
+            elif data['_action'] == 'GET_EQUITY':
+                self.equity = list(data['_equity'])[0]
+            elif data['_action'] == 'EXECUTION':
+                data['_open_time'] = datetime.strptime(data['_open_time'], Config.date_order_format)
+                symbol = data['_symbol']
+                if data['_type'] == 0:  # buy
+                    data['_type'] = 'Buy'
+                    data = self.convert_open_position(data)
+                    self.open_buy_trades.append(data)
+                elif data['_type'] == 1:  # sell
+                    data['_type'] = 'Sell'
+                    data = self.convert_open_position(data)
+                    self.open_sell_trades.append(data)
+                print("Order Executed : ")
+                print(data)
+                print("________________________________________________________________________________")
+            elif data['_action'] == 'CLOSE':
+                if data['_response'] != 'NOT_FOUND':
+                    data['_close_time'] = datetime.strptime(data['_close_time'], Config.date_order_format)
+                    found = False
+                    for trade in self.open_buy_trades:
+                        if data['_ticket'] == trade['Ticket']:
+                            self.open_buy_trades.remove(trade)
+                            data['_open_time'] = trade['OpenTime']
+                            data['_open_price'] = trade['OpenPrice']
+                            data = self.convert_close_position(data)
+                            found = True
+                    if not found:
+                        for trade in self.open_sell_trades:
+                            if data['_ticket'] == trade['Ticket']:
+                                self.open_sell_trades.remove(trade)
+                                data['_open_time'] = trade['OpenTime']
+                                data['_open_price'] = trade['OpenPrice']
+                                data = self.convert_close_position(data)
+                    print("Close Order Executed : ")
+                    print(data)
+                    print("________________________________________________________________________________")
+            elif data['_action'] == 'MODIFY':
+                if data['_response'] == 'FOUND':
+                    found = False
+                    for trade in self.open_buy_trades:
+                        if data['_ticket'] == trade['Ticket']:
+                            trade['TP'] = data['_tp']
+                            trade['SL'] = data['_sl']
+                            found = True
+                            print(f"Order Modified : {trade}")
+                            print("________________________________________________________________________________")
+                    if not found:
+                        for trade in self.open_sell_trades:
+                            if data['_ticket'] == trade['Ticket']:
+                                trade['TP'] = data['_tp']
+                                trade['SL'] = data['_sl']
+                                print(f"Order Modified : {trade}")
+                                print(
+                                    "________________________________________________________________________________")
+        else:
+            print(data)
 
     def on_sub_data(self, msg):
         # split msg to get topic and message
@@ -53,6 +114,8 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
         bid = float(bid)
         ask = float(ask)
         time = datetime.strptime(time, Config.tick_date_format)
+
+        self.check_tp_sl(bid, ask)
 
         self.update_history(time, symbol, bid, ask)
         self.spend_time += (datetime.now() - start_sub)
@@ -69,6 +132,7 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
             self.history.append(last_candle)
             self.history.pop(0)
             self.tool.on_data(self.history[-1])
+            self.connector.send_balance_request()
             print(symbol)
             print(pd.DataFrame(self.history[-2:-1]))
             print(f"SocketTime {self.connector.socket_time}")
@@ -81,13 +145,6 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
             self.update_candle_with_tick(self.history[-1], bid)
             # Signal Section
             self.tool.on_tick(time, bid, ask)
-
-    @staticmethod
-    def update_candle_with_tick(candle, tick):
-        candle['High'] = max(candle['High'], tick)
-        candle['Low'] = min(candle['Low'], tick)
-        candle['Close'] = tick
-        candle['Volume'] += 1
 
     def run(self, params=None):
         # Get Historical Data
@@ -205,9 +262,70 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
             sleep(self.delay)
 
     ##########################################################################
+
+    def check_tp_sl(self, bid, ask):
+        open_buy_trades_copy = copy.copy(self.open_buy_trades)
+        for open_buy_trade in open_buy_trades_copy:
+            if open_buy_trade['TP'] != 0 and bid >= open_buy_trade['TP']:
+                print(f"TP Hit \n Buy Order : {open_buy_trade}")
+                print("________________________________________________________________________________")
+                self.open_buy_trades.remove(open_buy_trade)
+            elif open_buy_trade['SL'] != 0 and bid <= open_buy_trade['SL']:
+                print(f"SL Hit \n Buy Order : {open_buy_trade}")
+                print("________________________________________________________________________________")
+                self.open_buy_trades.remove(open_buy_trade)
+        open_sell_trades_copy = copy.copy(self.open_sell_trades)
+        for open_sell_trade in open_sell_trades_copy:
+            if open_sell_trade['TP'] != 0 and ask <= open_sell_trade['TP']:
+                print(f"TP Hit \n Sell Order : {open_sell_trade}")
+                print("________________________________________________________________________________")
+                self.open_sell_trades.remove(open_sell_trade)
+            if open_sell_trade['SL'] != 0 and ask >= open_sell_trade['SL']:
+                print(f"SL Hit \n Sell Order : {open_sell_trade}")
+                print("________________________________________________________________________________")
+                self.open_sell_trades.remove(open_sell_trade)
+
+    @staticmethod
+    def update_candle_with_tick(candle, tick):
+        candle['High'] = max(candle['High'], tick)
+        candle['Low'] = min(candle['Low'], tick)
+        candle['Close'] = tick
+        candle['Volume'] += 1
+
     def is_finished(self):
         """ Check if execution finished"""
         return self._finished
+
+    @staticmethod
+    def convert_open_position(mt_position):
+        position = {'Symbol': mt_position['_symbol'], 'OpenTime': mt_position['_open_time'],
+                    'OpenPrice': mt_position['_open_price'], 'Volume': mt_position['_volume'],
+                    'Ticket': mt_position['_ticket'], 'Type': mt_position['_type']}
+        if '_tp' in list(mt_position.keys()):
+            position['TP'] = mt_position['_tp']
+        else:
+            position['TP'] = 0
+        if '_sl' in list(mt_position.keys()):
+            position['SL'] = mt_position['_sl']
+        else:
+            position['SL'] = 0
+        return position
+
+    @staticmethod
+    def convert_close_position(mt_position):
+        position = {'Symbol': mt_position['_symbol'], 'OpenTime': mt_position['_open_time'],
+                    'OpenPrice': mt_position['_open_price'], 'CloseTime': mt_position['_close_time'],
+                    'ClosePrice': mt_position['_close_price'], 'Volume': mt_position['_close_lots'],
+                    'Ticket': mt_position['_ticket']}
+        if '_take_profit' in list(mt_position.keys()):
+            position['TP'] = mt_position['_take_profit']
+        else:
+            position['TP'] = 0
+        if '_stop_loss' in list(mt_position.keys()):
+            position['SL'] = mt_position['_stop_loss']
+        else:
+            position['SL'] = 0
+        return position
 
 
 """ -----------------------------------------------------------------------------------------------

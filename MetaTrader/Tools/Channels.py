@@ -1,5 +1,5 @@
 
-from MetaTraderChartTool.Tools.Tool import Tool
+from MetaTrader.Tools import Tool
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 

@@ -1,6 +1,5 @@
 import numpy as np
 from AlgorithmFactory.AlgorithmTools.SR.Useful_Functions import local_extrema_sliding_window
-import zigzag
 from scipy.stats import gaussian_kde
 from sklearn.cluster import MeanShift
 from scipy.signal import find_peaks
@@ -245,12 +244,6 @@ def SR_Levels_PDFPeaks(data_input, one_pip, price_type='HL', SR_num=6):
         points = np.concatenate((data_input['High'],data_input['Low']))
     elif price_type == 'OC':
         points = np.concatenate((data_input['Open'],data_input['Close']))
-    else:
-        mids = (data_input['Low'] + data_input['High']) / 2
-        zigzag_idx = zigzag.peak_valley_pivots(mids, 0.0003, -0.0003)
-        zigzag_idx = abs(zigzag_idx)
-        zigzag_idx = np.where(zigzag_idx == 1)[0]
-        points = np.concatenate((data_input['High'][zigzag_idx],data_input['Low'][zigzag_idx]))
     
     points = points[np.where(np.logical_and(points > SR_down_limit, points < SR_up_limit))]
     
@@ -301,12 +294,6 @@ def SR_Levels_MeanShiftClustering(data_input, one_pip, price_type='HL', SR_num=4
         points = np.concatenate((data_input['High'],data_input['Low']))
     elif price_type == 'OC':
         points = np.concatenate((data_input['Open'],data_input['Close']))
-    else:
-        mids = (data_input['Low'] + data_input['High']) / 2
-        zigzag_idx = zigzag.peak_valley_pivots(mids, 0.0005, -0.0005)
-        zigzag_idx = abs(zigzag_idx)
-        zigzag_idx = np.where(zigzag_idx == 1)[0]
-        points = np.concatenate((data_input['High'][zigzag_idx],data_input['Low'][zigzag_idx]))
 
     bw = calcul_myapproach_bandwidtth(points, alpha)
     MSclustering = MeanShift(bandwidth = bw, cluster_all = False).fit(points.reshape(-1,1))

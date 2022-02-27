@@ -11,10 +11,10 @@ class SharpDetection:
         self.sharp_areas_up = None
         self.sharp_areas_down = None
 
-    def get_sharps(self, data, price):
+    def get_sharps(self, data, price, atr_window):
         sharp_areas_up = []
         sharp_areas_down = []
-        tr = self.atr_tr * get_body_mean(data, len(data))
+        tr = self.atr_tr * get_body_mean(data, atr_window)
         i = 1
         while i < len(price):
             if abs(price[i] - price[i-1]) > tr:
@@ -23,21 +23,29 @@ class SharpDetection:
                 ext_i = len(price) - 1
                 avg = price[i] - price[i-1]
                 i += 1
-                while i < len(price):
-                    avg = (avg * (i-s) + (price[i] - price[i-1])) / (i-s+1)
-                    if abs(avg) < tr:
-                        e = i
-                        if avg > 0:
+                if avg > 0:
+                    while i < len(price):
+                        avg = (avg * (i-s) + (price[i] - price[i-1])) / (i-s+1)
+                        if avg < tr:
+                            e = i
                             ext_i = np.argmax(price[s:e]) + s
-                        else:
+                            break
+                        i += 1
+                elif avg < 0:
+                    while i < len(price):
+                        avg = (avg * (i - s) + (price[i] - price[i - 1])) / (i - s + 1)
+                        if avg > -tr:
+                            e = i
                             ext_i = np.argmin(price[s:e]) + s
-                        break
-                    i += 1
+                            break
+                        i += 1
                 if e - s > self.minimum_candles:
                     if avg > 0:
-                        sharp_areas_up.append({"Start": s, "End": e, "Ext": ext_i})
+                        sharp_areas_up.append({"Start": s, "End": e, "Ext": ext_i, 'StartTime': data[s]['Time'], 'EndTime': data[e]['Time']})
                     else:
-                        sharp_areas_down.append({"Start": s, "End": e, "Ext": ext_i})
+                        sharp_areas_down.append({"Start": s, "End": e, "Ext": ext_i, 'StartTime': data[s]['Time'], 'EndTime': data[e]['Time']})
+                else:
+                    i = s
             i += 1
         self.sharp_areas_up = sharp_areas_up
         self.sharp_areas_down = sharp_areas_down
@@ -104,13 +112,9 @@ class SharpDetection:
             up_price, down_price = data[start]['High'], data[start]['Low']
 
             if type == "Demand":
-                down_price -= 0.5 * atr
-                if up_price - down_price > 2 * atr:
-                    up_price = (up_price + down_price) / 2
+                down_price -= 1 * atr
             if type == "Supply":
-                up_price += 0.5 * atr
-                if up_price - down_price > 2 * atr:
-                    down_price = (up_price + down_price) / 2
+                up_price += 1 * atr
 
             j = sharp_areas[i]['End']
             if type == "Demand":

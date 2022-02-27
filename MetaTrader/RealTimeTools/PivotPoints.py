@@ -1,5 +1,5 @@
 from MetaTrader.MetaTraderBase import MetaTraderBase
-from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
+from MetaTrader.RealTimeTools.RealTimeTool import RealTimeTool
 
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 

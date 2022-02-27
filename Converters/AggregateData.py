@@ -23,10 +23,10 @@ def aggregate_data(histories, time_frame):
     return new_history
 
 
-category = "Metal"
-symbol = "XAUUSD.I"
-time_frame_source = "D1"
-time_frame_target = "MN"
+category = "Major"
+symbol = "EURUSD_DUCOSCOPY"
+time_frame_source = "M1"
+time_frame_target = "M5"
 
 data = read_data(category, symbol, time_frame_source)
 

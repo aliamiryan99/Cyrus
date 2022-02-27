@@ -26,19 +26,36 @@ def is_engulfing(pre_candle, new_candle):
     return 0
 
 
-def get_candlesticks(data, type):
+def is_inside(pre_candle, new_candle):
+    if pre_candle['Close'] < pre_candle['Open']:
+        if new_candle['Open'] < new_candle['Close'] and new_candle['Close'] < pre_candle['Open'] and new_candle['High'] < pre_candle['High'] and new_candle['Low'] > pre_candle['Low']:
+            return 1
+    else:
+        if new_candle['Open'] > new_candle['Close'] and new_candle['Close'] > pre_candle['Open'] and new_candle['High'] < pre_candle['High'] and new_candle['Low'] > pre_candle['Low']:
+            return -1
+    return 0
+
+
+def get_candlesticks(data):
     detected_list = []
     for i in range(1, len(data)):
-        if type == "Doji":
-            if is_doji(data[i]):
-                detected_list.append({'Index': i, 'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Direction': 1})
-        elif type == "Hammer":
-            if is_hammer(data[i]):
-                detected_list.append({'Index': i, 'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Direction': 1})
-        elif type == "InvertHammer":
-            if is_invert_hammer(data[i]):
-                detected_list.append({'Index': i, 'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Direction': 1})
-        elif type == "Engulfing":
-            if is_engulfing(data[i-1], data[i]) != 0:
-                detected_list.append({'Index': i, 'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Direction': is_engulfing(data[i-1], data[i])})
+        type_list = []
+        direction_list = []
+        if is_doji(data[i]):
+            type_list.append("Doji")
+            direction_list.append(0)
+        if is_hammer(data[i]):
+            type_list.append("Hammer")
+            direction_list.append(0)
+        if is_invert_hammer(data[i]):
+            type_list.append("IHammer")
+            direction_list.append(0)
+        if is_engulfing(data[i-1], data[i]) != 0:
+            type_list.append("Engulf")
+            direction_list.append(is_engulfing(data[i-1], data[i]))
+        if is_inside(data[i-1], data[i]) != 0:
+            type_list.append("Inside")
+            direction_list.append(is_inside(data[i-1], data[i]))
+        if len(type_list) != 0:
+            detected_list.append({'Type': type_list, 'Index': i, 'Time': data[i]['Time'], 'Price': data[i]['Low'], 'Directions': direction_list})
     return detected_list

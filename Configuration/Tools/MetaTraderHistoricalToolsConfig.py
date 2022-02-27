@@ -3,24 +3,24 @@
 class ChartConfig:
 
     auto_time_frame = True
-    time_frame = "W1"
+    time_frame = "D1"
     date_format = '%Y.%m.%d %H:%M'
     auto_candles = False
-    candles = 1000
+    candles = 5000
     tools_set = ['PivotPoints', "SupportResistance", "Impulse", "MinMax", "Channels", "Elliot", "Harmonics",
                  "RangeRegion", "SRLevels"]
-    tool_name = 'SupportResistance'
+    tool_name = 'Harmonics'
 
     def __init__(self, symbol, data, tool_name, params=None):
 
         if tool_name == "PivotPoints":
-            from MetaTraderChartTool.Tools.PivotPoints import PivotPoints
+            from MetaTrader.Tools.PivotPoints import PivotPoints
             extremum_window = 10
             extremum_mode = 1
 
             self.tool = PivotPoints(data, extremum_window, extremum_mode)
         if tool_name == "SupportResistance":
-            from MetaTraderChartTool.Tools.SupportResistance import SupportResistance
+            from MetaTrader.Tools.SupportResistance import SupportResistance
             extremum_window = 20
             extremum_mode = 1
             sections = 10
@@ -28,7 +28,7 @@ class ChartConfig:
 
             self.tool = SupportResistance(data, extremum_window, extremum_mode, sections, extremum_show)
         if tool_name == "Impulse":
-            from MetaTraderChartTool.Tools.Impulse import Impulse
+            from MetaTrader.Tools.Impulse import Impulse
             extremum_window = 40
             extremum_mode = 1
             candles_tr = 2
@@ -36,7 +36,7 @@ class ChartConfig:
 
             self.tool = Impulse(data, extremum_window, extremum_mode, candles_tr, extremum_show)
         if tool_name == "MinMax":
-            from MetaTraderChartTool.Tools.MinMax import MinMax
+            from MetaTrader.Tools.MinMax import MinMax
             extremum_window = 20
             extremum_mode = 1
             extremum_show = True
@@ -44,7 +44,7 @@ class ChartConfig:
             self.tool = MinMax(data, extremum_window, extremum_mode, extremum_show)
 
         if tool_name == "Channels":
-            from MetaTraderChartTool.Tools.Channels import Channels
+            from MetaTrader.Tools.Channels import Channels
             extremum_window_start = 1
             extremum_window_end = 20
             extremum_window_step = 5
@@ -58,7 +58,7 @@ class ChartConfig:
                                  check_window, alpha, extend_number, type)
 
         if tool_name == "Elliot":
-            from MetaTraderChartTool.Tools.Elliot import Elliot
+            from MetaTrader.Tools.Elliot import Elliot
 
             wave4_enable = True
             wave5_enable = False
@@ -72,13 +72,13 @@ class ChartConfig:
                                price_type, self.time_frame, neo_time_frame)
 
         if tool_name == "Harmonics":
-            from MetaTraderChartTool.Tools.Harmonics import Harmonics
+            from MetaTrader.Tools.Harmonics import Harmonics
 
-            pattern_direction = 'bearish'  # bullish, bearish, both
+            pattern_direction = 'both'  # bullish, bearish, both
             harmonic_list = ['Gartley', 'Butterfly', 'Bat', 'Crab', 'Shark', 'Cypher', 'FiveZero', 'ThreeDrives',
-                             'ExpandingFlag', 'ABCD', 'Inverse', 'All']
-            name = 'Butterfly'
-            fibo_tolerance = 0.2  # percentage of Fibonacci tolerance
+                             'ExpandingFlag']
+            name = 'All'
+            fibo_tolerance = 0.1  # percentage of Fibonacci tolerance
             extremum_window = 6
             time_range = 5
             price_range_alpha = 1
@@ -86,14 +86,19 @@ class ChartConfig:
             beta = 0.25
             save_result = True
 
-            self.tool = Harmonics(data, extremum_window, time_range, price_range_alpha, name, alpha, beta, fibo_tolerance, pattern_direction, harmonic_list, save_result)
+            extremum_mode = "elliott"
+            neo_time_frame = "W1"
+
+            is_save_statistical_result = False
+
+            self.tool = Harmonics(data, symbol, extremum_window, time_range, price_range_alpha, name, alpha, beta, fibo_tolerance, pattern_direction, harmonic_list, save_result, self.time_frame, neo_time_frame, extremum_mode, is_save_statistical_result)
         if tool_name == "Indicator":
-            from MetaTraderChartTool.Tools.Indicator import Indicator
+            from MetaTrader.Tools.Indicator import Indicator
 
             self.tool = Indicator(data)
 
         if tool_name == "RangeRegion":
-            from MetaTraderChartTool.Tools.RangeRegion import RangeRegion
+            from MetaTrader.Tools.RangeRegion import RangeRegion
             range_candle_threshold = 3
             up_timeframe = "D1"
             stop_target_margin = 50
@@ -123,7 +128,7 @@ class ChartConfig:
                                     max_candles, fib_enable)
 
         if tool_name == "SRLevels":
-            from MetaTraderChartTool.Tools.SR import SR
+            from MetaTrader.Tools.SR import SR
 
             static_leverage_degree = 7
             tf2 = "M30"

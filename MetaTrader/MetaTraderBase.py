@@ -1,4 +1,3 @@
-
 from MetaTrader.Api.CyrusMetaConnector import CyrusMetaConnector
 from MetaTrader.Modules.Execution import Execution
 from MetaTrader.Modules.Reporting import Reporting
@@ -7,7 +6,6 @@ import requests
 
 
 class MetaTraderBase:
-
     class EnumStyle:
         Solid = 0
         Dash = 1
@@ -39,17 +37,17 @@ class MetaTraderBase:
         Flat = 0
         Raised = 1
         Sunken = 2
-    
+
     def __init__(self, name="Polaris",
                  symbols=None,
-                 broker_gmt=3,                 # GMT offset
-                 pull_data_handlers=None,       # Handlers to process Data received through PULL port.
-                 sub_data_handlers=None,        # Handlers to process Data received through SUB port.
+                 broker_gmt=3,  # GMT offset
+                 pull_data_handlers=None,  # Handlers to process Data received through PULL port.
+                 sub_data_handlers=None,  # Handlers to process Data received through SUB port.
                  verbose=False,
                  push_port=32768,  # Port for Sending commands
                  pull_port=32769,  # Port for Receiving responses
                  sub_port=32770):  # Print messages
-                 
+
         self.name = name
         self.symbols = symbols
         self.broker_gmt = broker_gmt
@@ -58,15 +56,25 @@ class MetaTraderBase:
         self.screen_shots_directory = "C:/Users/Polaris-Maju1/AppData/Roaming/MetaQuotes/Terminal/4694969650DF66FD9340C36ED4D0052A/tester/Files"
         # Not entirely necessary here.
         self.connector = CyrusMetaConnector(pull_data_handlers=pull_data_handlers, sub_data_handlers=sub_data_handlers,
-                                            verbose=verbose, push_port=push_port,  pull_port=pull_port, sub_port=sub_port)
-        
+                                            verbose=verbose, push_port=push_port, pull_port=pull_port,
+                                            sub_port=sub_port)
+
         # Modules
         self.execution = Execution(self.connector)
         self.reporting = Reporting(self.connector)
 
         self.date_format = "%Y.%m.%d %H:%M:%S"
         self.names_splitter = "$"
-    
+
+        self.open_buy_trades = []
+        self.open_sell_trades = []
+
+        self.last_buy_closed_trade = None
+        self.last_sell_closed_trade = None
+
+        self.balance = self.reporting.get_balance()
+        self.equity = self.reporting.get_equity()
+
     def __del__(self):
         self.connector.shutdown()
 
@@ -79,36 +87,42 @@ class MetaTraderBase:
         requests.post(url + 'sendPhoto', data={'chat_id': channel_name, 'caption': caption},
                       files={'photo': open(f"{photo_directory}", 'rb')})
 
-    def _take_order(self, type, symbol, volume, tp, sl):
+    def _take_order(self, type, symbol, volume, tp, sl, wo_delay):
         order = self.connector.generate_default_order_dict()
         order['_type'] = type
         order['_symbol'] = symbol
         order['_lots'] = volume
         order['_TP'] = tp
         order['_SL'] = sl
-        trade = self.execution.trade_execute(order)
+        trade = self.execution.trade_execute(order, wo_delay=wo_delay)
         return trade
 
-    def buy(self, symbol, volume, tp, sl):
-        return self._take_order(0, symbol, volume, tp, sl)
+    def buy(self, symbol, volume, tp, sl, wo_delay=False):
+        return self._take_order(0, symbol, volume, tp, sl, wo_delay)
 
-    def sell(self, symbol, volume, tp, sl):
-        return self._take_order(1, symbol, volume, tp, sl)
+    def sell(self, symbol, volume, tp, sl, wo_delay=False):
+        return self._take_order(1, symbol, volume, tp, sl, wo_delay)
 
-    def modify(self, ticket, tp, sl):
+    def modify(self, ticket, tp, sl, wo_delay=False):
         order = self.connector.generate_default_order_dict()
         order['_action'] = 'MODIFY'
         order['_ticket'] = ticket
         order['_TP'] = tp
         order['_SL'] = sl
-        trade = self.execution.trade_execute(order)
+        trade = self.execution.trade_execute(order, wo_delay)
         return trade
 
-    def close(self, ticket):
+    def close(self, ticket, wo_delay=False):
         order = self.connector.generate_default_order_dict()
         order['_action'] = 'CLOSE'
         order['_ticket'] = ticket
-        return self.execution.trade_execute(order)
+        return self.execution.trade_execute(order, wo_delay)
+
+    def get_balance(self):
+        return self.reporting.get_balance()
+
+    def get_equity(self):
+        return self.reporting.get_equity()
 
     def get_open_positions(self):
         return self.reporting.get_open_trades()
@@ -171,8 +185,9 @@ class MetaTraderBase:
         self.execution.draw_execute(params)
 
     # Format : "TREND" | ChartId | Name | SubWindow | Time1 | Price1 | Time2 | Price2 | Color | Style | Width | Back | Selection | Ray | Hidden | ZOrder
-    def trend_line(self, names, times1, prices1, times2, prices2, chart_id=0, sub_window=0, color="255,255,255", style=0, width=1, back=0,
-               selection=1, ray=0, hidden=1, z_order=0):
+    def trend_line(self, names, times1, prices1, times2, prices2, chart_id=0, sub_window=0, color="255,255,255",
+                   style=0, width=1, back=0,
+                   selection=1, ray=0, hidden=1, z_order=0):
         if not self._check_equal_lens(times1, names, "Times1 len should be equal to Names len") or \
                 not self._check_equal_lens(times1, times2, "Times1 len should be equal to Times2 len") or \
                 not self._check_equal_lens(prices1, prices2, "Prices1 len should be equal to Prices2 len") or \
@@ -188,16 +203,16 @@ class MetaTraderBase:
         prices1_str = self._get_str_list(prices1)
         prices2_str = self._get_str_list(prices2)
 
-
         params = "{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{}".format("TREND", chart_id, names_str, sub_window,
-                                                                       times1_str, prices1_str, times2_str, prices2_str, color, style, width,
-                                                                       back, selection, ray, hidden, z_order)
+                                                                          times1_str, prices1_str, times2_str,
+                                                                          prices2_str, color, style, width,
+                                                                          back, selection, ray, hidden, z_order)
 
         self.execution.draw_execute(params)
 
     # Format : "RECTANGLE" | ChartId | Name | SubWindow | Time1 | Price1 | Time2 | Price2 | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def rectangle(self, names, times1, prices1, times2, prices2, chart_id=0, sub_window=0, color="255,255,255",
-                   style=0, width=1, fill=0, back=0, selection=1, hidden=1, z_order=0):
+                  style=0, width=1, fill=0, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times1, names, "Times1 len should be equal to Names len") or \
                 not self._check_equal_lens(times1, times2, "Times1 len should be equal to Times2 len") or \
                 not self._check_equal_lens(prices1, prices2, "Prices1 len should be equal to Prices2 len") or \
@@ -221,15 +236,16 @@ class MetaTraderBase:
         self.execution.draw_execute(params)
 
     # Format : "TRIANGLE" | ChartId | Name | SubWindow | Time1 | Price1 | Time2 | Price2 | Color | Style | Width | Back | Selection | Hidden | ZOrder
-    def triangle(self, names, times1, prices1, times2, prices2, times3, prices3, chart_id=0, sub_window=0, color="255,255,255",
-                  style=0, width=1, fill=0, back=0, selection=1, hidden=1, z_order=0):
+    def triangle(self, names, times1, prices1, times2, prices2, times3, prices3, chart_id=0, sub_window=0,
+                 color="255,255,255",
+                 style=0, width=1, fill=0, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times1, names, "Times1 len should be equal to Names len") or \
                 not self._check_equal_lens(times1, times2, "Times1 len should be equal to Times2 len") or \
                 not self._check_equal_lens(prices1, prices2, "Prices1 len should be equal to Prices2 len") or \
                 not self._check_lens(times1, "TRIANGLE Error (Time len can't be zero") or \
                 not self._check_lens(times2, "TRIANGLE Error (Time len can't be zero") or \
                 not self._check_lens(prices1, "TRIANGLE Error (Price len can't be zero") or \
-                not self._check_lens(prices2, "TRIANGLE Error (Price len can't be zero") or\
+                not self._check_lens(prices2, "TRIANGLE Error (Price len can't be zero") or \
                 not self._check_lens(times3, "TRIANGLE Error (Time len can't be zero") or \
                 not self._check_lens(prices3, "TRIANGLE Error (Price len can't be zero"):
             return
@@ -243,15 +259,18 @@ class MetaTraderBase:
         prices3_str = self._get_str_list(prices3)
 
         params = "{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{}".format("TRIANGLE", chart_id, names_str,
-                                                                          sub_window, times1_str, prices1_str, times2_str,
-                                                                          prices2_str, times3_str, prices3_str, color, style, width,
-                                                                          fill, back, selection, hidden, z_order)
+                                                                                sub_window, times1_str, prices1_str,
+                                                                                times2_str,
+                                                                                prices2_str, times3_str, prices3_str,
+                                                                                color, style, width,
+                                                                                fill, back, selection, hidden, z_order)
 
         self.execution.draw_execute(params)
 
     # Format : "Ellipse" | ChartId | Name | SubWindow | Time1 | Price1 | Time2 | Price2 | EllipseScales | Color | Style | Width | Back | Selection | Hidden | ZOrder
-    def ellipse(self, names, times1, prices1, times2, prices2, ellipse_scales, chart_id=0, sub_window=0, color="255,255,255",
-                  style=0, width=1, fill=0, back=0, selection=1, hidden=1, z_order=0):
+    def ellipse(self, names, times1, prices1, times2, prices2, ellipse_scales, chart_id=0, sub_window=0,
+                color="255,255,255",
+                style=0, width=1, fill=0, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times1, names, "Times1 len should be equal to Names len") or \
                 not self._check_equal_lens(times1, times2, "Times1 len should be equal to Times2 len") or \
                 not self._check_equal_lens(prices1, prices2, "Prices1 len should be equal to Prices2 len") or \
@@ -270,16 +289,19 @@ class MetaTraderBase:
         scales_str = self._get_str_list(ellipse_scales)
 
         params = "{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{}".format("ELLIPSE", chart_id, names_str,
-                                                                          sub_window, times1_str, prices1_str, times2_str,
-                                                                          prices2_str, scales_str, color, style, width,
-                                                                          fill, back, selection, hidden, z_order)
+                                                                             sub_window, times1_str, prices1_str,
+                                                                             times2_str,
+                                                                             prices2_str, scales_str, color, style,
+                                                                             width,
+                                                                             fill, back, selection, hidden, z_order)
 
         self.execution.draw_execute(params)
 
     # Format : "THUMBUP" | ChartId | Name | SubWindow | Time | Price | Anchor | Color | Style | Width | Back | Selection | Hidden | ZOrder
-    def thumb_up(self, names, times, prices, anchor, chart_id=0, sub_window=0, color="255,255,255", style=0, width=1, back=0,
-               selection=1,
-               hidden=1, z_order=0):
+    def thumb_up(self, names, times, prices, anchor, chart_id=0, sub_window=0, color="255,255,255", style=0, width=1,
+                 back=0,
+                 selection=1,
+                 hidden=1, z_order=0):
         if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
                 not self._check_lens(times, "ThumbUp Error (Time len can't be zero"):
             return
@@ -289,14 +311,14 @@ class MetaTraderBase:
         prices_str = self._get_str_list(prices)
 
         params = "{};{};{};{};{};{};{};{};{};{};{};{};{};{}".format("THUMBUP", chart_id, names_str, sub_window,
-                                                              times_str, prices_str, anchor, color, style, width,
-                                                              back, selection, hidden, z_order)
+                                                                    times_str, prices_str, anchor, color, style, width,
+                                                                    back, selection, hidden, z_order)
 
         self.execution.draw_execute(params)
 
     # Format : "THUMBDOWN" | ChartId | Name | SubWindow | Time | Price | Anchor | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def thumb_down(self, names, times, prices, anchor, chart_id=0, sub_window=0, color="255,255,255", style=0,
-                 width=1, back=0, selection=1, hidden=1, z_order=0):
+                   width=1, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
                 not self._check_lens(times, "ThumbDown Error (Time len can't be zero"):
             return
@@ -312,7 +334,7 @@ class MetaTraderBase:
 
     # Format : "ARROW" | ChartId | Name | SubWindow | Time | Price | Arrow | Anchor | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def arrow(self, names, times, prices, arrow_code, anchor, chart_id=0, sub_window=0, color="255,255,255", style=0,
-                 width=1, back=0, selection=1, hidden=1, z_order=0):
+              width=1, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
                 not self._check_lens(times, "ArrowUp Error (Time len can't be zero"):
             return
@@ -322,14 +344,15 @@ class MetaTraderBase:
         prices_str = self._get_str_list(prices)
 
         params = "{};{};{};{};{};{};{};{};{};{};{};{};{};{};{}".format("ARROW", chart_id, names_str, sub_window,
-                                                                    times_str, prices_str, arrow_code, anchor, color, style,
-                                                                    width, back, selection, hidden, z_order)
+                                                                       times_str, prices_str, arrow_code, anchor, color,
+                                                                       style,
+                                                                       width, back, selection, hidden, z_order)
 
         self.execution.draw_execute(params)
 
     # Format : "ARROWUP" | ChartId | Name | SubWindow | Time | Price | Anchor | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def arrow_up(self, names, times, prices, anchor, chart_id=0, sub_window=0, color="255,255,255", style=0,
-                   width=1, back=0, selection=1, hidden=1, z_order=0):
+                 width=1, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
                 not self._check_lens(times, "ArrowUp Error (Time len can't be zero"):
             return
@@ -346,7 +369,7 @@ class MetaTraderBase:
 
     # Format : "ARROWDOWN" | ChartId | Name | SubWindow | Time | Price | Anchor | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def arrow_down(self, names, times, prices, anchor, chart_id=0, sub_window=0, color="255,255,255", style=0,
-                 width=1, back=0, selection=1, hidden=1, z_order=0):
+                   width=1, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
                 not self._check_lens(times, "ArrowDown Error (Time len can't be zero"):
             return
@@ -363,7 +386,7 @@ class MetaTraderBase:
 
     # Format : "ARROWBUY" | ChartId | Name | SubWindow | Time | Price | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def arrow_buy(self, names, times, prices, chart_id=0, sub_window=0, color="255,255,255", style=0,
-                   width=1, back=0, selection=1, hidden=1, z_order=0):
+                  width=1, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
                 not self._check_lens(times, "ArrowBuy Error (Time len can't be zero"):
             return
@@ -373,14 +396,14 @@ class MetaTraderBase:
         prices_str = self._get_str_list(prices)
 
         params = "{};{};{};{};{};{};{};{};{};{};{};{};{}".format("ARROWBUY", chart_id, names_str, sub_window,
-                                                                    times_str, prices_str, color, style,
-                                                                    width, back, selection, hidden, z_order)
+                                                                 times_str, prices_str, color, style,
+                                                                 width, back, selection, hidden, z_order)
 
         self.execution.draw_execute(params)
 
     # Format : "ARROWSELL" | ChartId | Name | SubWindow | Time | Price | Color | Style | Width | Back | Selection | Hidden | ZOrder
     def arrow_sell(self, names, times, prices, chart_id=0, sub_window=0, color="255,255,255", style=0,
-                  width=1, back=0, selection=1, hidden=1, z_order=0):
+                   width=1, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(times, names, "Times len should be equal to Names len") or \
                 not self._check_lens(times, "ArrowSell Error (Time len can't be zero"):
             return
@@ -408,7 +431,8 @@ class MetaTraderBase:
         texts_str = self._get_str_list(texts)
 
         params = "{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{}".format("TEXT", chart_id, names_str, sub_window,
-                                                                          times_str, prices_str, texts_str, font, font_size,
+                                                                          times_str, prices_str, texts_str, font,
+                                                                          font_size,
                                                                           color, angle, anchor,
                                                                           back, selection, hidden, z_order)
 
@@ -417,7 +441,7 @@ class MetaTraderBase:
     # Format : "LABEL" | ChartId | Name | SubWindow | X | Y | Corner | Text | Font | FontSize | Color | Angle | Anchor | Back | Selection | Hidden | ZOrder
     def label(self, names, x, y, texts, corner=EnumBaseCorner.LeftUpper, font="Arial", font_size=10, angle=0.0,
               chart_id=0, sub_window=0,
-             color="255,255,255", anchor=EnumAnchor.Top, back=0, selection=1, hidden=1, z_order=0):
+              color="255,255,255", anchor=EnumAnchor.Top, back=0, selection=1, hidden=1, z_order=0):
         if not self._check_equal_lens(x, names, "X len should be equal to Names len") or \
                 not self._check_lens(y, "Y len should be equal to Names len") or \
                 not self._check_lens(y, "Label Error (Y len can't be zero"):
@@ -429,9 +453,9 @@ class MetaTraderBase:
         texts_str = self._get_str_list(texts)
 
         params = "{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{};{}".format("LABEL", chart_id, names_str, sub_window,
-                                                                          x_str, y_str, corner, texts_str, font,
-                                                                          font_size, color, angle, anchor,
-                                                                          back, selection, hidden, z_order)
+                                                                             x_str, y_str, corner, texts_str, font,
+                                                                             font_size, color, angle, anchor,
+                                                                             back, selection, hidden, z_order)
 
         self.execution.draw_execute(params)
 
@@ -459,7 +483,8 @@ class MetaTraderBase:
 
         self.execution.draw_execute(params)
 
-    def fibonacci_retracement(self, names, times1, prices1, times2, prices2, chart_id=0, sub_window=0, color="255,255,255", style=0, width=1, back=0,
+    def fibonacci_retracement(self, names, times1, prices1, times2, prices2, chart_id=0, sub_window=0,
+                              color="255,255,255", style=0, width=1, back=0,
                               selection=1, ray=0, hidden=1, z_order=0):
         if not self._check_equal_lens(times1, names, "Times1 len should be equal to Names len") or \
                 not self._check_equal_lens(times1, times2, "Times1 len should be equal to Times2 len") or \
@@ -493,8 +518,10 @@ class MetaTraderBase:
                 fib_prices_text.append(fib_levels[key])
                 fib_texts.append(f'{key}')
 
-        self.trend_line(fib_names, fib_times1, fib_prices1, fib_times2, fib_prices2, chart_id, sub_window, color, style, width, back, selection, ray, hidden, z_order)
-        self.text(fib_names_text, fib_times_text, fib_prices_text, fib_texts, anchor=MetaTraderBase.EnumAnchor.RightLower, color=color)
+        self.trend_line(fib_names, fib_times1, fib_prices1, fib_times2, fib_prices2, chart_id, sub_window, color, style,
+                        width, back, selection, ray, hidden, z_order)
+        self.text(fib_names_text, fib_times_text, fib_prices_text, fib_texts,
+                  anchor=MetaTraderBase.EnumAnchor.RightLower, color=color)
 
     def _check_lens(self, input_list, message):
         if len(input_list) == 0:

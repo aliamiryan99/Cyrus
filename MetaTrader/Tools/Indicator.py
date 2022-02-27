@@ -1,8 +1,6 @@
-import numpy as np
-
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
-from MetaTraderChartTool.Tools.Tool import Tool
+from MetaTrader.Tools import Tool
 import talib
 
 

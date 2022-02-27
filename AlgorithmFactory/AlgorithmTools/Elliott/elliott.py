@@ -232,6 +232,34 @@ def calculate(df, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_predic
             In_zigzag_flat_prediction_list.append(
                 {"X1": pred_xb, "X2": pred_xc, "Y1": pred1_yc, "Y2": pred2_yc, "Y3": pred3_yc})
 
+        # if True: # Single Level balance/similarity merging
+        #     cols = [
+        #         'MW_start_index', 'MW_end_index', 'Start_candle_index', 'End_candle_index',
+        #         'Start_price', 'End_price', 'Duration', 'Price_range', 'Direction',
+        #         'Max_candle_index', 'Max_price', 'Min_candle_index', 'Min_price',
+        #     ]
+        #
+        #     for mw_idx in range(hyper_monowaves_list[0]-2):
+        #         _m1 = hyper_monowaves_list[0].iloc[mw_idx]
+        #         _m2 = hyper_monowaves_list[0].iloc[mw_idx+1]
+        #         _m3 = hyper_monowaves_list[0].iloc[mw_idx+2]
+        #         if balance_similarity(_m1, _m2, _m3, small_middle=True,):
+        #             vals = {
+        #                 'MW_start_index': _m1.iloc[0].MW_start_index, 'MW_end_index': _m3.iloc[0].MW_end_index,
+        #                 'Start_candle_index': _m1.iloc[0].Start_candle_index,
+        #                 'End_candle_index': _m3.iloc[0].End_candle_index,
+        #                 'Start_price': _m1.iloc[0].Start_price, 'End_price': _m3.iloc[0].End_price,
+        #                 'Duration': (_m3.iloc[0].End_candle_index - _m1.iloc[0].Start_candle_index),
+        #                 'Price_range': abs(_m3.iloc[0].End_price - _m1.iloc[0].Start_price) + 0.001,
+        #                 'Direction': _m1.iloc[0].Direction,
+        #                 'Price_coverage': -1, 'Max_candle_index': -1, 'Max_price': -1, 'Min_candle_index': -1,
+        #                 'Min_price': -1,
+        #             }
+        #
+        #             M = pd.DataFrame.from_dict(data={_m1.index.values[0]: [vals[c] for c in cols]}, orient='index',
+        #                                        columns=cols)
+        #     pass
+
     return hyper_monowaves_list, polywave_list, post_prediction_list, In_impulse_prediction_list_w4, In_impulse_prediction_list_w5, In_zigzag_flat_prediction_list
 
 

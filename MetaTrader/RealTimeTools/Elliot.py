@@ -1,11 +1,10 @@
 from MetaTrader.MetaTraderBase import MetaTraderBase
-from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
+from MetaTrader.RealTimeTools.RealTimeTool import RealTimeTool
 from Configuration.Trade.OnlineConfig import Config
 
 from AlgorithmFactory.AlgorithmTools.Elliott import elliott
 
 import pandas as pd
-import numpy as np
 from Utilities.Statistics import *
 import pickle
 

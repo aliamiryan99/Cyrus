@@ -1,6 +1,6 @@
 
 from MetaTrader.MetaTraderBase import MetaTraderBase
-from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
+from MetaTrader.RealTimeTools.RealTimeTool import RealTimeTool
 
 from Indicators.VolumeBarIndicator import VolumeBar
 from Indicators.VolumeBarGenerator import VolumeGenerator

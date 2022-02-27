@@ -10,10 +10,10 @@ def join_data(data1, data2):
     return total_data
 
 
-category = "Metal"
-symbol = "XAGUSD"
-time_frame1 = "M1_2016"
-time_frame2 = "M1_2020"
+category = "Major"
+symbol = "EURUSD_DUCOSCOPY"
+time_frame1 = "M1_2010"
+time_frame2 = "M1_2011"
 time_frame_output = "M1"
 
 data1 = read_data(category, symbol, time_frame1)

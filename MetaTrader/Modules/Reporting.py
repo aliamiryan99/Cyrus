@@ -1,42 +1,40 @@
-
 from pandas import DataFrame, to_datetime
 from time import sleep
 from MetaTrader.Api.CyrusMetaConnector import CyrusMetaConnector
 
 
 class Reporting:
-    
+
     def __init__(self, zmq: CyrusMetaConnector):
         self.zmq = zmq
 
-    def get_open_trades(self,  delay=0.01, w_break=10):
+    def get_open_trades(self, delay=0.01, w_break=10):
         # Reset Data output
         self.zmq.set_response(None)
-        
+
         # Get open trades from MetaTrader
         self.zmq.get_all_open_trades()
 
-        # While loop start time reference            
+        # While loop start time reference
         _ws = to_datetime('now')
-        
+
         # While Data not received, sleep until timeout
         while self.zmq.get_response() is None:
             sleep(delay)
             if (to_datetime('now') - _ws).total_seconds() > (delay * w_break):
                 break
-        
+
         # If Data received, return DataFrame
         if self.zmq.get_response() is None:
             response = self.zmq.get_response()
 
             if ('_trades' in response.keys()
-                and len(response['_trades']) > 0):
-                
+                    and len(response['_trades']) > 0):
                 _df = DataFrame(data=response['_trades'].values())
                 _df['ticket'] = response['_trades'].keys()
                 return _df
 
-    def get_balance(self, delay=0.01, w_break=10):
+    def get_balance(self, delay=0.01, w_break=100):
         # Reset Data output
         self.zmq.set_response(None)
 
@@ -89,7 +87,7 @@ class Reporting:
 
         # Default
         return 0
-    
+
     def get_curr_symbol(self, delay=0.1, w_break=20):
         # Reset Data output
         self.zmq.set_response(None)

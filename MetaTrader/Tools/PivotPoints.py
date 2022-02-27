@@ -1,7 +1,7 @@
 
 from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
-from MetaTraderChartTool.Tools.Tool import Tool
+from MetaTrader.Tools import Tool
 
 
 class PivotPoints(Tool):

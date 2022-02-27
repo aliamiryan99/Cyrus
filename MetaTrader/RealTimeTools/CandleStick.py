@@ -1,5 +1,5 @@
 from MetaTrader.MetaTraderBase import MetaTraderBase
-from MetaTraderChartTool.RealTimeTools.RealTimeTool import RealTimeTool
+from MetaTrader.RealTimeTools.RealTimeTool import RealTimeTool
 
 from AlgorithmFactory.AlgorithmPackages.CandleSticks import CandleSticks
 from AlgorithmFactory.AlgorithmPackages.SimpleIdea.SimpleIdeaPkg import get_detected_simple_idea
@@ -16,7 +16,7 @@ class CandleStick(RealTimeTool):
         self.telegram = telegram
         self.trade_enable = trade_enable
 
-        self.color = "40,180,60"
+        self.color = "255,255,255"
         self.width = 1
         self.candle_type = candle_type
 
@@ -26,15 +26,9 @@ class CandleStick(RealTimeTool):
         self.label = f"Candle Stick Patterns {candle_type}"
 
         if candle_type != "SimpleIdea":
-            detected_list = CandleSticks.get_candlesticks(self.data, candle_type)
+            detected_list = CandleSticks.get_candlesticks(self.data)
         else:
             detected_list = get_detected_simple_idea(data, symbol, 3, 10, 0, 1, 20)
-
-        detected_list_new = []
-        for i in range(len(detected_list)):
-            if detected_list[i]['Direction'] == filter_direction or filter_direction == 0:
-                    detected_list_new.append(detected_list[i])
-        detected_list = detected_list_new
 
         statistic_window = 10
         results = get_bullish_bearish_ratio(self.data, [detected['Index'] for detected in detected_list], statistic_window)
@@ -62,7 +56,7 @@ class CandleStick(RealTimeTool):
     def on_data(self, candle):
         self.data.pop(0)
 
-        detected_list = CandleSticks.get_candlesticks(self.data, self.candle_type)
+        detected_list = CandleSticks.get_candlesticks(self.data)
         if len(detected_list) > 0 and detected_list[-1]['Time'] == self.data[-1]['Time']:
             self.draw([detected_list[-1]])
             if self.telegram:
@@ -73,13 +67,14 @@ class CandleStick(RealTimeTool):
         self.data.append(candle)
 
     def draw(self, detected_list):
-        names, times, prices = [], [], []
+        names, text, times, prices = [], [], [], []
         for i in range(len(detected_list)):
-            names.append(f"{self.candle_type} {self.last_index}")
+            names.append(f"{self.last_index}")
+            text.append(f"{detected_list[i]['Type']}")
             times.append(detected_list[i]['Time'])
             prices.append(detected_list[i]['Price'])
             self.last_index += 1
-        self.chart_tool.arrow(names, times, prices, 252, self.chart_tool.EnumArrowAnchor.Top, width=self.width, color=self.color)
+        self.chart_tool.text(names, times, prices, text, self.chart_tool.EnumAnchor.Top, color=self.color)
 
     def draw_statistics(self):
         self.chart_tool.rectangle_label(["RectLabel"], [self.rect_x + self.rect_width], [self.rect_y],

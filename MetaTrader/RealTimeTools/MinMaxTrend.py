@@ -1,17 +1,19 @@
+from MetaTrader.MetaTraderBase import MetaTraderBase
+from MetaTrader.RealTimeTools.RealTimeTool import RealTimeTool
 
-from MetaTraderChartTool.BasicChartTools import BasicChartTools
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
-from AlgorithmFactory.AlgorithmTools.CandleTools import *
-
 from AlgorithmFactory.AlgorithmPackages.MinMaxTrend import MinMaxTrend
 
-from MetaTraderChartTool.Tools.Tool import Tool
 
+class MinMaxTrendTool(RealTimeTool):
 
-class MinMax(Tool):
+    def __init__(self, chart_tool: MetaTraderBase, data, symbol, extremum_window, extremum_mode, extremum_show, trade_enable, telegram):
+        super().__init__(chart_tool, data)
 
-    def __init__(self, data, extremum_window, extremum_mode, extremum_show):
-        super().__init__(data)
+        self.symbol = symbol
+        self.telegram_channel_name = "@polaris_candlestick_patterns"
+        self.telegram = telegram
+        self.trade_enable = trade_enable
 
         self.open, self.high, self.low, self.close = get_ohlc(data)
         self.bottom, self.top = get_bottom_top(data)
@@ -27,7 +29,24 @@ class MinMax(Tool):
             MinMaxTrend.min_max_trend_detect(self.open, self.high, self.low, self.close, self.top, self.bottom,
                                              self.local_min_price, self.local_max_price, True)
 
-    def draw(self, chart_tool: BasicChartTools):
+        self.draw()
+
+        self.data = self.data[-10:]
+
+        self.chart_tool.set_speed(1000)
+        self.chart_tool.set_candle_start_delay(5)
+
+    def on_tick(self, time, bid, ask):
+        pass
+
+    def on_data(self, candle):
+        self.data.pop(0)
+
+        self.data.append(candle)
+
+    def draw(self):
+
+        chart_tool = self.chart_tool
 
         self.extend_line_style = chart_tool.EnumStyle.DashDotDot
         self.inc_color = "155,255,248"
@@ -101,3 +120,4 @@ class MinMax(Tool):
                                    back_color=self.rect_color, color="200,199,199", border=chart_tool.EnumBorder.Sunken)
         chart_tool.label(["Label"], [self.rect_x + (self.rect_width//2)], [self.rect_y + (self.rect_height // 4)],
                          [self.label], anchor=chart_tool.EnumAnchor.Top, font="Times New Roman", font_size=12)
+

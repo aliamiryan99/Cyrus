@@ -21,7 +21,7 @@ class MetaTraderChartToolsManager(MetaTraderBase):
 
     def __init__(self,
                  name="Polaris",
-                 w_break=100,
+                 w_break=1000,
                  delay=0.01,
                  broker_gmt=3,
                  verbose=False,

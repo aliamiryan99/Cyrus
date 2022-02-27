@@ -1,6 +1,6 @@
 
 from MetaTrader.MetaTraderBase import MetaTraderBase
-from MetaTraderChartTool.Tools.Tool import Tool
+from MetaTrader.Tools import Tool
 
 from AlgorithmFactory.AlgorithmTools.Aggregate import aggregate_data
 from AlgorithmFactory.AlgorithmTools.SR.SR_Levels_Functions import *
