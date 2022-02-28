@@ -4,13 +4,13 @@ def is_doji(candle, doji_coefficient=10):
     return abs(candle['Close'] - candle['Open']) * doji_coefficient < candle['High'] - candle['Low']
 
 
-def is_hammer(candle, up_shadow_coefficient=0.5, down_shadow_coefficient=3):
+def is_hammer(candle, up_shadow_coefficient=0.6, down_shadow_coefficient=2):
     top = max(candle['Open'], candle['Close'])
     bottom = min(candle['Open'], candle['Close'])
     return (candle['High'] - top) * (1/up_shadow_coefficient) < abs(candle['Open'] - candle['Close']) < (bottom - candle['Low']) * (1/down_shadow_coefficient)
 
 
-def is_invert_hammer(candle, up_shadow_coefficient=3, down_shadow_coefficient=0.5):
+def is_invert_hammer(candle, up_shadow_coefficient=2, down_shadow_coefficient=0.6):
     top = max(candle['Open'], candle['Close'])
     bottom = min(candle['Open'], candle['Close'])
     return (bottom - candle['Low']) * (1 / down_shadow_coefficient) < abs(candle['Open'] - candle['Close']) < (candle['High'] - top) * (1 / up_shadow_coefficient)

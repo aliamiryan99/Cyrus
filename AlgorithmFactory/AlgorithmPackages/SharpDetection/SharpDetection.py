@@ -41,9 +41,9 @@ class SharpDetection:
                         i += 1
                 if e - s > self.minimum_candles:
                     if avg > 0:
-                        sharp_areas_up.append({"Start": s, "End": e, "Ext": ext_i, 'StartTime': data[s]['Time'], 'EndTime': data[e]['Time']})
+                        sharp_areas_up.append({"Start": s, "End": e, "Ext": ext_i, "ExtPrice": price[ext_i], 'StartTime': data[s]['Time'], 'EndTime': data[e]['Time']})
                     else:
-                        sharp_areas_down.append({"Start": s, "End": e, "Ext": ext_i, 'StartTime': data[s]['Time'], 'EndTime': data[e]['Time']})
+                        sharp_areas_down.append({"Start": s, "End": e, "Ext": ext_i, "ExtPrice": price[ext_i], 'StartTime': data[s]['Time'], 'EndTime': data[e]['Time']})
                 else:
                     i = s
             i += 1

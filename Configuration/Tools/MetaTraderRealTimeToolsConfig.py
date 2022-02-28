@@ -151,7 +151,7 @@ class ChartConfig:
             risk = 3
 
             risk_free_enable = False
-            touch_trade_enable = True
+            touch_trade_enable = False
             candlestick_enable = True
 
             self.tool = SupplyAndDemand(chart_tool, data, symbol, tr, minimum_candles, tr2, minimum_candles2,
