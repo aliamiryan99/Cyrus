@@ -1,6 +1,3 @@
-
-
-
 import numpy as np
 import pandas as pd
 import copy
@@ -477,7 +474,7 @@ class MonoWave:
         for i in range(len(hyper_monowaves)):
             hyper_monowaves[i] = self.EW_rules_single_wave(hyper_monowaves, i)
 
-    # region Eliottwave Rules
+    # region Elliottwave Rules
     def EW_R1a(self, hyper_monowaves, idx):
         n = len(hyper_monowaves)
         M1 = hyper_monowaves[idx]
@@ -1052,7 +1049,7 @@ class MonoWave:
                         # ※ complex correction may have concluded with m3
                         M1.Structure_list_label.append(':F3')
                         M1.EW_structure.append('3a:complex correction')
-                        if (M_1 is not None and M1.Price_range > max(M_1.Price_range, M_3.Price_range)
+                        if (M_3 is not None and M1.Price_range > max(M_1.Price_range, M_3.Price_range)
                                 and self.wave_breaking_trend(M_2.End_candle_index, M0.End_candle_index,
                                                              M1.End_candle_index, M2.End_candle_index)):
                             # ※ m1 may be the 5 of a 5x impulse pattern
@@ -3672,8 +3669,7 @@ class MonoWave:
             Ma = hyper_monowaves[index]
             Mb = hyper_monowaves[index + 1]
 
-            if (check_subitem_in_list(Ma.Structure_list_label, '3') and check_subitem_in_list(Mb.Structure_list_label,
-                                                                                              '3')
+            if (check_subitem_in_list(Ma.Structure_list_label, 'F3') and check_subitem_in_list(Mb.Structure_list_label, 'c3')
                     and not check_subitem_in_list(Ma.Structure_list_label, 'L3') and not check_subitem_in_list(
                         Ma.Structure_list_label, 'L5')
                     and not check_subitem_in_list(Mb.Structure_list_label, 'L3') and not check_subitem_in_list(
@@ -3720,8 +3716,7 @@ class MonoWave:
             Ma = hyper_monowaves[index]
             Mb = hyper_monowaves[index + 1]
 
-            if (check_subitem_in_list(Ma.Structure_list_label, '5') and check_subitem_in_list(Mb.Structure_list_label,
-                                                                                              '3')
+            if (check_subitem_in_list(Ma.Structure_list_label, '5') and check_subitem_in_list(Mb.Structure_list_label, 'F3')
                     and not check_subitem_in_list(Ma.Structure_list_label, 'L3') and not check_subitem_in_list(
                         Ma.Structure_list_label, 'L5')
                     and not check_subitem_in_list(Mb.Structure_list_label, 'L3') and not check_subitem_in_list(
@@ -3765,7 +3760,7 @@ class MonoWave:
         pred_y4 = []
         preds = []
         pred_x1 = []
-        directions = []
+        directions = []               
         pred_x2 = []
 
         pred4_price_range2 = []
@@ -3821,7 +3816,7 @@ class MonoWave:
                 # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382]])
 
                 pred_x1.append(x1)
-                directions.append(M3.Direction)
+                directions.append(M3.Direction)                               
                 pred_x2.append(x2)
                 start_candle_index.append(start_x)
                 start_price.append(start_y)
@@ -3881,13 +3876,13 @@ class MonoWave:
         preds.append(pred_y4)
         # return hmw_index, pred_x1, pred_x2, pred_y1, pred_y2, pred_y3, pred_y4
         return hmw_index, pred_x1, pred_x2, preds, directions
-
+        
     def Impulse_In_prediction_zone_label_M5(self, hyper_monowaves, step):
         pred_y = []
         pred_y2 = []
         pred_y3 = []
         pred_y4 = []
-        directions = []
+        directions = []               
         preds = []
         pred_x1 = []
         pred_x2 = []
@@ -3909,7 +3904,9 @@ class MonoWave:
             M4 = hyper_monowaves[index + 3]
 
             if (check_subitem_in_list(M1.Structure_list_label, ':5') and check_subitem_in_list(M2.Structure_list_label,':F3') and
+                                                                                                      
                     (check_subitem_in_list(M3.Structure_list_label, ':5') or check_subitem_in_list(M3.Structure_list_label,':s5')) and
+                                                                                                           
                     check_subitem_in_list(M4.Structure_list_label, ':F3')
                     and not check_subitem_in_list(M1.Structure_list_label, ':L3') and not check_subitem_in_list(M1.Structure_list_label, ':L5')
                     and not check_subitem_in_list(M2.Structure_list_label, ':L3') and not check_subitem_in_list(M2.Structure_list_label, ':L5')
@@ -3934,10 +3931,10 @@ class MonoWave:
                 # pred5_price_range4_2 = 0.5 * abs(M3.End_price - M1.Start_price)
                 # pred5_price_range4_3 = 0.618 * abs(M3.End_price - M1.Start_price)
 
-                pred5_end_price1.append([y1 - M4.Direction *ratio * M1.Price_range for ratio in [1.0, 1.62]])
-                pred5_end_price2.append([y1 - M4.Direction *ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.382, 0.618, 1.0]])
-                pred5_end_price3.append([y1 - M4.Direction *ratio * M4.Price_range for ratio in [1.27, 1.62]])
-                pred5_end_price4.append([y1 - M4.Direction *ratio * M2.Price_range for ratio in [2.62, 4.24]])
+                pred5_end_price1.append(y1 - [(M4.Direction *ratio * M1.Price_range) for ratio in [1.0, 1.62]])
+                pred5_end_price2.append(y1 - [(M4.Direction *ratio * abs(M3.End_price - M1.Start_price)) for ratio in [0.382, 0.618, 1.0]])
+                pred5_end_price3.append(y1 - [(M4.Direction *ratio * M4.Price_range) for ratio in [1.27, 1.62]])
+                pred5_end_price4.append(y1 - [(M4.Direction *ratio * M2.Price_range) for ratio in [2.62, 4.24]])
                 # pred_y2.append([M3.End_price - M3.Direction * ratio * M2.Price_range for ratio in [1.0, 1.62]])
                 # pred_y3.append([M3.End_price - M3.Direction * ratio * M3.Price_range for ratio in [0.382, 0.5, 0.618]])
                 # pred_y4.append([M3.End_price - M3.Direction * ratio * abs(M3.End_price - M1.Start_price) for ratio in [0.236, 0.382, 0.5, 0.618]])

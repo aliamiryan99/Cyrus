@@ -24,6 +24,32 @@ def get_local_extermums(data, window, mode):         # mode 1: High Low , mode 2
 
     return local_min, local_max
 
+def get_local_extermums_asymetric(data, window_left, window_right, mode):
+
+    open, high, low, close = get_ohlc(data)
+
+    bottom_candle, top_candle = get_bottom_top(data)
+
+    price_up = high
+    price_down = low
+    if mode == 2:
+        price_up = top_candle
+        price_down = bottom_candle
+
+    local_min = [0] * len(data)
+    local_max = [0] * len(data)
+
+    for i in range(window_left, len(open) - window_right):
+        if price_up[i] > price_up[i - window_left:i].max() and price_up[i] >= price_up[i:i + window_right+1].max():
+            local_max[i] = i
+        if price_down[i] < price_down[i - window_left:i].min() and price_down[i] <= price_down[i:i + window_right+1].min():
+            local_min[i] = i
+
+    local_max = np.array(list(filter(lambda num: num != 0, local_max)))
+    local_min = np.array(list(filter(lambda num: num != 0, local_min)))
+
+    return local_min, local_max
+
 
 def filter_extremums(data, window, mode, local_min, local_max, atr_tr):
     open, high, low, close = get_ohlc(data)
@@ -73,46 +99,6 @@ def get_indicator_local_extermums(max_data, min_data, window):
     return local_min, local_max
 
 
-def get_local_extermums_asymetric(data, window, alpha, mode):
-    Open = np.array([d['Open'] for d in data])
-    High = np.array([d['High'] for d in data])
-    Low = np.array([d['Low'] for d in data])
-
-    top_candle = []
-    bottom_candle = []
-
-    for i in range(0, len(data)):
-        # store the top/bottom value of all candles
-        if data[i]['Open'] > data[i]['Close']:
-            top_candle.append(data[i]['Open'])
-            bottom_candle.append(data[i]['Close'])
-        else:
-            top_candle.append(data[i]['Close'])
-            bottom_candle.append(data[i]['Open'])
-
-    top_candle = np.array(top_candle)
-    bottom_candle = np.array(bottom_candle)
-
-    price_up = High
-    price_down = Low
-    if mode == 2:
-        price_up = top_candle
-        price_down = bottom_candle
-
-    local_min = [0] * len(data)
-    local_max = [0] * len(data)
-
-    up_window = max(round(window/alpha), 0)
-    for i in range(window, len(Open) - up_window):
-        if price_up[i] >= price_up[i - window:i + up_window+1].max():
-            local_max[i] = i
-        if price_down[i] <= price_down[i - window:i + up_window+1].min():
-            local_min[i] = i
-
-    local_max = np.array(list(filter(lambda num: num != 0, local_max)))
-    local_min = np.array(list(filter(lambda num: num != 0, local_min)))
-
-    return local_min, local_max
 
 
 def get_indicator_local_extermums_asymetric(max_data, min_data, window, alpha):

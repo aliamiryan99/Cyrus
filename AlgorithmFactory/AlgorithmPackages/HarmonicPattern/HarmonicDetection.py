@@ -4,6 +4,7 @@ from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 import math
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 
 # find Harmonic Patterns function
@@ -17,7 +18,6 @@ def harmonic_pattern(high, low, middle, local_min, local_min_price, local_max, l
     # f_r_norm_upper = f_r_norm * (1 + fib_tolerance)
     # f_b_table = np.array([f_r_norm_lower, f_r_norm, f_r_norm_upper])
     # f_ri_norm = [.236 2.618 4.236] # uncommon fib Ratio
-
 
     x_b_ratio, a_c_ratio, b_d_ratio, x_d_ratio = 0, 0, 0, 0
     if harmonic_name == 'Gartley':
@@ -113,27 +113,27 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_min_price, lo
     direction = [1, -1, 1, -1]
 
     # change the shift of high low value based on the local extremum of the elliott waves
-    # for i in range(0, len(local_max)):
-    #     for j in range(0, 50):
-    #         idx1 = min([local_max[i] + j, len(high)-1])
-    #         idx2 = max([local_max[i] - j, 0])
-    #         if high[idx1] == local_max_price[i]:
-    #             local_max[i] = idx1
-    #             break
-    #         elif high[idx2] == local_max_price[i]:
-    #             local_max[i] = idx2
-    #             break
-    #
-    # for i in range(0, len(local_min)):
-    #     for j in range(0, 50):
-    #         idx1 = min([local_min[i] + j, len(low)-1])
-    #         idx2 = max([local_min[i] - j, 0])
-    #         if low[idx1] == local_min_price[i]:
-    #             local_min[i] = idx1
-    #             break
-    #         elif low[idx2] == local_min_price[i]:
-    #             local_min[i] = idx2
-    #             break
+    for i in range(0, len(local_max)):
+        for j in range(0, 50):
+            idx1 = min([local_max[i] + j, len(high) - 1])
+            idx2 = max([local_max[i] - j, 0])
+            if high[idx1] == local_max_price[i]:
+                local_max[i] = idx1
+                break
+            elif high[idx2] == local_max_price[i]:
+                local_max[i] = idx2
+                break
+
+    for i in range(0, len(local_min)):
+        for j in range(0, 50):
+            idx1 = min([local_min[i] + j, len(low) - 1])
+            idx2 = max([local_min[i] - j, 0])
+            if low[idx1] == local_min_price[i]:
+                local_min[i] = idx1
+                break
+            elif low[idx2] == local_min_price[i]:
+                local_min[i] = idx2
+                break
 
     # high[np.array(local_max)] = local_max_price
     # low[np.array(local_min)] = local_min_price
@@ -226,7 +226,8 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_min_price, lo
                     rng[-1] - rng[0] < min_candle_diff) or (rng[-1] - rng[0] > max_candle_diff):
                 continue
             is_regression_cond = check_in_bound_price(middle, low, high, direction[0], harmonic_name, alpha, beta,
-                                                      np.arange(rng[0], rng[-1] + 1), local_min, local_max,trend_direction)
+                                                      np.arange(rng[0], rng[-1] + 1), local_min, local_max,
+                                                      trend_direction)
 
             if is_regression_cond and rng[1] - rng[0] > min_candle_diff:
                 for k in range(tmp_b, len(local_min)):
@@ -258,7 +259,8 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_min_price, lo
                         # print('leg AB')
                         is_regression_cond = check_in_bound_price(middle, low, high, direction[1], harmonic_name, alpha,
                                                                   beta,
-                                                                  np.arange(rng[0], rng[-1] + 1), local_min, local_max,trend_direction)
+                                                                  np.arange(rng[0], rng[-1] + 1), local_min, local_max,
+                                                                  trend_direction)
 
                         # is_regression_cond = True
                         if not is_regression_cond:
@@ -306,7 +308,7 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_min_price, lo
                                 is_regression_cond = check_in_bound_price(middle, low, high, direction[2],
                                                                           harmonic_name, alpha, beta,
                                                                           np.arange(rng[0], rng[-1] + 1), local_min,
-                                                                          local_max,trend_direction)
+                                                                          local_max, trend_direction)
                                 # is_regression_cond = True
                                 if not is_regression_cond:
                                     continue
@@ -386,7 +388,8 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_min_price, lo
                                         is_regression_cond = check_in_bound_price(middle, low, high, direction[3], \
                                                                                   harmonic_name, alpha, beta, \
                                                                                   np.arange(rng[0], rng[-1] + 1),
-                                                                                  local_min_new, local_max,trend_direction)
+                                                                                  local_min_new, local_max,
+                                                                                  trend_direction)
                                         # is_regression_cond = True
                                         if not is_regression_cond:
                                             continue
@@ -443,7 +446,6 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_min_price, lo
                                             xb2bd_cond = False
 
                                         if ac2bd_cond and xb2ac_cond and xb2bd_cond:
-
                                             res.append(
                                                 [local_min[i], local_max[j], local_min[k], local_max[p],
                                                  local_min_new[l], x, a, b, c,
@@ -455,7 +457,7 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_min_price, lo
 
                                             # -------> find the Potential reverse zone  <--------
                                             prz = find_PRZ(local_min[i], local_max[j], local_min[k], local_max[p],
-                                                 local_min_new[l], harmonic_name, trend_direction,high, low)
+                                                           local_min_new[l], harmonic_name, trend_direction, high, low)
                                             res[-1].extend(prz)
 
     if is_visual:
@@ -468,37 +470,43 @@ def harmonic_patterns_detector(high, low, middle, local_min, local_min_price, lo
         else:
             return 0
 
+
 # Build the Take profit and Stop Loss Value
-def find_tp_sl(x, a, b, c, d,harmonic_name,trend_direction):
+def find_tp_sl(x, a, b, c, d, harmonic_name, trend_direction):
     fibo_ratio = np.array([0.38, 0.62, 0.79, 1, 1.27, 1.382])
     # find TP
     xa = np.abs(a - x)
     if trend_direction == "Bullish":
-        tp_level = d + xa*fibo_ratio
-        sl_level = d - xa*fibo_ratio
+        tp_level = d + xa * fibo_ratio
+        sl_level = d - xa * fibo_ratio
 
-    elif trend_direction =="Bearish":
+    elif trend_direction == "Bearish":
         tp_level = d - xa * fibo_ratio
         sl_level = d + xa * fibo_ratio
 
     tp_sl_levels = np.array([*tp_level, *sl_level]).tolist()
     return tp_sl_levels
 
-def find_PRZ(xIdx, aIdx, bIdx, cIdx, dIdx, harmonic_name,trend_direction,top, bottom):
+
+def find_PRZ(xIdx, aIdx, bIdx, cIdx, dIdx, harmonic_name, trend_direction, top, bottom):
     fibo_ratio = np.array([0.38, 0.62, 0.79, 1, 1.27, 1.382])
-    Diff = top[xIdx:dIdx]-bottom[xIdx:dIdx]
-    avr_candle = np.mean(Diff)
+    Diff = top[xIdx:dIdx] - bottom[xIdx:dIdx]
+    avr_candle = np.abs(np.mean(Diff))
 
     # get the height of the prz box
     h = avr_candle
 
     # get the width of the prz box
     # width
-    w = np.round((dIdx - cIdx)/6)
+    w = np.round((dIdx - bIdx) / 3)
 
-    prz  = np.array([top[dIdx],dIdx, top[dIdx]-h,dIdx+w])
+    if trend_direction == 'bullish':
+        prz = np.array([top[dIdx], dIdx, top[dIdx] - 1.62 * h, dIdx + w]).tolist()
+    else:
+        prz = np.array([top[dIdx], dIdx, top[dIdx] - 1.62 * h, dIdx + w]).tolist()
 
     return prz
+
 
 # check the Fibonacci ratio
 def check_fibo_ratio(ref_fibo, target_fibo, tol):
@@ -555,7 +563,7 @@ def regression_fit(rng, middle):
 
 # -------------------- || check if the price move around the leg || --------------------
 # find boundary of the legs
-def check_in_bound_price(middle, low, high, direction, harmonic_name, alpha, beta, rng, local_min, local_max,trend):
+def check_in_bound_price(middle, low, high, direction, harmonic_name, alpha, beta, rng, local_min, local_max, trend):
     local_min = np.array(local_min)
     local_max = np.array(local_max)
 
@@ -614,9 +622,6 @@ def check_in_bound_price(middle, low, high, direction, harmonic_name, alpha, bet
                 leg_time_length = max_idx[0][-1] - min_idx[0][0]
                 condition_height = (np.array(low[min_idx[0][-1]] - omega * leg_height) <= np.min(low[rng])) and (
                         np.array(high[max_idx[0][0]] + (omega * leg_height)) >= np.max(high[rng]))
-
-
-
 
         # if local_extremum_proportion<1.5 and local_extremum_std<1.5:
         #     situation = True

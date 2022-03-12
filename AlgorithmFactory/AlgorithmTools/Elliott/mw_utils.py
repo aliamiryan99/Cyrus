@@ -6,6 +6,9 @@ from AlgorithmFactory.AlgorithmTools.Elliott.utility import intersection
 fib_ratio = 0.618033989
 fib_ratio_precision = fib_ratio * 0.05
 
+STATES_NUM = 3
+
+_ew_region_rules = None
 
 def waves_are_fib_related(pd1, pd2, fib_r=fib_ratio, order=False):
     """Returns True if the value of pd1 and pd2 are related by fib_ratios, where pd is price or duration"""
@@ -18,6 +21,7 @@ def waves_are_fib_related(pd1, pd2, fib_r=fib_ratio, order=False):
     if (second != 0):
         flag = (fib_r - fib_ratio_precision) < (first / second) < (fib_r + fib_ratio_precision)
     return flag
+
 
 def compare_ratio_waves(pd1, pd2, ratio=fib_ratio, lesser=False, ordered=False):
     """Returns True if the value of pd1 and pd2 are compared by the ratio, where pd is price or duration"""
@@ -35,19 +39,6 @@ def compare_ratio_waves(pd1, pd2, ratio=fib_ratio, lesser=False, ordered=False):
         else:
             flag = (ratio - ratio_precision) <= (first / second)
     return flag
-
-# def compare_ratio_waves(pd1, pd2, ratio=fib_ratio, lesser=False):
-#     """Returns True if the value of pd1 and pd2 are compared by the ratio, where pd is price or duration"""
-#     flag = False
-#     first = min(pd1, pd2)
-#     second = max(pd1, pd2)
-#     ratio_precision = ratio * 0.05
-#     if (second != 0):
-#         if (lesser == False):
-#             flag = (ratio - ratio_precision) <= (first / second)
-#         else:
-#             flag = (first / second) <= (ratio + ratio_precision)
-#     return flag
 
 
 def wave_overlap(W1, W2):
@@ -222,34 +213,235 @@ def count_labels(hmw: list) -> int:
     """
     return np.sum([len(m.Structure_list_label) for m in hmw], dtype=int)
 
-def balance_similarity(M0, M1, M2, M3=None, M4=None, small_middle=False):
-    _lesser = True
+
+
+"""
+Args:
+    df_nodes1 <DataFrame>: candles in timeframe which has the big legs
+    df_nodes2 <DataFrame>: candles in timeframe which has the smaller legs
+    mw1_handler <DataFrame>: monowaves which have the big legs
+    mw2_handler <DataFrame>: monowaves which have the smaller legs
+    labels <List<str>>: the labels to be checked
+    timestamp_tolerance <int>: checks this many of seconds before and after the candles (start and end) for smaller legs
+    candle_tolerance <int>: checks this many of candles before and after the candles (start and end) for smaller legs
+    
+Returns:
+    list: has tuples containing candles and monowaves that satisfy conditions
+    list :
+        As long as len(mw1_handler). Each element corresponds to one label in `labels`.
+        Boolean values if the leg in mw1_handler satisfies the conditions corresponding to the label.
+    
+#TODO:
+    label should become a list of labels and the return value would change accordingly
+"""
+def matching_monowaves(df_nodes1, df_nodes2, mw1_handler, mw2_handler, labels:list = [':F3',], timestamp_tolerance=1000,
+                       candle_tolerance=None, label_validity_threshold=0.0):
+    from ast import literal_eval
+    if timestamp_tolerance is not None and candle_tolerance is not None:
+        print(f"Switching to candle_tolerance (={candle_tolerance})")
+        timestamp_tolerance = None
+
+    _df_nodes1 = df_nodes1
+    _df_nodes2 = df_nodes2
+
+    if not _df_nodes1.index.dtype in (np.int64, np.uint64, int):
+        _df_nodes1 = _df_nodes1.reset_index()
+    if not _df_nodes2.index.dtype in (np.int64, np.uint64, int):
+        _df_nodes2 = _df_nodes2.reset_index()
+
+    if timestamp_tolerance is not None:
+        _df_nodes1['timestamp_Time'] = _df_nodes1.apply(lambda x: pd.Timestamp(x['Time'], ).timestamp(), axis=1)
+        _df_nodes2['timestamp_Time'] = _df_nodes2.apply(lambda x: pd.Timestamp(x['Time'], ).timestamp(), axis=1)
+
+    results = []
+    indices = []
+    for i in range(len(mw1_handler)):
+        mw = mw1_handler.iloc[i]
+        if isinstance(mw.Structure_list_label, str):
+            structure_list_label = set(literal_eval(mw.Structure_list_label))
+        else:
+            structure_list_label= mw.Structure_list_label
+        cond1 = None
+        cond2 = None
+
+        candidates = []
+        for label in labels:
+            candidates.append(0.0)
+            if label in structure_list_label:
+                candles1 = _df_nodes1.iloc[mw.Start_candle_index:mw.End_candle_index]
+
+                if cond1 is None or cond2 is None:
+                    if timestamp_tolerance is not None:
+                        cond1 = _df_nodes2['timestamp_Time'] >= (candles1.iloc[0]['timestamp_Time'] - timestamp_tolerance)
+                        cond2 = _df_nodes2['timestamp_Time'] <= (_df_nodes1.iloc[candles1.index.values[-1] + 1][
+                                                                       'timestamp_Time'] - 10 + timestamp_tolerance)
+                    else:
+                        cond1 = _df_nodes2.index.values >= (candles1.index.values[0] - candle_tolerance)
+                        cond2 = _df_nodes2.index.values <= (candles1.index.values[-1] + candle_tolerance)
+
+                candles2 = _df_nodes2[(cond2) & (cond1)]
+                if candles2.empty or candles1.empty:
+                    continue
+                cond3 = mw2_handler['Start_candle_index'] > (candles2.index.values[0] - 1)
+                cond4 = mw2_handler['End_candle_index'] < (candles2.index.values[-1] + 1)
+                mw2_result = mw2_handler.loc[(cond3) & (cond4)]
+
+                if not mw2_result.empty:
+                    validity = matching_conditions.get(label)(mw, mw2_result)
+                    if validity > label_validity_threshold:
+
+                        candidates[-1] = validity
+
+                        results.append(
+                            (candles1, candles2,
+                            mw.to_frame().transpose() if len(mw.shape) == 1 else mw,
+                            mw2_result.to_frame().transpose() if len(mw2_result.shape) == 1 else mw2_result,
+                            label, validity)
+                        )
+
+        indices.append(candidates)
+    # todo: should get rid of `results` in production. it is just for the sake of making things easier
+    return results, indices
+
+# def F3(mw1, mw2):
+#     return mw2.shape[0] == 3# or mw2.shape[0] == 4
+#
+# def L5(mw1, mw2):
+#     return mw2.shape[0] == 4
+#
+# def L3(mw1, mw2):
+#     return mw2.shape[0] == 3
+#
+# def five(mw1, mw2):
+#     return mw2.shape[0] == 5
+#
+# def S5(mw1, mw2):
+#     return mw2.shape[0] == 5
+
+matching_conditions = {
+    '(:F3)': lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-3)/STATES_NUM)) if mw2.shape[0] >= 3 else 0.0,
+    '(:L5)': lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+    '(:5)' : lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+    '(:L3)': lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-3)/STATES_NUM)) if mw2.shape[0] >= 3 else 0.0,
+    '(:s5)': lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+    '[:F3]': lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-3)/STATES_NUM)) if mw2.shape[0] >= 3 else 0.0,
+    '[:L5]': lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+    '[:5]' : lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+    '[:L3]': lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-3)/STATES_NUM)) if mw2.shape[0] >= 3 else 0.0,
+    '[:s5]': lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+
+    ':F3'  : lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-3)/STATES_NUM)) if mw2.shape[0] >= 3 else 0.0,
+    ':L3'  : lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-3)/STATES_NUM)) if mw2.shape[0] >= 3 else 0.0,
+    ':L5'  : lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+    ':s5'  : lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+    ':5'   : lambda mw1, mw2: max(0.0, 1 - ((mw2.shape[0]-5)/STATES_NUM)) if mw2.shape[0] >= 5 else 0.0,
+
+    # ':L5': lambda mw1, mw2: mw2.shape[0] == 5,
+    # ':5' : lambda mw1, mw2: mw2.shape[0] == 5,
+    # ':L3': lambda mw1, mw2: mw2.shape[0] == 3,
+    # ':s5': lambda mw1, mw2: mw2.shape[0] == 5,
+}
+
+
+def chart_monowaves(data, match_list, chart_tool,):
+    # print(f"check_lower_neo\t\t{len(self.monowave_list)}\t\t{i}")
+    print(f"Match List:\t\t{len(match_list)}\n")
+    # The Darker, more prominent Blueviolet > Fuschia > plum
+    ranges = [(0.3, 0.4, '221,160,221'), (0.6, 0.7, '255,0,255'), (0.9, 1.1, '138,43,226')]
+    for spectrums in ranges:
+
+        candidates = [idx for idx in range(len(match_list)) if
+                      match_list[idx][5] >= spectrums[0] and match_list[idx][5] <= spectrums[1]]
+        color = spectrums[2]
+        width = 4
+        # for il in range(len(match_list)):
+        for il in candidates:
+            names = []
+            start_times = []
+            end_times = []
+            start_prices = []
+            end_prices = []
+
+            for idx, item in match_list[il][3].iterrows():
+                names.append(f"lower_neo_leg_{il}_{idx}")
+                # names = [f"lower_neo_leg_{il}_{idx}" for idx, item in match_list[il][3].iterrows()]
+                start_times.append(data[item['Start_candle_index']]['Time'])
+                end_times.append(data[item['End_candle_index']]['Time'])
+                start_prices.append(item['Start_price'])
+                end_prices.append(item['End_price'])
+                # start_times = [item['Start_time'] for idx, item in match_list[il][3].iterrows()]
+
+                # end_times = [item['End_time'] for idx, item in match_list[il][3].iterrows()]
+                # start_prices = [item['Start_price'] for idx, item in match_list[il][3].iterrows()]
+                # end_prices = [item['End_price'] for idx, item in match_list[il][3].iterrows()]
+
+            chart_tool.trend_line(names, start_times, start_prices, end_times, end_prices, color=color,
+                                       width=width, style=chart_tool.EnumStyle.DashDotDot)
+
+
+def balance_similarity(M0, M1, M2, M3=None, M4=None, small_middle=False, lesser=False):
+    _lesser = lesser
     # _ratio = 1/3
     _ratio = 2 / 5
     _ordered = small_middle
     if M3 is None and M4 is None:
         return (
             (
-                compare_ratio_waves(M1.Price_range, M0.Price_range, _ratio, _lesser, _ordered) or
-                compare_ratio_waves(M0.Duration, M1.Duration, _ratio, _lesser,)
+                compare_ratio_waves(M1.Price_range, M0.Price_range, _ratio, _lesser, _ordered) #or
+                # compare_ratio_waves(M0.Duration, M1.Duration, _ratio, _lesser,)
             ) and (
-                compare_ratio_waves(M1.Price_range, M2.Price_range, _ratio, _lesser, _ordered) or
-                compare_ratio_waves(M1.Duration, M2.Duration, _ratio, _lesser,)
+                compare_ratio_waves(M1.Price_range, M2.Price_range, _ratio, _lesser, _ordered) #or
+                # compare_ratio_waves(M1.Duration, M2.Duration, _ratio, _lesser,)
             )
         )
 
-    if M3 is not None and M4 is not None:
-        if ((compare_ratio_waves(M0.Price_range, M1.Price_range, 1 / 3) or
-             compare_ratio_waves(M0.Duration, M1.Duration, 1 / 3)) and
 
-                (compare_ratio_waves(M1.Price_range, M2.Price_range, 1 / 3) or
-                     compare_ratio_waves(M1.Duration, M2.Duration, 1 / 3)) and
+def get_ew_region_rules_list(monowaves, condition_hashing_index):
+    global _ew_region_rules
+    if _ew_region_rules is not None: return _ew_region_rules[condition_hashing_index]
+    # _not_implemented = lambda hmw, idx: print(f"Not Implemented")
+    _not_implemented = None
+    # Why 80? according to our naive hash calculation, the hash value doesn't exceed this number (if it did, \
+    # recalculate it or something
+    _ew_region_rules = [_not_implemented for i in range(80)]
+    # Num Retracement Rule: 1
+    _ew_region_rules[1 * 10 + (ord('a') - ord('a'))] = lambda hmw, index: monowaves.EW_R1a(hmw, index)
+    _ew_region_rules[1 * 10 + (ord('b') - ord('a'))] = lambda hmw, index: monowaves.EW_R1b(hmw, index)
+    _ew_region_rules[1 * 10 + (ord('c') - ord('a'))] = lambda hmw, index: monowaves.EW_R1c(hmw, index)
+    _ew_region_rules[1 * 10 + (ord('d') - ord('a'))] = lambda hmw, index: monowaves.EW_R1d(hmw, index)
+    # Num Retracement Rule: 2
+    _ew_region_rules[2 * 10 + (ord('a') - ord('a'))] = lambda hmw, index: monowaves.EW_R2a(hmw, index)
+    _ew_region_rules[2 * 10 + (ord('b') - ord('a'))] = lambda hmw, index: monowaves.EW_R2b(hmw, index)
+    _ew_region_rules[2 * 10 + (ord('c') - ord('a'))] = lambda hmw, index: monowaves.EW_R2c(hmw, index)
+    _ew_region_rules[2 * 10 + (ord('d') - ord('a'))] = lambda hmw, index: monowaves.EW_R2d(hmw, index)
+    _ew_region_rules[2 * 10 + (ord('e') - ord('a'))] = lambda hmw, index: monowaves.EW_R2e(hmw, index)
+    # Num Retracement Rule: 3
+    _ew_region_rules[3 * 10 + (ord('a') - ord('a'))] = lambda hmw, index: monowaves.EW_R3a(hmw, index)
+    _ew_region_rules[3 * 10 + (ord('b') - ord('a'))] = lambda hmw, index: monowaves.EW_R3b(hmw, index)
+    _ew_region_rules[3 * 10 + (ord('c') - ord('a'))] = lambda hmw, index: monowaves.EW_R3c(hmw, index)
+    _ew_region_rules[3 * 10 + (ord('d') - ord('a'))] = lambda hmw, index: monowaves.EW_R3d(hmw, index)
+    _ew_region_rules[3 * 10 + (ord('e') - ord('a'))] = lambda hmw, index: monowaves.EW_R3e(hmw, index)
+    _ew_region_rules[3 * 10 + (ord('f') - ord('a'))] = lambda hmw, index: monowaves.EW_R3f(hmw, index)
+    # Num Retracement Rule: 4
+    _ew_region_rules[4 * 10 + (ord('a') - ord('a'))] = lambda hmw, index: monowaves.EW_R4a(hmw, index)
+    _ew_region_rules[4 * 10 + (ord('b') - ord('a'))] = lambda hmw, index: monowaves.EW_R4b(hmw, index)
+    _ew_region_rules[4 * 10 + (ord('c') - ord('a'))] = lambda hmw, index: monowaves.EW_R4c(hmw, index)
+    _ew_region_rules[4 * 10 + (ord('d') - ord('a'))] = lambda hmw, index: monowaves.EW_R4d(hmw, index)
+    _ew_region_rules[4 * 10 + (ord('e') - ord('a'))] = lambda hmw, index: monowaves.EW_R4e(hmw, index)
+    # Num Retracement Rule: 5
+    _ew_region_rules[5 * 10 + (ord('a') - ord('a'))] = lambda hmw, index: monowaves.EW_R5a(hmw, index)
+    _ew_region_rules[5 * 10 + (ord('b') - ord('a'))] = lambda hmw, index: monowaves.EW_R5b(hmw, index)
+    _ew_region_rules[5 * 10 + (ord('c') - ord('a'))] = lambda hmw, index: monowaves.EW_R5c(hmw, index)
+    _ew_region_rules[5 * 10 + (ord('d') - ord('a'))] = lambda hmw, index: monowaves.EW_R5d(hmw, index)
+    # Num Retracement Rule: 6
+    _ew_region_rules[6 * 10 + (ord('a') - ord('a'))] = lambda hmw, index: monowaves.EW_R6a(hmw, index)
+    _ew_region_rules[6 * 10 + (ord('b') - ord('a'))] = lambda hmw, index: monowaves.EW_R6b(hmw, index)
+    _ew_region_rules[6 * 10 + (ord('c') - ord('a'))] = lambda hmw, index: monowaves.EW_R6c(hmw, index)
+    _ew_region_rules[6 * 10 + (ord('d') - ord('a'))] = lambda hmw, index: monowaves.EW_R6d(hmw, index)
+    # Num Retracement Rule: 7
+    _ew_region_rules[7 * 10 + (ord('a') - ord('a'))] = lambda hmw, index: monowaves.EW_R7a(hmw, index)
+    _ew_region_rules[7 * 10 + (ord('b') - ord('a'))] = lambda hmw, index: monowaves.EW_R7b(hmw, index)
+    _ew_region_rules[7 * 10 + (ord('c') - ord('a'))] = lambda hmw, index: monowaves.EW_R7c(hmw, index)
+    _ew_region_rules[7 * 10 + (ord('d') - ord('a'))] = lambda hmw, index: monowaves.EW_R7d(hmw, index)
 
-                (compare_ratio_waves(M2.Price_range, M3.Price_range, 1 / 3) or
-                     compare_ratio_waves(M2.Duration, M3.Duration, 1 / 3)) and
-
-                (compare_ratio_waves(M3.Price_range, M4.Price_range, 1 / 3) or
-                 compare_ratio_waves(M3.Duration, M4.Duration, 1 / 3))):
-            return True
-
-    return False
+    return _ew_region_rules[condition_hashing_index]

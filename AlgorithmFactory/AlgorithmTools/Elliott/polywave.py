@@ -772,7 +772,7 @@ class PolyWave:
         M4 = self.monowavesList[stIndex + 3]
         M5 = self.monowavesList[stIndex + 4]
 
-        post_action = self.monowavesList[stIndex + 5] if (stIndex + 5) <= len(self.monowavesList) else None
+        post_action = self.monowavesList[stIndex + 5] if (stIndex + 5) < len(self.monowavesList) else None
 
         if post_action is not None:
 
@@ -812,7 +812,7 @@ class PolyWave:
         Mb = self.monowavesList[stIndex + 1]
         Mc = self.monowavesList[stIndex + 2]
 
-        post_action = self.monowavesList[stIndex + 3] if (stIndex + 3) <= len(self.monowavesList) else None
+        post_action = self.monowavesList[stIndex + 3] if (stIndex + 3) < len(self.monowavesList) else None
 
         if post_action is not None:
 
@@ -836,7 +836,7 @@ class PolyWave:
         Md = self.monowavesList[stIndex + 3]
         Me = self.monowavesList[stIndex + 4]
 
-        post_action = self.monowavesList[stIndex + 5] if (stIndex + 5) <= len(self.monowavesList) else None
+        post_action = self.monowavesList[stIndex + 5] if (stIndex + 5) < len(self.monowavesList) else None
 
         if post_action is None:
             return

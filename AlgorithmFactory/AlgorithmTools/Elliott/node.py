@@ -55,7 +55,7 @@ class Node:
                     else:
                         signal[i+int(.25*tempstep)] = df.Low[i+min_idx]
 
-                    mark.append(i+int(.25*step))
+                    mark.append(i+int(.25*tempstep))
 
                 elif rem > last_step2:
                     max_idx = np.argmax(df.High[i:i+rem])

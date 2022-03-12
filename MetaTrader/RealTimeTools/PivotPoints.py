@@ -6,13 +6,13 @@ from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
 class PivotPoints(RealTimeTool):
 
-    def __init__(self, chart_tool: MetaTraderBase, data, window, mode):
+    def __init__(self, chart_tool: MetaTraderBase, data, window_left, window_right, mode):
         super().__init__(chart_tool, data)
 
-        self.window = window
+        self.window = window_left
         self.mode = mode
 
-        self.local_min, self.local_max = get_local_extermums(self.data, window, mode)
+        self.local_min, self.local_max = get_local_extermums_asymetric(self.data, window_left, window_right, mode)
 
         self.last_local_min, self.last_local_max = self.local_min[-1], self.local_max[-1]
         self.last_min_id, self.last_max_id = 1, 1

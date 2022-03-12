@@ -79,3 +79,16 @@ def remove_subitem_in_list(list_items:list, sub_item) -> list:
 
 def df2list(df_mw:pd.DataFrame) -> list:
     return [df_mw.iloc[i] for i in range(len(df_mw))]
+
+def is_subset(set_of_sets1, set_of_sets2):
+    """ Return True if all sets in the set_of_sets1 matched with corresponding set in set_of_sets2
+
+    Args:
+        set_of_sets1 (list of lists): 
+        set_of_sets2 (list of list): main lists
+    """
+    for idx, sub_set in enumerate(set_of_sets1):
+        if not set(sub_set).issubset(set(set_of_sets2[idx])):
+            return False
+    return True
+    

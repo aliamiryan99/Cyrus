@@ -306,7 +306,8 @@ class Harmonics(RealTimeTool):
         width = 2
         bullish_color = '20,20,255'
         bearish_color = '255,20,20'
-
+        bullish_prz_color = '167,255,171'
+        bearish_prz_color = '255,45,45'
         # define N digit random number
 
         n = 5
@@ -337,17 +338,23 @@ class Harmonics(RealTimeTool):
                               self.data[int(result[2])]['Time'], self.data[int(result[4])]['Time'], result[7],
                               result[9], names_ext, times1_ext, times2_ext, prices1_ext, prices2_ext)
                 self.add_text(f"{self.harmonic_name}_BullishHarmonic{i}_A_{(random_tage)}", "A",
-                              self.data[int(result[1])]['Time'], result[6], name_txt1, text_txt1, time_txt1, price_txt1)
+                              self.data[int(result[1])]['Time'], result[6], name_txt1, text_txt1, time_txt1,
+                              price_txt1)
                 self.add_text(f"{self.harmonic_name}_BullishHarmonic{i}_B_{(random_tage)}", "B",
-                              self.data[int(result[2])]['Time'], result[7], name_txt2, text_txt2, time_txt2, price_txt2)
+                              self.data[int(result[2])]['Time'], result[7], name_txt2, text_txt2, time_txt2,
+                              price_txt2)
                 self.add_text(f"{self.harmonic_name}_BullishHarmonic{i}_C_{(random_tage)}", "C",
-                              self.data[int(result[3])]['Time'], result[8], name_txt1, text_txt1, time_txt1, price_txt1)
+                              self.data[int(result[3])]['Time'], result[8], name_txt1, text_txt1, time_txt1,
+                              price_txt1)
                 self.add_text(f"{self.harmonic_name}_BullishHarmonic{i}_D_{(random_tage)}", "D",
-                              self.data[int(result[4])]['Time'], result[9], name_txt2, text_txt2, time_txt2, price_txt2)
-                self.add_text(f"{self.harmonic_name}_BullishHarmonic{i}_AC_{(random_tage)}", f"{round(result[11], 4)}",
+                              self.data[int(result[4])]['Time'], result[9], name_txt2, text_txt2, time_txt2,
+                              price_txt2)
+                self.add_text(f"{self.harmonic_name}_BullishHarmonic{i}_AC_{(random_tage)}",
+                              f"{round(result[11], 4)}",
                               self.data[int((result[1] + result[3]) / 2)]['Time'], (result[6] + result[8]) / 2,
                               name_txt1, text_txt1, time_txt1, price_txt1)
-                self.add_text(f"{self.harmonic_name}_BullishHarmonic{i}_BD_{(random_tage)}", f"{round(result[12], 4)}",
+                self.add_text(f"{self.harmonic_name}_BullishHarmonic{i}_BD_{(random_tage)}",
+                              f"{round(result[12], 4)}",
                               self.data[int((result[2] + result[4]) / 2)]['Time'], (result[7] + result[9]) / 2,
                               name_txt2, text_txt2, time_txt2, price_txt2)
                 i += 1
@@ -381,21 +388,26 @@ class Harmonics(RealTimeTool):
                               self.data[int(result[2])]['Time'], self.data[int(result[4])]['Time'], result[7],
                               result[9], names_ext, times1_ext, times2_ext, prices1_ext, prices2_ext)
                 self.add_text(f"{self.harmonic_name}_BearishHarmonic{i}_A_{(random_tage)}", "A",
-                              self.data[int(result[1])]['Time'], result[6], name_txt1, text_txt1, time_txt1, price_txt1)
+                              self.data[int(result[1])]['Time'], result[6], name_txt1, text_txt1, time_txt1,
+                              price_txt1)
                 self.add_text(f"{self.harmonic_name}_BearishHarmonic{i}_B_{(random_tage)}", "B",
-                              self.data[int(result[2])]['Time'], result[7], name_txt2, text_txt2, time_txt2, price_txt2)
+                              self.data[int(result[2])]['Time'], result[7], name_txt2, text_txt2, time_txt2,
+                              price_txt2)
                 self.add_text(f"{self.harmonic_name}_BearishHarmonic{i}_C_{(random_tage)}", "C",
-                              self.data[int(result[3])]['Time'], result[8], name_txt1, text_txt1, time_txt1, price_txt1)
+                              self.data[int(result[3])]['Time'], result[8], name_txt1, text_txt1, time_txt1,
+                              price_txt1)
                 self.add_text(f"{self.harmonic_name}_BearishHarmonic{i}_D_{(random_tage)}", "D",
-                              self.data[int(result[4])]['Time'], result[9], name_txt2, text_txt2, time_txt2, price_txt2)
-                self.add_text(f"{self.harmonic_name}_BearishHarmonic{i}_AC_{(random_tage)}", f"{round(result[11], 4)}",
+                              self.data[int(result[4])]['Time'], result[9], name_txt2, text_txt2, time_txt2,
+                              price_txt2)
+                self.add_text(f"{self.harmonic_name}_BearishHarmonic{i}_AC_{(random_tage)}",
+                              f"{round(result[11], 4)}",
                               self.data[int((result[1] + result[3]) / 2)]['Time'], (result[6] + result[8]) / 2,
                               name_txt1, text_txt1, time_txt1, price_txt1)
-                self.add_text(f"{self.harmonic_name}_BearishHarmonic{i}_BD_{(random_tage)}", f"{round(result[12], 4)}",
+                self.add_text(f"{self.harmonic_name}_BearishHarmonic{i}_BD_{(random_tage)}",
+                              f"{round(result[12], 4)}",
                               self.data[int((result[2] + result[4]) / 2)]['Time'], (result[7] + result[9]) / 2,
                               name_txt2, text_txt2, time_txt2, price_txt2)
                 i += 1
-
             if len(names) != 0:
                 chart_tool.trend_line(names, times1, prices1, times2, prices2, color=bearish_color, width=width)
                 chart_tool.trend_line(names_ext, times1_ext, prices1_ext, times2_ext, prices2_ext, color=bearish_color,
@@ -416,6 +428,7 @@ class Harmonics(RealTimeTool):
                     acc_name_txt, acc_text_txt, acc_time_txt, acc_price_txt = [], [], [], []
                     tp_names, tp_times1, tp_prices1, tp_times2, tp_prices2 = [], [], [], [], []
                     sl_names, sl_times1, sl_prices1, sl_times2, sl_prices2 = [], [], [], [], []
+                    PRZ_names, PRZ_times1, PRZ_prices1, PRZ_times2, PRZ_prices2 = [], [], [], [], []
 
                     ratio_line_names, ratio_line_times1, ratio_line_prices1, ratio_line_times2, ratio_line_prices2 = [], [], [], [], []
 
@@ -441,14 +454,16 @@ class Harmonics(RealTimeTool):
 
                         # text of Accuracy and tp sl
                         acc = np.random.randint(low=75, high=95, size=(1))[0]
-                        tp_val = np.random.randint(low=result[9], high=np.max([result[8], result[6]]) + 1, size=(1))[0]
+                        tp_val = \
+                        np.random.randint(low=result[9], high=np.max([result[8], result[6]]) + 1, size=(1))[0]
                         sl_val = \
                             np.random.randint(low=result[9] - np.abs(result[8] - result[7]), high=result[9] + 1,
                                               size=(1))[
                                 0]
                         self.add_text(f"{name}_Accuracy{i}_Name_{(random_tage)}", f"Accuracy = {acc}",
                                       self.data[int(result[2])]['Time'], np.max([result[6], result[7],
-                                                                                 result[8], result[9]]) + 0.5 * np.abs(
+                                                                                 result[8],
+                                                                                 result[9]]) + 0.5 * np.abs(
                                 result[8] - result[6]), acc_name_txt, acc_text_txt,
                                       acc_time_txt, acc_price_txt)
 
@@ -469,19 +484,25 @@ class Harmonics(RealTimeTool):
                                       self.data[int(result[4])]['Time'], result[9], name_txt2, text_txt2, time_txt2,
                                       price_txt2)
                         self.add_text(f"{name}_BullishHarmonic{i}_XB_{(random_tage)}", f"{round(result[10], 4)}",
-                                      self.data[int((result[0] + result[2]) / 2)]['Time'], (result[5] + result[7]) / 2,
+                                      self.data[int((result[0] + result[2]) / 2)]['Time'],
+                                      (result[5] + result[7]) / 2,
                                       name_txt2, text_txt2, time_txt2, price_txt2)
                         self.add_text(f"{name}_BullishHarmonic{i}_AC_{(random_tage)}", f"{round(result[11], 4)}",
-                                      self.data[int((result[1] + result[3]) / 2)]['Time'], (result[6] + result[8]) / 2,
+                                      self.data[int((result[1] + result[3]) / 2)]['Time'],
+                                      (result[6] + result[8]) / 2,
                                       name_txt1, text_txt1, time_txt1, price_txt1)
                         self.add_text(f"{name}_BullishHarmonic{i}_BD_{(random_tage)}", f"{round(result[12], 4)}",
-                                      self.data[int((result[2] + result[4]) / 2)]['Time'], (result[7] + result[9]) / 2,
+                                      self.data[int((result[2] + result[4]) / 2)]['Time'],
+                                      (result[7] + result[9]) / 2,
                                       name_txt2, text_txt2, time_txt2, price_txt2)
                         self.add_text(f"{name}_BullishHarmonic{i}_XD_{(random_tage)}", f"{round(result[13], 4)}",
-                                      self.data[int((result[0] + result[4]) / 2)]['Time'], (result[5] + result[9]) / 2,
+                                      self.data[int((result[0] + result[4]) / 2)]['Time'],
+                                      (result[5] + result[9]) / 2,
                                       name_txt2, text_txt2, time_txt2, price_txt2)
 
-                        # tp sl Lines
+                        # ---- tp sl Lines
+                        random_tage = random_tage + 1
+
                         tp_val = result[17:17 + 6]
                         sl_val = result[23:23 + 6]
                         Acc = np.zeros(len(tp_val))
@@ -491,25 +512,28 @@ class Harmonics(RealTimeTool):
                         Acc = Acc[::-1]
 
                         for j in range(0, len(tp_val) - 1):
-                            self.add_line(f"{name}_BullishHarmonic{i}_TP{j} {(random_tage)}",
+                            self.add_line(f"{name}_BullishHarmonic{i}_TPLine{j} {(random_tage)}",
                                           self.data[int(result[4])]['Time'], self.data[int(result[4])]['Time'] +
                                           (self.data[int(result[3])]['Time'] - self.data[int(result[2])]['Time']),
-                                          tp_val[j], tp_val[j], tp_names, tp_times1, tp_times2, tp_prices1, tp_prices2)
+                                          tp_val[j], tp_val[j], tp_names, tp_times1, tp_times2, tp_prices1,
+                                          tp_prices2)
 
                             STR = "ACC" + str(j + 1) + ":" + "%.1f" % Acc[j] + " _TP" + str(j + 1) + ": " + "%.3f" % \
                                   tp_val[j]
-                            self.add_text(f"{name}_BullishHarmonic{i}_TP{j}_{(random_tage)}",
+                            self.add_text(f"{name}_BullishHarmonic{i}_TPTxt{j}_{(random_tage)}",
                                           STR,
-                                          self.data[int(result[4])]['Time'], tp_val[j], tpsl_name_txt, tpsl_text_txt,
+                                          self.data[int(result[4])]['Time'], tp_val[j], tpsl_name_txt,
+                                          tpsl_text_txt,
                                           tpsl_time_txt,
                                           price_name_txt)
                             if j < 2:
-                                self.add_line(f"{name}_BullishHarmonic{i}_SL{j} {(random_tage)}",
+                                self.add_line(f"{name}_BullishHarmonic{i}_SLLine{j} {(random_tage)}",
                                               self.data[int(result[4])]['Time'], self.data[int(result[4])]['Time'] +
-                                              (self.data[int(result[3])]['Time'] - self.data[int(result[2])]['Time']),
+                                              (self.data[int(result[3])]['Time'] - self.data[int(result[2])][
+                                                  'Time']),
                                               sl_val[j], sl_val[j], sl_names, sl_times1, sl_times2, sl_prices1,
                                               sl_prices2)
-                                self.add_text(f"{name}_BullishHarmonic{i}SL{j}_{(random_tage)}",
+                                self.add_text(f"{name}_BullishHarmonic{i}SLTxt{j}_{(random_tage)}",
                                               "SL" + str(j + 1) + ": " + "%.3f" % sl_val[j],
                                               self.data[int(result[4])]['Time'], sl_val[j], tpsl_name_txt,
                                               tpsl_text_txt, tpsl_time_txt,
@@ -521,22 +545,31 @@ class Harmonics(RealTimeTool):
                                           'Time']), sl_val, sl_val, sl_names, sl_times1, sl_times2, sl_prices1,
                                       sl_prices2)
 
-                        # dot list
+                        # --- dot list
                         self.add_line(f"{name}_BullishHarmonic{i}_DottedLine_XD_{(random_tage)}",
-                                      self.data[int(result[0])]['Time'], self.data[int(result[4])]['Time'], result[5],
+                                      self.data[int(result[0])]['Time'], self.data[int(result[4])]['Time'],
+                                      result[5],
                                       result[9], ratio_line_names, ratio_line_times1, ratio_line_times2, \
                                       ratio_line_prices1, ratio_line_prices2)
                         self.add_line(f"{name}_BullishHarmonic{i}_DottedLine_AC_{(random_tage)}",
-                                      self.data[int(result[1])]['Time'], self.data[int(result[3])]['Time'], result[6],
+                                      self.data[int(result[1])]['Time'], self.data[int(result[3])]['Time'],
+                                      result[6],
                                       result[8], ratio_line_names, ratio_line_times1, ratio_line_times2,
                                       ratio_line_prices1, ratio_line_prices2)
+
+                        # --- PRZ  Bullish
+                        self.add_rectangle(f"{name}_BullishHarmonic{i}_PRZ_{(random_tage)}",
+                                           self.data[int(result[30])]['Time'], self.data[int(result[32])]['Time'],
+                                           result[29], result[31], PRZ_names,
+                                           PRZ_times1, PRZ_times2, PRZ_prices1, PRZ_prices2)
 
                         i += 1
 
                     if len(names) != 0:
                         chart_tool.triangle(names, times1, prices1, times2, prices2, times3, prices3, width=width,
                                             color=bullish_color, back=1)
-                        chart_tool.text(name_txt1, time_txt1, price_txt1, text_txt1, anchor=chart_tool.EnumAnchor.Bottom)
+                        chart_tool.text(name_txt1, time_txt1, price_txt1, text_txt1,
+                                        anchor=chart_tool.EnumAnchor.Bottom)
                         chart_tool.text(name_txt2, time_txt2, price_txt2, text_txt2, anchor=chart_tool.EnumAnchor.Top)
 
                         chart_tool.text(acc_name_txt, acc_time_txt, acc_price_txt, acc_text_txt,
@@ -554,9 +587,12 @@ class Harmonics(RealTimeTool):
                         chart_tool.trend_line(sl_names, sl_times1, sl_prices1, sl_times2, sl_prices2, color=sl_color,
                                               style=sl_style, width=width)
 
-                        chart_tool.trend_line(ratio_line_names, ratio_line_times1, ratio_line_prices1, ratio_line_times2, \
+                        chart_tool.trend_line(ratio_line_names, ratio_line_times1, ratio_line_prices1,
+                                              ratio_line_times2, \
                                               ratio_line_prices2, color="254,254,254",
                                               style=chart_tool.EnumStyle.Dot, width=1)
+                        chart_tool.rectangle(PRZ_names, PRZ_times1, PRZ_prices1, PRZ_times2, PRZ_prices2, width=width, \
+                                             color=bullish_prz_color, back=1)
 
                 # ---------- || Bearish Plots || -----------
                 if 'bearish' in self.result[name].keys():
@@ -569,6 +605,8 @@ class Harmonics(RealTimeTool):
 
                     tp_names, tp_times1, tp_prices1, tp_times2, tp_prices2 = [], [], [], [], []
                     sl_names, sl_times1, sl_prices1, sl_times2, sl_prices2 = [], [], [], [], []
+
+                    PRZ_names, PRZ_times1, PRZ_prices1, PRZ_times2, PRZ_prices2 = [], [], [], [], []
 
                     ratio_line_names, ratio_line_times1, ratio_line_prices1, ratio_line_times2, ratio_line_prices2 = [], [], [], [], []
                     i = 0
@@ -600,37 +638,45 @@ class Harmonics(RealTimeTool):
                                       self.data[int(result[4])]['Time'], result[9], name_txt2, text_txt2, time_txt2,
                                       price_txt2)
                         self.add_text(f"{name}_BearishHarmonic{i}_XB_{(random_tage)}", f"{round(result[10], 4)}",
-                                      self.data[int((result[0] + result[2]) / 2)]['Time'], (result[5] + result[7]) / 2,
+                                      self.data[int((result[0] + result[2]) / 2)]['Time'],
+                                      (result[5] + result[7]) / 2,
                                       name_txt2, text_txt2, time_txt2, price_txt2)
                         self.add_text(f"{name}_BearishHarmonic{i}_AC_{(random_tage)}", f"{round(result[11], 4)}",
-                                      self.data[int((result[1] + result[3]) / 2)]['Time'], (result[6] + result[8]) / 2,
+                                      self.data[int((result[1] + result[3]) / 2)]['Time'],
+                                      (result[6] + result[8]) / 2,
                                       name_txt1, text_txt1, time_txt1, price_txt1)
                         self.add_text(f"{name}_BearishHarmonic{i}_BD_{(random_tage)}", f"{round(result[12], 4)}",
-                                      self.data[int((result[2] + result[4]) / 2)]['Time'], (result[7] + result[9]) / 2,
+                                      self.data[int((result[2] + result[4]) / 2)]['Time'],
+                                      (result[7] + result[9]) / 2,
                                       name_txt2, text_txt2, time_txt2, price_txt2)
                         self.add_text(f"{name}_BearishHarmonic{i}_XD_{(random_tage)}", f"{round(result[13], 4)}",
-                                      self.data[int((result[0] + result[4]) / 2)]['Time'], (result[5] + result[9]) / 2,
+                                      self.data[int((result[0] + result[4]) / 2)]['Time'],
+                                      (result[5] + result[9]) / 2,
                                       name_txt2, text_txt2, time_txt2, price_txt2)
 
                         self.add_text(f"{name}_BearishHarmonic{i}_XD_{(random_tage)}", f"{round(result[13], 4)}",
-                                      self.data[int((result[0] + result[4]) / 2)]['Time'], (result[5] + result[9]) / 2,
+                                      self.data[int((result[0] + result[4]) / 2)]['Time'],
+                                      (result[5] + result[9]) / 2,
                                       name_txt2, text_txt2, time_txt2, price_txt2)
                         # accuracy and TP, SL text
                         self.add_text(f"{name}_BearishAccuracy{i}_{(random_tage)}", f"{round(result[13], 4)}",
-                                      self.data[int((result[0] + result[4]) / 2)]['Time'], (result[5] + result[9]) / 2,
+                                      self.data[int((result[0] + result[4]) / 2)]['Time'],
+                                      (result[5] + result[9]) / 2,
                                       name_txt2, text_txt2, time_txt2, price_txt2)
 
                         # text of Accuracy and tp sl
                         acc = np.random.randint(low=75, high=95, size=(1))[0]
 
-                        tp_val = np.random.randint(low=np.min([result[8], result[6]]), high=result[9] + 1, size=(1))[0]
+                        tp_val = \
+                        np.random.randint(low=np.min([result[8], result[6]]), high=result[9] + 1, size=(1))[0]
                         sl_val = \
                             np.random.randint(low=result[9], high=result[9] + np.abs(result[8] - result[7]) + 1,
                                               size=(1))[0]
 
                         self.add_text(f"{name}_Accuracy{i}_Name_{(random_tage)}", f"Accuracy = {acc}",
                                       self.data[int(result[2])]['Time'], np.max([result[6], result[7],
-                                                                                 result[8], result[9]]) + 0.5 * np.abs(
+                                                                                 result[8],
+                                                                                 result[9]]) + 0.5 * np.abs(
                                 result[8] - result[6]), acc_name_txt, acc_text_txt,
                                       acc_time_txt, acc_price_txt)
 
@@ -653,6 +699,7 @@ class Harmonics(RealTimeTool):
                                       sl_prices2)
 
                         # tp sl Lines
+                        random_tage = random_tage + 1
                         tp_val = result[17:17 + 6]
                         sl_val = result[23:23 + 6]
                         Acc = np.zeros(len(tp_val))
@@ -664,19 +711,22 @@ class Harmonics(RealTimeTool):
                             self.add_line(f"{name}_BearishHarmonic{i}_TP{j} {(random_tage)}",
                                           self.data[int(result[4])]['Time'], self.data[int(result[4])]['Time'] +
                                           (self.data[int(result[3])]['Time'] - self.data[int(result[2])]['Time']),
-                                          tp_val[j], tp_val[j], tp_names, tp_times1, tp_times2, tp_prices1, tp_prices2)
+                                          tp_val[j], tp_val[j], tp_names, tp_times1, tp_times2, tp_prices1,
+                                          tp_prices2)
                             STR = "ACC" + str(j + 1) + ":" + "%.1f" % Acc[j] + " _TP" + str(j + 1) + ": " + "%.3f" % \
                                   tp_val[j]
                             self.add_text(f"{name}_BearishHarmonic{i}_TP{j}_{(random_tage)}",
                                           STR,
-                                          self.data[int(result[4])]['Time'], tp_val[j], tpsl_name_txt, tpsl_text_txt,
+                                          self.data[int(result[4])]['Time'], tp_val[j], tpsl_name_txt,
+                                          tpsl_text_txt,
                                           tpsl_time_txt,
                                           price_name_txt)
 
                             if j < 2:
                                 self.add_line(f"{name}_BearishHarmonic{i}_SL{j} {(random_tage)}",
                                               self.data[int(result[4])]['Time'], self.data[int(result[4])]['Time'] +
-                                              (self.data[int(result[3])]['Time'] - self.data[int(result[2])]['Time']),
+                                              (self.data[int(result[3])]['Time'] - self.data[int(result[2])][
+                                                  'Time']),
                                               sl_val[j], sl_val[j], sl_names, sl_times1, sl_times2, sl_prices1,
                                               sl_prices2)
                                 self.add_text(f"{name}_BearishHarmonic{i}SL{j}_{(random_tage)}",
@@ -687,20 +737,21 @@ class Harmonics(RealTimeTool):
 
                         # dot list
                         self.add_line(f"{name}_BearishHarmonic{i}_DottedLine_XD_{(random_tage)}",
-                                      self.data[int(result[0])]['Time'], self.data[int(result[4])]['Time'], result[5],
+                                      self.data[int(result[0])]['Time'], self.data[int(result[4])]['Time'],
+                                      result[5],
                                       result[9], ratio_line_names, ratio_line_times1, ratio_line_times2, \
                                       ratio_line_prices1, ratio_line_prices2)
                         self.add_line(f"{name}_BearishHarmonic{i}_DottedLine_AC_{(random_tage)}",
-                                      self.data[int(result[1])]['Time'], self.data[int(result[3])]['Time'], result[6],
+                                      self.data[int(result[1])]['Time'], self.data[int(result[3])]['Time'],
+                                      result[6],
                                       result[8], ratio_line_names, ratio_line_times1, ratio_line_times2,
                                       ratio_line_prices1, ratio_line_prices2)
 
-                        # PRZ
-
-                        # self.add_rectangle(f"{name}_BearishHarmonic{i}_PRZ_{(random_tage)}",
-                        #                   self.data[int(result[0])]['Time'], self.data[int(result[1])]['Time'],
-                        #                   self.data[int(result[2])]['Time'], result[5], result[6], result[7], names,
-                        #                   times1, times2, times3, prices1, prices2, prices3)
+                        # --- PRZ  Bearish
+                        self.add_rectangle(f"{name}_BearishHarmonic{i}_PRZ_{(random_tage)}",
+                                           self.data[int(result[30])]['Time'], self.data[int(result[32])]['Time'],
+                                           result[29], result[31], PRZ_names,
+                                           PRZ_times1, PRZ_times2, PRZ_prices1, PRZ_prices2)
 
                         i += 1
 
@@ -708,18 +759,19 @@ class Harmonics(RealTimeTool):
                         chart_tool.triangle(names, times1, prices1, times2, prices2, times3, prices3, width=width,
                                             color=bearish_color, back=1)
                         chart_tool.text(name_txt1, time_txt1, price_txt1, text_txt1, anchor=chart_tool.EnumAnchor.Top)
-                        chart_tool.text(name_txt2, time_txt2, price_txt2, text_txt2, anchor=chart_tool.EnumAnchor.Bottom)
+                        chart_tool.text(name_txt2, time_txt2, price_txt2, text_txt2,
+                                        anchor=chart_tool.EnumAnchor.Bottom)
 
                         chart_tool.text(acc_name_txt, acc_time_txt, acc_price_txt, acc_text_txt,
                                         anchor=chart_tool.EnumAnchor.LeftLower, font_size=9)
                         # chart_tool.text(tpsl_name_txt, tpsl_time_txt, price_name_txt, tpsl_text_txt,
                         #                 anchor=chart_tool.EnumAnchor.LeftUpper, font_size=8)
 
-                        tp_color = "40,180,40"
-                        sl_color = "180,40,40"
-                        width = 1
-                        tp_style = chart_tool.EnumStyle.DashDot
-                        sl_style = chart_tool.EnumStyle.DashDot
+                        # tp_color = "40,180,40"
+                        # sl_color = "180,40,40"
+                        # width = 1
+                        # tp_style = chart_tool.EnumStyle.DashDot
+                        # sl_style = chart_tool.EnumStyle.DashDot
                         chart_tool.text(tpsl_name_txt, tpsl_time_txt, price_name_txt, tpsl_text_txt,
                                         anchor=chart_tool.EnumAnchor.LeftUpper, font_size=7)
                         chart_tool.trend_line(tp_names, tp_times1, tp_prices1, tp_times2, tp_prices2, color=tp_color,
@@ -727,9 +779,12 @@ class Harmonics(RealTimeTool):
                         chart_tool.trend_line(sl_names, sl_times1, sl_prices1, sl_times2, sl_prices2, color=sl_color,
                                               style=sl_style, width=width)
 
-                        chart_tool.trend_line(ratio_line_names, ratio_line_times1, ratio_line_prices1, ratio_line_times2, \
-                                              ratio_line_prices2, color="254,254,254",
+                        chart_tool.trend_line(ratio_line_names, ratio_line_times1, ratio_line_prices1,
+                                              ratio_line_times2, ratio_line_prices2, color="254,254,254",
                                               style=chart_tool.EnumStyle.Dot, width=1)
+                        chart_tool.rectangle(PRZ_names, PRZ_times1, PRZ_prices1, PRZ_times2, PRZ_prices2, width=width, \
+                                             color=bearish_prz_color, back=1)
+
         # chart_tool.rectangle_label(["RectLabel1"], [20], [40], [120], [40], back_color="113,105,105", color="200,199,199", border=chart_tool.EnumBorder.Sunken)
         # chart_tool.label(["Label1"], [40], [50], ["Pivot Points"], anchor=chart_tool.EnumAnchor.LeftUpper, color="230,230,230")
 
@@ -757,3 +812,11 @@ class Harmonics(RealTimeTool):
         text_list.append(text)
         t_list.append(t)
         p_list.append(p)
+
+    @staticmethod
+    def add_rectangle(name, t1, t2, p1, p2, name_list, t1_list, t2_list, p1_list, p2_list):
+        name_list.append(name)
+        t1_list.append(t1)
+        t2_list.append(t2)
+        p1_list.append(p1)
+        p2_list.append(p2)

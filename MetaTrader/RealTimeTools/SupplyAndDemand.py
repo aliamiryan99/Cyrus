@@ -134,11 +134,11 @@ class SupplyAndDemand(RealTimeTool):
                     tp = (fresh_movement['ExtPrice'] - price) * 10 ** Config.symbols_pip[self.symbol]
                     atr = get_body_mean(self.data, len(self.data) - 1)
                     sl = (price - fresh_demand['DownPrice'] + self.sl_margin_atr * atr) * 10 ** Config.symbols_pip[self.symbol]
-                    if tp > sl*2:
+                    if tp > sl:
                         self.chart_tool.set_speed(0.01)
                         v = self.risk_manager.calculate(self.chart_tool.balance, self.symbol, price, fresh_demand['DownPrice'] - self.sl_margin_atr * atr)
                         self.chart_tool.buy(self.symbol, v/2, tp, sl)
-                        self.chart_tool.buy(self.symbol, v/2, tp/2, sl)
+                        self.chart_tool.buy(self.symbol, v/2, sl, sl)
                         self.fresh_demand_sources['Sources'].pop(i)
                         self.fresh_demand_sources['Movements'].pop(i)
                         self.chart_tool.set_speed(self.speed)
@@ -151,11 +151,11 @@ class SupplyAndDemand(RealTimeTool):
                     tp = (price - fresh_movement['ExtPrice']) * 10 ** Config.symbols_pip[self.symbol]
                     atr = get_body_mean(self.data, len(self.data) - 1)
                     sl = (fresh_supply['UpPrice'] - price + self.sl_margin_atr * atr) * 10 ** Config.symbols_pip[self.symbol]
-                    if tp > sl*2:
+                    if tp > sl:
                         self.chart_tool.set_speed(0.01)
                         v = self.risk_manager.calculate(self.chart_tool.balance, self.symbol, price, fresh_supply['UpPrice'] + self.sl_margin_atr * atr)
                         self.chart_tool.sell(self.symbol, v/2, tp, sl)
-                        self.chart_tool.sell(self.symbol, v/2, tp/2, sl)
+                        self.chart_tool.sell(self.symbol, v/2, sl, sl)
                         self.fresh_supply_sources['Sources'].pop(i)
                         self.fresh_supply_sources['Movements'].pop(i)
                         self.chart_tool.set_speed(self.speed)

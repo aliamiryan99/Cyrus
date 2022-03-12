@@ -8,23 +8,24 @@ class ChartConfig:
     auto_time_frame = True
     time_frame = "M5"
     date_format = '%Y.%m.%d %H:%M'
-    candles = 5000
+    candles = 10000
     tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "Harmonics", "CandleStick", "Pattern",
                  "MinMaxTrend", "SupplyAndDemand"]
-    tool_name = 'SupplyAndDemand'
+    tool_name = 'SRLines'
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
 
         self.telegram_enable = False
-        self.trade_enable = False
+        self.trade_enable = True
 
         data = copy.deepcopy(data)
         if tool_name == "PivotPoints":
             from MetaTrader.RealTimeTools.PivotPoints import PivotPoints
-            extremum_window = 30
+            window_left = 50
+            window_right = 10
             extremum_mode = 1
 
-            self.tool = PivotPoints(chart_tool, data, extremum_window, extremum_mode)
+            self.tool = PivotPoints(chart_tool, data, window_left, window_right, extremum_mode)
 
         if tool_name == "VolumeBar":
             from MetaTrader.RealTimeTools.VolumeBarIndicator import VolumeBarIndicator
@@ -76,19 +77,25 @@ class ChartConfig:
         if tool_name == "Elliot":
             from MetaTrader.RealTimeTools.Elliot import Elliot
 
-            wave4_enable = False
-            wave5_enable = False
-            inside_flat_zigzag_wc = False
+            wave4_enable = True
+            wave5_enable = True
+            zigzag_wc = False
+            flat_wc = False
             post_prediction_enable = False
+            similarity_pred_enable = False
+            triangle_enabled = False
+            single_level_merging_enabled = False
 
             price_type = "neo"
-            neo_time_frame = "W1"
+            neo_time_frame = "H12"
             past_check_num = 5
-            window = 128
-            statistic_window = 15
+            window = 500
+            statistic_window = 10
 
-            self.tool = Elliot(chart_tool, data, symbol, wave4_enable, wave5_enable, inside_flat_zigzag_wc, post_prediction_enable,
-                               price_type, self.time_frame, neo_time_frame, past_check_num, window, statistic_window, self.trade_enable)
+            self.tool = Elliot(chart_tool, data, symbol, wave4_enable, wave5_enable, zigzag_wc, flat_wc,
+                               post_prediction_enable, triangle_enabled, similarity_pred_enable,
+                               price_type, self.time_frame, neo_time_frame, past_check_num, window, statistic_window,
+                               self.trade_enable, single_level_merging_enabled)
 
         if tool_name == "SRLines":
             from MetaTrader.RealTimeTools.SR import SR
@@ -167,7 +174,7 @@ class ChartConfig:
                              'ExpandingFlag']
             name = 'All'
             fibo_tolerance = 0.15  # percentage of Fibonacci tolerance
-            extremum_window = 20
+            extremum_window = 30
             time_range = 5
             price_range_alpha = 1
             alpha = 0.8
