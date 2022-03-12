@@ -2,9 +2,10 @@ from MetaTrader.MetaTraderBase import MetaTraderBase
 from MetaTrader.RealTimeTools.RealTimeTool import RealTimeTool
 
 from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
+from AlgorithmFactory.AlgorithmPackages.Trend.TrendDetection import *
 
 
-class PivotPoints(RealTimeTool):
+class TrendDetection(RealTimeTool):
 
     def __init__(self, chart_tool: MetaTraderBase, data, window_left, window_right, mode):
         super().__init__(chart_tool, data)
@@ -12,7 +13,14 @@ class PivotPoints(RealTimeTool):
         self.window = window_left
         self.mode = mode
 
+        open , high, low, close = get_ohlc(data)
+
         self.local_min, self.local_max = get_local_extermums_asymetric(self.data, window_left, window_right, mode)
+
+        bullish, bearish = detect_trend(self.local_max, self.local_min, high, low)
+
+        self.draw_trend_starts(bullish, "Bullish", "20,20,200")
+        self.draw_trend_starts(bearish, "Bearish", "200,20,20")
 
         self.last_local_min, self.last_local_max = self.local_min[-1], self.local_max[-1]
         self.last_min_id, self.last_max_id = 1, 1
@@ -64,3 +72,8 @@ class PivotPoints(RealTimeTool):
                 names2.append(f"LocalMaxPython{self.last_max_id}")
                 self.last_max_id += 1
             self.chart_tool.arrow_down(names2, times2, prices2, anchor=self.chart_tool.EnumArrowAnchor.Bottom, color="211,83,12")
+
+    def draw_trend_starts(self, starts, type, color):
+        names = [f"{type} trend {i}" for i in range(len(starts))]
+        times = [self.data[starts[i]]['Time'] for i in range(len(starts))]
+        self.chart_tool.v_line(names, times, color=color)

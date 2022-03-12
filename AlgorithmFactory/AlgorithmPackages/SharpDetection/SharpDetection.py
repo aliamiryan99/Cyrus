@@ -71,31 +71,39 @@ class SharpDetection:
         else:
             return None
 
-    def filter_swings(self, type, extremums, price, window):
+    def filter_swings(self, type, min_extremums, max_extremums, price, window):
         results = []
         sharp_areas = self.sharp_areas_up if type == "Demand" else self.sharp_areas_down
-        i, j = 0, 0
+        i, j, k = 0, 0, 0
         while i < len(sharp_areas):
-            while j < len(extremums) and extremums[j] < sharp_areas[i]["Start"]:
+            while j < len(min_extremums) and min_extremums[j] < sharp_areas[i]["Start"]:
                 j += 1
             j -= 1
-            while j > 0 and extremums[j] > sharp_areas[i]["Start"] - window:
+            while j > 0 and min_extremums[j] > sharp_areas[i]["Start"] - window:
                 j -= 1
-            if j > 0:
+
+            while k < len(max_extremums) and max_extremums[k] < sharp_areas[i]["Start"]:
+                k += 1
+            k -= 1
+            while k > 0 and max_extremums[k] > sharp_areas[i]["Start"] - window:
+                k -= 1
+
+            if j > 0 and k > 0:
                 if type == "Demand":
-                    max_i = np.argmax(price[extremums[j]:sharp_areas[i]['Start']]) + extremums[j]
-                    if price[sharp_areas[i]['Ext']] > price[max_i]:
+                    max_i = np.argmax(price[min_extremums[j]:sharp_areas[i]['Start']]) + min_extremums[j]
+                    if price[sharp_areas[i]['Ext']] > max(price[max_i], price[max_extremums[k]]):
                         results.append(sharp_areas[i])
                 elif type == "Supply":
-                    min_i = np.argmin(price[extremums[j]:sharp_areas[i]['Start']]) + extremums[j]
-                    if price[sharp_areas[i]['Ext']] < price[min_i]:
+                    min_i = np.argmin(price[max_extremums[k]:sharp_areas[i]['Start']]) + max_extremums[k]
+                    if price[sharp_areas[i]['Ext']] < min(price[min_i], price[min_extremums[j]]):
                         results.append(sharp_areas[i])
             else:
                 j = 0
+                k = 0
             i += 1
         return results
 
-    def get_source_of_movement(self, type, data):
+    def get_source_of_movement(self, type, data, limitation):
         results = []
         sharp_areas = self.sharp_areas_up if type == "Demand" else self.sharp_areas_down
         atr = get_body_mean(data, len(data))
@@ -123,10 +131,11 @@ class SharpDetection:
             if type == "Supply":
                 while j < len(data)-1 and data[j]['High'] < down_price:
                     j += 1
-            end = j
+            end = min(j, start + limitation)
 
             results.append({"Start": start, "End": end, "UpPrice": up_price, "DownPrice": down_price,
-                           "StartTime": data[start]['Time'], "EndTime": data[end]['Time'], "Type": type})
+                           "StartTime": data[start]['Time'], "EndTime": data[end]['Time'], "Type": type, "Touched": False,
+                            "MaxMetPrice": up_price, "MinMetPrice": down_price})
             i += 1
         return results
 

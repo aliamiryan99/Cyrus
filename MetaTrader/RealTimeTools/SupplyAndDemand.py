@@ -14,12 +14,16 @@ from AlgorithmFactory.AccountManagment.RiskManagement import RiskManagement
 
 class SupplyAndDemand(RealTimeTool):
 
-    def __init__(self, chart_tool: MetaTraderBase, data, symbol, tr, minimum_candles, tr2, minimum_candles2, swing_filter, fresh_window, atr_window, risk, free_risk_enable, touch_trade_enable, candlestick_trade_enable):
+    def __init__(self, chart_tool: MetaTraderBase, data, symbol, tr, minimum_candles, tr2, minimum_candles2,
+                 swing_filter, fresh_window, atr_window, risk, fresh_limitation, free_risk_enable, touch_trade_enable,
+                 candlestick_trade_enable):
         super().__init__(chart_tool, data)
 
         self.free_risk_enable = free_risk_enable
         self.touch_trade_enable = touch_trade_enable
         self.candlestick_trade_enable = candlestick_trade_enable
+
+        self.fresh_limitation = fresh_limitation
 
         self.sharp_color = "200,200,200"
 
@@ -60,8 +64,25 @@ class SupplyAndDemand(RealTimeTool):
         self.last_max_extremum = self.data[self.max_extremums[-1]]['Time']
 
         # Save Last Movement
-        self.last_up_sharp = self.result_up[-1] if len(self.result2_up) == 0 or self.result_up[-1]['Start'] > self.result2_up[-1]['Start'] else self.result2_up[-1]
-        self.last_down_sharp = self.result_down[-1] if len(self.result2_down) == 0 or self.result_down[-1]['Start'] > self.result2_down[-1]['Start'] else self.result2_down[-1]
+        if len(self.result_up) == 0:
+            self.last_up_sharp = self.result2_up[-1]
+        elif len(self.result2_up) == 0:
+            self.last_up_sharp = self.result_up[-1]
+        else:
+            if self.result_up[-1]['Start'] > self.result2_up[-1]['Start']:
+                self.last_up_sharp = self.result2_up[-1]
+            else:
+                self.last_up_sharp = self.result_up[-1]
+
+        if len(self.result_down) == 0:
+            self.last_down_sharp = self.result2_down[-1]
+        elif len(self.result2_down) == 0:
+            self.last_down_sharp = self.result_down[-1]
+        else:
+            if self.result_down[-1]['Start'] > self.result2_down[-1]['Start']:
+                self.last_down_sharp = self.result2_down[-1]
+            else:
+                self.last_down_sharp = self.result_down[-1]
 
         # Save Last Source
         self.last_demand_source = self.get_last_source(self.demand_sources)
@@ -87,6 +108,8 @@ class SupplyAndDemand(RealTimeTool):
         self.draw_sources(self.supply_sources, self.supply_color)
         self.draw_candlestick(self.detected_candlesticks)
 
+        self.open_buy_trades_cnt, self.open_sell_trades_cnt = 0, 0
+
         self.data = self.data[-fresh_window:]
 
     def on_tick(self, time, bid, ask):
@@ -100,8 +123,8 @@ class SupplyAndDemand(RealTimeTool):
     def on_data(self, candle):
         self.data.pop(0)
 
-        self.update_fresh_sources(self.fresh_demand_sources['Sources'], candle)
-        self.update_fresh_sources(self.fresh_supply_sources['Sources'], candle)
+        self.update_fresh_sources(self.fresh_demand_sources['Sources'], candle, 'Demand')
+        self.update_fresh_sources(self.fresh_supply_sources['Sources'], candle, 'Supply')
 
         self.find_movements(self.data, self.atr_window)
         self.find_new_source(self.data)
@@ -111,12 +134,12 @@ class SupplyAndDemand(RealTimeTool):
 
         self.redraw_last_sharp()
 
-        if self.candlestick_trade_enable:
-            self.check_new_candlestick(candle['Close'])
-
         self.check_fresh_expiration()
 
         self.redraw_extremums()
+
+        if self.candlestick_trade_enable:
+            self.check_new_candlestick(candle['Close'])
 
         self.data.append(candle)
 
@@ -128,15 +151,14 @@ class SupplyAndDemand(RealTimeTool):
 
             for i in range(len(self.fresh_demand_sources['Sources'])):
                 fresh_demand = self.fresh_demand_sources['Sources'][i]
-                if self.last_candlestick['Directions'][0] >= 0 and fresh_demand['DownPrice'] < self.data[-1]['Close'] \
-                        and self.data[-1]['Low'] < fresh_demand['UpPrice']:
+                if self.last_candlestick['Directions'][0] >= 0 and fresh_demand['Touched']:
                     fresh_movement = self.fresh_demand_sources['Movements'][i]
                     tp = (fresh_movement['ExtPrice'] - price) * 10 ** Config.symbols_pip[self.symbol]
                     atr = get_body_mean(self.data, len(self.data) - 1)
-                    sl = (price - fresh_demand['DownPrice'] + self.sl_margin_atr * atr) * 10 ** Config.symbols_pip[self.symbol]
+                    sl = (price - fresh_demand['MinMetPrice'] + self.sl_margin_atr * atr) * 10 ** Config.symbols_pip[self.symbol]
                     if tp > sl*2:
                         self.chart_tool.set_speed(0.01)
-                        v = self.risk_manager.calculate(self.chart_tool.balance, self.symbol, price, fresh_demand['DownPrice'] - self.sl_margin_atr * atr)
+                        v = self.risk_manager.calculate(self.chart_tool.balance, self.symbol, price, fresh_demand['MinMetPrice'] - self.sl_margin_atr * atr)
                         self.chart_tool.buy(self.symbol, v/2, tp, sl)
                         self.chart_tool.buy(self.symbol, v/2, tp/2, sl)
                         self.fresh_demand_sources['Sources'].pop(i)
@@ -146,14 +168,14 @@ class SupplyAndDemand(RealTimeTool):
 
             for i in range(len(self.fresh_supply_sources['Sources'])):
                 fresh_supply = self.fresh_supply_sources['Sources'][i]
-                if self.last_candlestick['Directions'][0] >= 0 and fresh_supply['DownPrice'] < self.data[-1]['High'] < fresh_supply['UpPrice']:
+                if self.last_candlestick['Directions'][0] <= 0 and fresh_supply['Touched']:
                     fresh_movement = self.fresh_supply_sources['Movements'][i]
                     tp = (price - fresh_movement['ExtPrice']) * 10 ** Config.symbols_pip[self.symbol]
                     atr = get_body_mean(self.data, len(self.data) - 1)
-                    sl = (fresh_supply['UpPrice'] - price + self.sl_margin_atr * atr) * 10 ** Config.symbols_pip[self.symbol]
+                    sl = (fresh_supply['MaxMetPrice'] - price + self.sl_margin_atr * atr) * 10 ** Config.symbols_pip[self.symbol]
                     if tp > sl*2:
                         self.chart_tool.set_speed(0.01)
-                        v = self.risk_manager.calculate(self.chart_tool.balance, self.symbol, price, fresh_supply['UpPrice'] + self.sl_margin_atr * atr)
+                        v = self.risk_manager.calculate(self.chart_tool.balance, self.symbol, price, fresh_supply['MaxMetPrice'] + self.sl_margin_atr * atr)
                         self.chart_tool.sell(self.symbol, v/2, tp, sl)
                         self.chart_tool.sell(self.symbol, v/2, tp/2, sl)
                         self.fresh_supply_sources['Sources'].pop(i)
@@ -167,7 +189,8 @@ class SupplyAndDemand(RealTimeTool):
         for i in range(len(copy_fresh_demands_sources)):
             fresh_source = copy_fresh_demands_sources[i]
             fresh_movement = copy_fresh_demands_movements[i]
-            if self.data[-2]['Close'] < fresh_source['DownPrice'] and self.data[-1]['Close'] < fresh_source['DownPrice']:
+            if (self.data[-2]['Close'] < fresh_source['DownPrice'] and self.data[-1]['Close'] < fresh_source['DownPrice'])\
+                    or fresh_source['End'] - fresh_source['Start'] > self.fresh_limitation:
                 self.fresh_demand_sources['Sources'].remove(fresh_source)
                 self.fresh_demand_sources['Movements'].remove(fresh_movement)
         copy_fresh_supply_sources = copy.copy(self.fresh_supply_sources['Sources'])
@@ -175,23 +198,22 @@ class SupplyAndDemand(RealTimeTool):
         for i in range(len(copy_fresh_supply_sources)):
             fresh_source = copy_fresh_supply_sources[i]
             fresh_movement = copy_fresh_supply_movements[i]
-            if self.data[-2]['Close'] > fresh_source['UpPrice'] and self.data[-2]['Close'] > fresh_source['DownPrice']:
+            if (self.data[-2]['Close'] > fresh_source['UpPrice'] and self.data[-2]['Close'] > fresh_source['DownPrice']) \
+                    or fresh_source['End'] - fresh_source['Start'] > self.fresh_limitation:
                 self.fresh_supply_sources['Sources'].remove(fresh_source)
                 self.fresh_supply_sources['Movements'].remove(fresh_movement)
 
         for i in range(len(self.fresh_demand_sources['Sources'])-1):
             last_source = self.fresh_demand_sources['Sources'][-1]
             fresh_source = self.fresh_demand_sources['Sources'][i]
-            if fresh_source['DownPrice'] < last_source['UpPrice'] < fresh_source['UpPrice'] or \
-                    fresh_source['DownPrice'] < last_source['DownPrice'] < fresh_source['UpPrice']:
+            if max(fresh_source['DownPrice'], last_source['DownPrice']) < min(fresh_source['UpPrice'], last_source['UpPrice']):
                 self.fresh_demand_sources['Sources'].pop(i)
                 self.fresh_demand_sources['Movements'].pop(i)
                 break
         for i in range(len(self.fresh_supply_sources['Sources'])-1):
             last_source = self.fresh_supply_sources['Sources'][-1]
             fresh_source = self.fresh_supply_sources['Sources'][i]
-            if fresh_source['DownPrice'] < last_source['UpPrice'] < fresh_source['UpPrice'] or \
-                    fresh_source['DownPrice'] < last_source['DownPrice'] < fresh_source['UpPrice']:
+            if max(fresh_source['DownPrice'], last_source['DownPrice']) < min(fresh_source['UpPrice'], last_source['UpPrice']):
                 self.fresh_supply_sources['Sources'].pop(i)
                 self.fresh_supply_sources['Movements'].pop(i)
                 break
@@ -240,6 +262,8 @@ class SupplyAndDemand(RealTimeTool):
                     self.chart_tool.modify(self.chart_tool.open_sell_trades[0]['Ticket'], tp, -20)
                     self.chart_tool.open_sell_trades[0]['SL'] = self.chart_tool.open_sell_trades[0]['OpenPrice']
                     self.chart_tool.set_speed(self.speed)
+        self.open_buy_trades_cnt = len(self.chart_tool.open_buy_trades)
+        self.open_sell_trades_cnt = len(self.chart_tool.open_sell_trades)
 
     def find_movements(self, data, atr_window):
         self.min_extremums, self.max_extremums = get_local_extermums(data, 10, 1)
@@ -253,27 +277,38 @@ class SupplyAndDemand(RealTimeTool):
         self.sharp_detection2.set_sharp_area_up(self.result2_up)
         self.sharp_detection2.set_sharp_area_down(self.result2_down)
         if self.swing_filter:
-            self.result_up = self.sharp_detection.filter_swings("Demand", self.min_extremums, high, 10)
+            self.result_up = self.sharp_detection.filter_swings("Demand", self.min_extremums, self.max_extremums, high, 10)
             self.sharp_detection.set_sharp_area_up(self.result_up)
-            self.result_down = self.sharp_detection.filter_swings("Supply", self.max_extremums, low, 10)
+            self.result_down = self.sharp_detection.filter_swings("Supply", self.min_extremums, self.max_extremums, low, 10)
             self.sharp_detection.set_sharp_area_down(self.result_down)
-            self.result2_up = self.sharp_detection2.filter_swings("Demand", self.min_extremums, high, 10)
+            self.result2_up = self.sharp_detection2.filter_swings("Demand", self.min_extremums, self.max_extremums, high, 10)
             self.sharp_detection2.set_sharp_area_up(self.result2_up)
-            self.result2_down = self.sharp_detection2.filter_swings("Supply", self.max_extremums, low, 10)
+            self.result2_down = self.sharp_detection2.filter_swings("Supply", self.min_extremums, self.max_extremums, low, 10)
             self.sharp_detection2.set_sharp_area_down(self.result2_down)
 
     def find_sources(self, data):
         # Find Source of Movements
-        self.demand_sources = self.sharp_detection.get_source_of_movement("Demand", data)
-        self.demand_sources += self.sharp_detection2.get_source_of_movement("Demand", data)
+        self.demand_sources = self.sharp_detection.get_source_of_movement("Demand", data, self.fresh_limitation)
+        self.demand_sources += self.sharp_detection2.get_source_of_movement("Demand", data, self.fresh_limitation)
 
-        self.supply_sources = self.sharp_detection.get_source_of_movement("Supply", data)
-        self.supply_sources += self.sharp_detection2.get_source_of_movement("Supply", data)
+        self.supply_sources = self.sharp_detection.get_source_of_movement("Supply", data,  self.fresh_limitation)
+        self.supply_sources += self.sharp_detection2.get_source_of_movement("Supply", data, self.fresh_limitation)
 
-    def update_fresh_sources(self, fresh_sources, last_candle):
-        for fresh_source in fresh_sources:
-            fresh_source['End'] = len(self.data)
+    def update_fresh_sources(self, fresh_sources, last_candle, type):
+        copy_fresh_sources = copy.copy(fresh_sources)
+        for fresh_source in copy_fresh_sources:
+            fresh_source['End'] += 1
             fresh_source['EndTime'] = last_candle['Time']
+            if type == "Demand":
+                if self.data[-1]['Low'] <= fresh_source['UpPrice']:
+                    fresh_source['Touched'] = True
+                if self.data[-1]['Low'] < fresh_source['MinMetPrice']:
+                    fresh_source['MinMetPrice'] = self.data[-1]['Low']
+            if type == "Supply":
+                if self.data[-1]['High'] >= fresh_source['DownPrice']:
+                    fresh_source['Touched'] = True
+                if self.data[-1]['High'] > fresh_source['MaxMetPrice']:
+                    fresh_source['MaxMetPrice'] = self.data[-1]['High']
 
     def get_last_source(self, sources):
         last_source = sources[0]
@@ -283,7 +318,7 @@ class SupplyAndDemand(RealTimeTool):
         return last_source
 
     def find_new_source(self, data):
-        demand_sources = self.sharp_detection.get_source_of_movement("Demand", data)
+        demand_sources = self.sharp_detection.get_source_of_movement("Demand", data, self.fresh_limitation)
         if len(demand_sources) != 0 and demand_sources[-1]['StartTime'] > self.last_demand_source['StartTime'] and \
                 demand_sources[-1]['EndTime'] >= data[-1]['Time']:
             if self.result_up[-1]['StartTime'] > self.last_up_sharp['EndTime']:
@@ -293,7 +328,7 @@ class SupplyAndDemand(RealTimeTool):
                 self.fresh_demand_sources['Sources'].append(self.last_demand_source)
                 self.fresh_demand_sources['Movements'].append(self.last_up_sharp)
                 self.draw_sharps([self.result_up[-1]])
-        demand_sources = self.sharp_detection2.get_source_of_movement("Demand", data)
+        demand_sources = self.sharp_detection2.get_source_of_movement("Demand", data, self.fresh_limitation)
         if len(demand_sources) != 0 and demand_sources[-1]['StartTime'] > self.last_demand_source['StartTime'] and \
                 demand_sources[-1]['EndTime'] >= data[-1]['Time']:
             if self.result2_up[-1]['StartTime'] > self.last_up_sharp['EndTime']:
@@ -303,7 +338,7 @@ class SupplyAndDemand(RealTimeTool):
                 self.fresh_demand_sources['Sources'].append(self.last_demand_source)
                 self.fresh_demand_sources['Movements'].append(self.last_up_sharp)
                 self.draw_sharps([self.result2_up[-1]])
-        supply_sources = self.sharp_detection.get_source_of_movement("Supply", data)
+        supply_sources = self.sharp_detection.get_source_of_movement("Supply", data, self.fresh_limitation)
         if len(supply_sources) != 0 and supply_sources[-1]['StartTime'] > self.last_supply_source['StartTime'] and \
                 supply_sources[-1]['EndTime'] >= data[-1]['Time']:
             if self.result_down[-1]['StartTime'] > self.last_down_sharp['EndTime']:
@@ -313,7 +348,7 @@ class SupplyAndDemand(RealTimeTool):
                 self.fresh_supply_sources['Sources'].append(self.last_supply_source)
                 self.fresh_supply_sources['Movements'].append(self.last_down_sharp)
                 self.draw_sharps([self.result_down[-1]])
-        supply_sources = self.sharp_detection2.get_source_of_movement("Supply", data)
+        supply_sources = self.sharp_detection2.get_source_of_movement("Supply", data, self.fresh_limitation)
         if len(supply_sources) != 0 and supply_sources[-1]['StartTime'] > self.last_supply_source['StartTime'] and \
                 supply_sources[-1]['EndTime'] >= data[-1]['Time']:
             if self.result2_down[-1]['StartTime'] > self.last_down_sharp['EndTime']:
@@ -380,7 +415,6 @@ class SupplyAndDemand(RealTimeTool):
                 self.draw_sharps([self.last_down_sharp])
 
     def draw_sharps(self, results):
-
         if len(results) != 0:
             names1, times1, prices1, times2, prices2 = [], [], [], [], []
             for i in range(len(results)):

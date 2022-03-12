@@ -10,8 +10,8 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     candles = 5000
     tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "Harmonics", "CandleStick", "Pattern",
-                 "MinMaxTrend", "SupplyAndDemand"]
-    tool_name = 'SupplyAndDemand'
+                 "MinMaxTrend", "SupplyAndDemand", "TrendDetection"]
+    tool_name = 'TrendDetection'
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
 
@@ -21,10 +21,11 @@ class ChartConfig:
         data = copy.deepcopy(data)
         if tool_name == "PivotPoints":
             from MetaTrader.RealTimeTools.PivotPoints import PivotPoints
-            extremum_window = 30
+            window_left = 50
+            window_right = 10
             extremum_mode = 1
 
-            self.tool = PivotPoints(chart_tool, data, extremum_window, extremum_mode)
+            self.tool = PivotPoints(chart_tool, data, window_left, window_right, extremum_mode)
 
         if tool_name == "VolumeBar":
             from MetaTrader.RealTimeTools.VolumeBarIndicator import VolumeBarIndicator
@@ -147,15 +148,16 @@ class ChartConfig:
             swing_filter = True
             fresh_window = 100
             atr_window = 99
+            fresh_limitation = 200
 
-            risk = 3
+            risk = 4
 
-            risk_free_enable = False
+            risk_free_enable = True
             touch_trade_enable = False
             candlestick_enable = True
 
             self.tool = SupplyAndDemand(chart_tool, data, symbol, tr, minimum_candles, tr2, minimum_candles2,
-                                        swing_filter, fresh_window, atr_window, risk, risk_free_enable, touch_trade_enable, candlestick_enable)
+                                        swing_filter, fresh_window, atr_window, risk, fresh_limitation, risk_free_enable, touch_trade_enable, candlestick_enable)
 
         if tool_name == "Harmonics":
             from MetaTrader.RealTimeTools.Harmonics import Harmonics
@@ -182,3 +184,11 @@ class ChartConfig:
             self.tool = Harmonics(chart_tool, data, symbol, extremum_window, time_range, price_range_alpha, name, alpha,
                                   beta, fibo_tolerance, pattern_direction, harmonic_list, save_result, self.time_frame,
                                   neo_time_frame, extremum_mode, is_save_statistical_result, fresh_window)
+
+        if tool_name == "TrendDetection":
+            from MetaTrader.RealTimeTools.TrendDetection import TrendDetection
+            window_left = 50
+            window_right = 10
+            extremum_mode = 1
+
+            self.tool = TrendDetection(chart_tool, data, window_left, window_right, extremum_mode)
