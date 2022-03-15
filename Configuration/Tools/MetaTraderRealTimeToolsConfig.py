@@ -10,8 +10,8 @@ class ChartConfig:
     date_format = '%Y.%m.%d %H:%M'
     candles = 10000
     tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "Harmonics", "CandleStick", "Pattern",
-                 "MinMaxTrend", "SupplyAndDemand"]
-    tool_name = 'SRLines'
+                 "MinMaxTrend", "SupplyAndDemand", "TrendDetection", "TrendChannels"]
+    tool_name = 'TrendChannels'
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
 
@@ -161,8 +161,10 @@ class ChartConfig:
             touch_trade_enable = False
             candlestick_enable = True
 
+            fresh_limitation = 200
+
             self.tool = SupplyAndDemand(chart_tool, data, symbol, tr, minimum_candles, tr2, minimum_candles2,
-                                        swing_filter, fresh_window, atr_window, risk, risk_free_enable, touch_trade_enable, candlestick_enable)
+                                        swing_filter, fresh_window, atr_window, risk, fresh_limitation, risk_free_enable, touch_trade_enable, candlestick_enable)
 
         if tool_name == "Harmonics":
             from MetaTrader.RealTimeTools.Harmonics import Harmonics
@@ -189,3 +191,21 @@ class ChartConfig:
             self.tool = Harmonics(chart_tool, data, symbol, extremum_window, time_range, price_range_alpha, name, alpha,
                                   beta, fibo_tolerance, pattern_direction, harmonic_list, save_result, self.time_frame,
                                   neo_time_frame, extremum_mode, is_save_statistical_result, fresh_window)
+
+        if tool_name == "TrendDetection":
+            from MetaTrader.RealTimeTools.TrendDetection import TrendDetection
+            window_left = 50
+            window_right = 10
+            extremum_mode = 1
+
+            self.tool = TrendDetection(chart_tool, data, window_left, window_right, extremum_mode)
+
+        if tool_name == "TrendChannels":
+            from MetaTrader.RealTimeTools.TrendChannels import TrendChannels
+            min_consecutive_ext_num = 3
+            window_left = 50
+            window_right = 10
+            extremum_mode = 1
+            extremum_show = True
+
+            self.tool = TrendChannels(chart_tool, data, symbol, min_consecutive_ext_num, window_left, window_right, extremum_mode, extremum_show)

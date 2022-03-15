@@ -5,8 +5,8 @@ def detect_trend(max_ext, min_ext, up_price, down_price):
     bearish_start_trends = []
     state = 0
     i, j = 1, 1
-    while i < len(max_ext) and j < len(min_ext):
-        if max_ext[i] < min_ext[j]:
+    while i < len(max_ext) or j < len(min_ext):
+        if i != len(max_ext) and (j == len(min_ext) or max_ext[i] < min_ext[j]):
             if state != 1 and up_price[max_ext[i]] > up_price[max_ext[i-1]]:
                 bullish_start_trends.append(max_ext[i])
                 state = 1

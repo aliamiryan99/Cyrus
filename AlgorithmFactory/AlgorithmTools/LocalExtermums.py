@@ -183,12 +183,15 @@ def update_new_local_extremum(pre_local_extremum, new_local_extremum, total_wind
     return pre_local_extremum
 
 
-def update_local_extremum_list(data_window, local_min, local_max, extremum_window, extremum_mode):
+def update_local_extremum_list(data_window, local_min, local_max, extremum_window, extremum_mode, asymetric=False, extremum_window_right=10):
     local_min = update_local_extremum(local_min)
     local_max = update_local_extremum(local_max)
 
     window_size = extremum_window*4
-    new_local_min, new_local_max = get_local_extermums(data_window[-window_size:], extremum_window, extremum_mode)
+    if asymetric:
+        new_local_min, new_local_max = get_local_extermums_asymetric(data_window[-window_size:], extremum_window, extremum_window_right, extremum_mode)
+    else:
+        new_local_min, new_local_max = get_local_extermums(data_window[-window_size:], extremum_window, extremum_mode)
 
     local_min = update_new_local_extremum(local_min, new_local_min, len(data_window), window_size)
     local_max = update_new_local_extremum(local_max, new_local_max, len(data_window), window_size)

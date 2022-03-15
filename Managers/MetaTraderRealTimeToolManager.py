@@ -25,7 +25,7 @@ from Shared.Variables import Variables
 
 class MetaTraderRealTimeToolsManager(MetaTraderBase):
 
-    def __init__(self, w_break=500, delay=0.01, broker_gmt=3, verbose=False):
+    def __init__(self, w_break=4000, delay=0.01, broker_gmt=3, verbose=False):
 
         super().__init__(pull_data_handlers=[self],  # Registers itself as handler of pull Data via self.onPullData()
                          sub_data_handlers=[self],  # Registers itself as handler of sub Data via self.onSubData()
