@@ -10,18 +10,20 @@ from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 from AlgorithmFactory.AlgorithmPackages.CandleSticks import CandleSticks
 
 from AlgorithmFactory.AccountManagment.RiskManagement import RiskManagement
+from AlgorithmFactory.AlgorithmPackages.Trend.TrendDetection import detect_trend
 
 
 class SupplyAndDemand(RealTimeTool):
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tr, minimum_candles, tr2, minimum_candles2,
                  swing_filter, fresh_window, atr_window, risk, fresh_limitation, free_risk_enable, touch_trade_enable,
-                 candlestick_trade_enable):
+                 candlestick_trade_enable, trend_filter_enable):
         super().__init__(chart_tool, data)
 
         self.free_risk_enable = free_risk_enable
         self.touch_trade_enable = touch_trade_enable
         self.candlestick_trade_enable = candlestick_trade_enable
+        self.trend_filter_enable = trend_filter_enable
 
         self.fresh_limitation = fresh_limitation
 
@@ -110,8 +112,6 @@ class SupplyAndDemand(RealTimeTool):
 
         self.open_buy_trades_cnt, self.open_sell_trades_cnt = 0, 0
 
-        self.data = self.data[-fresh_window:]
-
     def on_tick(self, time, bid, ask):
         if self.touch_trade_enable:
             self.check_touch_area(self.fresh_demand_sources, 1, ask)
@@ -126,8 +126,8 @@ class SupplyAndDemand(RealTimeTool):
         self.update_fresh_sources(self.fresh_demand_sources['Sources'], candle, 'Demand')
         self.update_fresh_sources(self.fresh_supply_sources['Sources'], candle, 'Supply')
 
-        self.find_movements(self.data, self.atr_window)
-        self.find_new_source(self.data)
+        self.find_movements(self.data[-self.fresh_window:], self.atr_window)
+        self.find_new_source(self.data[-self.fresh_window:])
 
         self.redraw_sources(self.fresh_demand_sources['Sources'], self.demand_color)
         self.redraw_sources(self.fresh_supply_sources['Sources'], self.supply_color)
@@ -137,6 +137,8 @@ class SupplyAndDemand(RealTimeTool):
         self.check_fresh_expiration()
 
         self.redraw_extremums()
+
+        self.check_trend()
 
         if self.candlestick_trade_enable:
             self.check_new_candlestick(candle['Close'])
@@ -264,6 +266,19 @@ class SupplyAndDemand(RealTimeTool):
                     self.chart_tool.set_speed(self.speed)
         self.open_buy_trades_cnt = len(self.chart_tool.open_buy_trades)
         self.open_sell_trades_cnt = len(self.chart_tool.open_sell_trades)
+
+    def check_trend(self):
+        open, high, low, close = get_ohlc(self.data)
+        self.local_min_asyc, self.local_max_asyc = get_local_extermums_asymetric(self.data, 50, 10, 1)
+        bullish, bearish = detect_trend(self.local_max_asyc, self.local_min_asyc, high, low)
+        if bullish[-1] > bearish[-1]:
+            self.chart_tool.delete(["TrendLabel"])
+            self.chart_tool.label(["TrendLabel"], [50], [20], ['Bullish'], color="50,50,250"
+                                  , corner=self.chart_tool.EnumBaseCorner.RightUpper)
+        else:
+            self.chart_tool.delete(["TrendLabel"])
+            self.chart_tool.label(["TrendLabel"], [50], [20], ['Bearish'], color="250,50,50"
+                                  ,  corner=self.chart_tool.EnumBaseCorner.RightUpper)
 
     def find_movements(self, data, atr_window):
         self.min_extremums, self.max_extremums = get_local_extermums(data, 10, 1)

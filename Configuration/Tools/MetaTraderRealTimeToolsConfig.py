@@ -11,7 +11,7 @@ class ChartConfig:
     candles = 10000
     tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "Harmonics", "CandleStick", "Pattern",
                  "MinMaxTrend", "SupplyAndDemand", "TrendDetection", "TrendChannels"]
-    tool_name = 'TrendChannels'
+    tool_name = 'SupplyAndDemand'
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
 
@@ -157,14 +157,16 @@ class ChartConfig:
 
             risk = 3
 
-            risk_free_enable = False
+            risk_free_enable = True
             touch_trade_enable = False
             candlestick_enable = True
+            trend_filter_enable = True
 
             fresh_limitation = 200
 
             self.tool = SupplyAndDemand(chart_tool, data, symbol, tr, minimum_candles, tr2, minimum_candles2,
-                                        swing_filter, fresh_window, atr_window, risk, fresh_limitation, risk_free_enable, touch_trade_enable, candlestick_enable)
+                                        swing_filter, fresh_window, atr_window, risk, fresh_limitation,
+                                        risk_free_enable, touch_trade_enable, candlestick_enable, trend_filter_enable)
 
         if tool_name == "Harmonics":
             from MetaTrader.RealTimeTools.Harmonics import Harmonics
