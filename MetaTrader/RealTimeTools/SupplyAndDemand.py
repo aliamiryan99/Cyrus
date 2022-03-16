@@ -44,6 +44,9 @@ class SupplyAndDemand(RealTimeTool):
         self.demand_color = "20,100,200"
         self.supply_color = "240,100,50"
 
+        # Trend Detection
+        self.trend = 0
+
         # Risk Object
         self.risk_manager = RiskManagement(self.risk)
 
@@ -161,6 +164,8 @@ class SupplyAndDemand(RealTimeTool):
                     if tp > sl*2:
                         self.chart_tool.set_speed(0.01)
                         v = self.risk_manager.calculate(self.chart_tool.balance, self.symbol, price, fresh_demand['MinMetPrice'] - self.sl_margin_atr * atr)
+                        if self.trend == -1:
+                            v /= 3
                         self.chart_tool.buy(self.symbol, v/2, tp, sl)
                         self.chart_tool.buy(self.symbol, v/2, tp/2, sl)
                         self.fresh_demand_sources['Sources'].pop(i)
@@ -178,6 +183,8 @@ class SupplyAndDemand(RealTimeTool):
                     if tp > sl*2:
                         self.chart_tool.set_speed(0.01)
                         v = self.risk_manager.calculate(self.chart_tool.balance, self.symbol, price, fresh_supply['MaxMetPrice'] + self.sl_margin_atr * atr)
+                        if self.trend == 1:
+                            v /= 3
                         self.chart_tool.sell(self.symbol, v/2, tp, sl)
                         self.chart_tool.sell(self.symbol, v/2, tp/2, sl)
                         self.fresh_supply_sources['Sources'].pop(i)
@@ -271,14 +278,15 @@ class SupplyAndDemand(RealTimeTool):
         open, high, low, close = get_ohlc(self.data)
         self.local_min_asyc, self.local_max_asyc = get_local_extermums_asymetric(self.data, 50, 10, 1)
         bullish, bearish = detect_trend(self.local_max_asyc, self.local_min_asyc, high, low)
+        self.chart_tool.delete(["TrendLabel"])
         if bullish[-1] > bearish[-1]:
-            self.chart_tool.delete(["TrendLabel"])
             self.chart_tool.label(["TrendLabel"], [50], [20], ['Bullish'], color="50,50,250"
                                   , corner=self.chart_tool.EnumBaseCorner.RightUpper)
+            self.trend = 1
         else:
-            self.chart_tool.delete(["TrendLabel"])
             self.chart_tool.label(["TrendLabel"], [50], [20], ['Bearish'], color="250,50,50"
                                   ,  corner=self.chart_tool.EnumBaseCorner.RightUpper)
+            self.trend = -1
 
     def find_movements(self, data, atr_window):
         self.min_extremums, self.max_extremums = get_local_extermums(data, 10, 1)
@@ -450,7 +458,12 @@ class SupplyAndDemand(RealTimeTool):
                 times2.append(sources[i]['EndTime'])
                 prices2.append(sources[i]['DownPrice'])
                 names1.append(f"SourceArea{sources[i]['Type']}{sources[i]['ID']}")
-            self.chart_tool.rectangle(names1, times1, prices1, times2, prices2, back=1, color=color)
+            back = 1
+            if sources[0]['Type'] == 'Demand' and self.trend == -1:
+                back = 0
+            elif sources[0]['Type'] == 'Supply' and self.trend == 1:
+                back = 0
+            self.chart_tool.rectangle(names1, times1, prices1, times2, prices2, back=back, color=color)
 
     def delete_sources(self, sources):
         names = []
