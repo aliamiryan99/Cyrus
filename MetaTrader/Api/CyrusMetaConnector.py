@@ -67,9 +67,10 @@ class CyrusMetaConnector:
         print("[INIT] Listening for market Data from METATRADER (SUB): " + str(self.sub_port))
         self.sub_socket.connect(self.url + str(self.sub_port))
         # Initialize POLL set and register PULL and SUB sockets
-        self.poller = zmq.Poller()
-        self.poller.register(self.pull_socket, zmq.POLLIN)
-        self.poller.register(self.sub_socket, zmq.POLLIN)
+        self.poller_pul = zmq.Poller()
+        self.poller_sub = zmq.Poller()
+        self.poller_pul.register(self.pull_socket, zmq.POLLIN)
+        self.poller_sub.register(self.sub_socket, zmq.POLLIN)
         # Start listening for responses to commands and new market Data
         self.string_delimiter = _delimiter
         # BID/ASK Market Input Subscription Threads ({SYMBOL: Thread})
@@ -91,11 +92,16 @@ class CyrusMetaConnector:
         # Global Sleep Delay
         self.sleep_delay = sleep_delay
         # Begin polling for PULL / SUB Data
-        self.market_data_thread = Thread(target=self.poll_data,
+        self.market_data_thread_pull = Thread(target=self.poll_data_pull,
                                          args=(self.string_delimiter,
                                                self.poll_timeout,))
-        self.market_data_thread.daemon = True
-        self.market_data_thread.start()
+        self.market_data_thread_sub = Thread(target=self.poll_data_sub,
+                                              args=(self.string_delimiter,
+                                                    self.poll_timeout,))
+        self.market_data_thread_pull.daemon = True
+        self.market_data_thread_sub.daemon = True
+        self.market_data_thread_pull.start()
+        self.market_data_thread_sub.start()
 
         self.spend_time = datetime.now() - datetime.now()
         self.sleep_time = datetime.now() - datetime.now()
@@ -389,17 +395,56 @@ class CyrusMetaConnector:
     Function to check Poller for new reponses (PULL) and market Data (SUB)
     """
 
-    def poll_data(self, string_delimiter=';', poll_timeout=1000):
+    def poll_data_sub(self, string_delimiter=';', poll_timeout=1000):
         sleep(self.sleep_delay)
 
         while self.active:
 
             start_time = datetime.now()
-            sockets = dict(self.poller.poll(poll_timeout))
+            sockets = dict(self.poller_sub.poll(poll_timeout))
+            self.socket_time += datetime.now() - start_time
+
+            # Receive new market Data from MetaTrader
+            if self.sub_socket in sockets:
+
+                try:
+                    receive_start_time = datetime.now()
+                    msg = self.sub_socket.recv_string(zmq.DONTWAIT)
+
+                    if msg != "":
+
+                        self.receive_time += datetime.now() - receive_start_time
+
+                        # invokes Data handlers on sub port
+                        hnd_t = datetime.now()
+                        for hnd in self.sub_data_handlers:
+                            hnd.on_sub_data(msg)
+                        self.hnd_time += datetime.now() - hnd_t
+                        self.wait_time = datetime.now() - datetime.now()
+
+                except zmq.error.Again:
+                    pass  # resource temporarily unavailable, nothing to print
+
+            self.spend_time += datetime.now() - start_time
+            self.wait_time += datetime.now() - start_time
+
+        print("\n++ [KERNEL] poll_data() Signing Out ++")
+
+    """
+        Function to check Poller for new reponses (PULL) and market Data (SUB)
+        """
+
+    def poll_data_pull(self, string_delimiter=';', poll_timeout=1000):
+        sleep(self.sleep_delay)
+
+        while self.active:
+
+            start_time = datetime.now()
+            sockets = dict(self.poller_pul.poll(poll_timeout))
             self.socket_time += datetime.now() - start_time
 
             # Process response to commands sent to MetaTrader
-            if self.pull_socket in sockets and sockets[self.pull_socket] == zmq.POLLIN:
+            if self.pull_socket in sockets:
 
                 if self.pull_socket_status['state'] == True:
 
@@ -431,27 +476,6 @@ class CyrusMetaConnector:
 
                 else:
                     print('\r[KERNEL] NO HANDSHAKE on PULL SOCKET.. Cannot READ Data.', end='', flush=True)
-
-            # Receive new market Data from MetaTrader
-            if self.sub_socket in sockets and sockets[self.sub_socket] == zmq.POLLIN:
-
-                try:
-                    receive_start_time = datetime.now()
-                    msg = self.sub_socket.recv_string(zmq.DONTWAIT)
-
-                    if msg != "":
-
-                        self.receive_time += datetime.now() - receive_start_time
-
-                        # invokes Data handlers on sub port
-                        hnd_t = datetime.now()
-                        for hnd in self.sub_data_handlers:
-                            hnd.on_sub_data(msg)
-                        self.hnd_time += datetime.now() - hnd_t
-                        self.wait_time = datetime.now() - datetime.now()
-
-                except zmq.error.Again:
-                    pass  # resource temporarily unavailable, nothing to print
 
             self.spend_time += datetime.now() - start_time
             self.wait_time += datetime.now() - start_time

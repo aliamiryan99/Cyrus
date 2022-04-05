@@ -1,6 +1,7 @@
 
 import numpy as np
 from AlgorithmFactory.AlgorithmTools.LineUtils import rotate_line
+from AlgorithmFactory.AlgorithmTools.LocalExtermums import *
 
 
 def detect_trend_channels(max_ext, min_ext, times, up_price, down_price, consecutive_ext_num, pip):
@@ -96,7 +97,7 @@ def get_channel(ext, start, end, type, up_price, down_price, times, pip):
         if up_x[1] < len(times):
             end_time1 = times[up_x[1]]
         else:
-            end_time1 = times[-1] + (times[-1]-times[-2]) * (up_x[1] - len(times)+1)
+            end_time1 = times[-1] + (min(times[-1]-times[-2], times[-2] - times[-3])) * (up_x[1] - len(times)+1)
 
         while np.polyval(down_line, r_down_x[1]) > np.polyval(up_line, up_x[1]):
             r_down_x[1] -= 1
@@ -104,9 +105,16 @@ def get_channel(ext, start, end, type, up_price, down_price, times, pip):
         if r_down_x[1] < len(times):
             end_time2 = times[r_down_x[1]]
         else:
-            end_time2 = times[-1] + (times[-1]-times[-2]) * (r_down_x[1] - len(times)+1)
+            end_time2 = times[-1] + (min(times[-1]-times[-2], times[-2] - times[-3])) * (r_down_x[1] - len(times)+1)
 
-        return {'MainLine': {'StartTime': times[up_x[0]], 'EndTime': end_time1, 'StartPrice': np.polyval(main_line, up_x[0]), 'EndPrice': np.polyval(main_line, up_x[1]),'Line':main_line},
+        slope = round(slope, 2)
+        width = round(up_y2[1] - down_y2[1], 2)
+        top_nears = get_num_of_near_points(up_price, up_line, ext[start:end], (up_y[1] - down_y[1]) / 6)
+
+        down_nears = get_num_of_near_points_between(down_price, down_line, ext[start:end], (up_y[1] - down_y[1]) / 6)
+
+        return {'Info': {'Slope': slope, 'DownNears': down_nears, 'TopNears': top_nears},
+                'MainLine': {'StartTime': times[up_x[0]], 'EndTime': end_time1, 'StartPrice': np.polyval(main_line, up_x[0]), 'EndPrice': np.polyval(main_line, up_x[1]),'Line':main_line},
                 'MidLine': {'StartTime': times[up_x[0]], 'EndTime': end_time1, 'StartPrice': np.polyval(mid_line, up_x[0]), 'EndPrice': np.polyval(mid_line, up_x[1]),'Line':mid_line},
                 'UpLine': {'StartTime': times[r_up_x[0]], 'EndTime': end_time1, 'StartPrice': np.polyval(up_line, r_up_x[0]), 'EndPrice': np.polyval(up_line, up_x[1]),'Line':up_line},
                 'DownLine': {'StartTime': times[down_x[0]], 'EndTime': end_time2, 'StartPrice': np.polyval(down_line, down_x[0]), 'EndPrice': np.polyval(down_line, r_down_x[1]),'Line':down_line}}
@@ -163,7 +171,7 @@ def get_channel(ext, start, end, type, up_price, down_price, times, pip):
         if up_x[1] < len(times):
             end_time1 = times[up_x[1]]
         else:
-            end_time1 = times[-1] + (times[-1]-times[-2]) * (up_x[1] - len(times)+1)
+            end_time1 = times[-1] + (min(times[-1]-times[-2], times[-2] - times[-3])) * (up_x[1] - len(times)+1)
 
         while np.polyval(down_line, r_down_x[0]) > np.polyval(up_line, up_x[0]):
             r_down_x[0] += 1
@@ -171,9 +179,55 @@ def get_channel(ext, start, end, type, up_price, down_price, times, pip):
         if r_up_x[1] < len(times):
             end_time2 = times[r_up_x[1]]
         else:
-            end_time2 = times[-1] + (times[-1]-times[-2]) * (r_up_x[1] - len(times)+1)
+            end_time2 = times[-1] + (min(times[-1]-times[-2], times[-2] - times[-3])) * (r_up_x[1] - len(times)+1)
 
-        return {'MainLine': {'StartTime': times[down_x[0]], 'EndTime': end_time1, 'StartPrice': np.polyval(main_line, down_x[0]), 'EndPrice': np.polyval(main_line, down_x[1]), 'Line': main_line},
+        slope = round(slope, 2)
+        width = round(up_y2[1] - down_y2[1], 2)
+        down_nears = get_num_of_near_points(down_price, down_line, ext[start:end], (up_y[1] - down_y[1]) / 6)
+
+        top_nears = get_num_of_near_points_between(up_price, up_line, ext[start:end], (up_y[1] - down_y[1]) / 6)
+
+
+        return {'Info': {'Slope': slope, 'DownNears': down_nears, 'TopNears': top_nears},
+                'MainLine': {'StartTime': times[down_x[0]], 'EndTime': end_time1, 'StartPrice': np.polyval(main_line, down_x[0]), 'EndPrice': np.polyval(main_line, down_x[1]), 'Line': main_line},
                 'MidLine': {'StartTime': times[down_x[0]], 'EndTime': end_time1, 'StartPrice': np.polyval(mid_line, down_x[0]), 'EndPrice': np.polyval(mid_line, down_x[1]), 'Line': mid_line},
                 'UpLine': {'StartTime': times[ext[start]], 'EndTime': end_time2, 'StartPrice': np.polyval(up_line, up_x[0]), 'EndPrice': np.polyval(up_line, r_up_x[1]), 'Line': up_line},
                 'DownLine': {'StartTime': times[r_down_x[0]], 'EndTime': end_time1, 'StartPrice': np.polyval(down_line, r_down_x[0]), 'EndPrice': np.polyval(down_line, down_x[1]), 'Line': down_line}}
+
+
+def get_channel_error(price, line, indexes, pip):
+    err = 0
+    for index in indexes:
+        err += abs(price[index] - np.polyval(line, index))
+    err /= len(indexes)
+    err *= pip
+    return err
+
+
+def get_channel_up_down_area_ratio(up_price, down_price, up_line, down_line, start_index, end_index, pip):
+    up_area = 0
+    for i in range(start_index, end_index):
+        up_area += abs(np.polyval(up_line, i) - up_price[i])
+    down_area = 0
+    for i in range(start_index, end_index):
+        down_area += abs(np.polyval(down_line, i) - down_price[i])
+    return up_area / down_area
+
+
+def get_num_of_near_points(price, line, ext_list, tr):
+    near_cnt = 0
+    for index in ext_list:
+        if abs(price[index] - np.polyval(line, index)) < tr:
+            near_cnt += 1
+    return near_cnt
+
+
+def get_num_of_near_points_between(price, line, ext_list, tr):
+    near_cnt = 0
+    for i in range(len(ext_list)-1):
+        for j in range(ext_list[i], ext_list[i+1]+1):
+            if abs(price[j] - np.polyval(line, j)) < tr:
+                near_cnt += 1
+                break
+    return near_cnt
+

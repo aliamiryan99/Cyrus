@@ -6,12 +6,12 @@ import copy
 class ChartConfig:
 
     auto_time_frame = True
-    time_frame = "M5"
+    time_frame = "D1"
     date_format = '%Y.%m.%d %H:%M'
     candles = 10000
     tools_set = ['PivotPoints', 'VolumeBar', 'Channel', "Elliot", "SRLines", "Harmonics", "CandleStick", "Pattern",
                  "MinMaxTrend", "SupplyAndDemand", "TrendDetection", "TrendChannels"]
-    tool_name = 'SupplyAndDemand'
+    tool_name = 'TrendChannels'
 
     def __init__(self, chart_tool: MetaTraderBase, data, symbol, tool_name, params=None):
 
@@ -21,8 +21,8 @@ class ChartConfig:
         data = copy.deepcopy(data)
         if tool_name == "PivotPoints":
             from MetaTrader.RealTimeTools.PivotPoints import PivotPoints
-            window_left = 50
-            window_right = 10
+            window_left = 10
+            window_right = 50
             extremum_mode = 1
 
             self.tool = PivotPoints(chart_tool, data, window_left, window_right, extremum_mode)
@@ -162,7 +162,7 @@ class ChartConfig:
             candlestick_enable = True
             trend_filter_enable = True
 
-            fresh_limitation = 200
+            fresh_limitation = 5000
 
             self.tool = SupplyAndDemand(chart_tool, data, symbol, tr, minimum_candles, tr2, minimum_candles2,
                                         swing_filter, fresh_window, atr_window, risk, fresh_limitation,
@@ -205,9 +205,9 @@ class ChartConfig:
         if tool_name == "TrendChannels":
             from MetaTrader.RealTimeTools.TrendChannels import TrendChannels
             min_consecutive_ext_num = 3
-            window_left = 50
-            window_right = 10
+            window_left = 60
+            window_right = 5
             extremum_mode = 1
-            extremum_show = True
+            extremum_show = False
 
             self.tool = TrendChannels(chart_tool, data, symbol, min_consecutive_ext_num, window_left, window_right, extremum_mode, extremum_show)

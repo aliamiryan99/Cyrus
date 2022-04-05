@@ -181,6 +181,8 @@ class MetaTraderRealTimeToolsManager(MetaTraderBase):
                     break
 
             self.history = self.connector.history_db[symbol + '_' + self.time_frame]
+
+
             for item in self.history:
                 item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
             print(pd.DataFrame(self.history))

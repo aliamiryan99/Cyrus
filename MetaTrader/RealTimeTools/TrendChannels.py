@@ -66,6 +66,8 @@ class TrendChannels(RealTimeTool):
     def on_data(self, candle):
         self.data.pop(0)
 
+        print(self.chart_tool.get_equity())
+
         # Recalculate Extremums
         self.local_min, self.local_max = update_local_extremum_list(self.data, self.local_min, self.local_max, self.window, self.mode, asymetric=True, extremum_window_right=self.window_right)
         self.last_local_min, self.last_local_max = self.last_local_min-1, self.last_local_max-1
@@ -86,27 +88,30 @@ class TrendChannels(RealTimeTool):
 
     def redraw_channel(self, bull_channel, bear_channel):
         if bull_channel['DownLine']['StartTime'] == self.last_bull_channel['DownLine']['StartTime']:
-            if bull_channel['UpLine']['EndTime'] > self.data[round(len(self.data) * 3/4)]['Time'] and bull_channel['UpLine']['EndTime'] > self.last_bull_channel['UpLine']['EndTime']:
+            if bull_channel['UpLine']['EndTime'] > self.last_bull_channel['UpLine']['EndTime']:
                 self.bull_channel_id -= 1
                 self.delete_channel("Bull", self.bull_channel_id)
                 self.draw_channels([bull_channel], "Bull", self.bull_color)
                 self.last_bull_channel = bull_channel
         else:
-            self.draw_channels([bull_channel], "Bull", self.bull_color)
-            self.last_bull_channel = bull_channel
+            if bull_channel['UpLine']['EndTime'] != self.last_bull_channel['UpLine']['EndTime']:
+                self.draw_channels([bull_channel], "Bull", self.bull_color)
+                self.last_bull_channel = bull_channel
 
         if bear_channel['UpLine']['StartTime'] == self.last_bear_channel['UpLine']['StartTime']:
-            if bear_channel['DownLine']['EndTime'] > self.data[round(len(self.data) * 3/4)]['Time'] and bear_channel['DownLine']['EndTime'] > self.last_bear_channel['DownLine']['EndTime']:
+            if bear_channel['DownLine']['EndTime'] > self.last_bear_channel['DownLine']['EndTime']:
                 self.bear_channel_id -= 1
                 self.delete_channel("Bear", self.bear_channel_id)
                 self.draw_channels([bear_channel], "Bear", self.bear_color)
                 self.last_bear_channel = bear_channel
         else:
-            self.draw_channels([bear_channel], "Bear", self.bear_color)
-            self.last_bear_channel = bear_channel
+            if bear_channel['DownLine']['EndTime'] != self.last_bear_channel['DownLine']['EndTime']:
+                self.draw_channels([bear_channel], "Bear", self.bear_color)
+                self.last_bear_channel = bear_channel
 
     def delete_channel(self, type, id):
-        names = [f"{type}Channel MidLine {id}", f"{type}Channel UpLine {id}", f"{type}Channel DownLine {id}"]
+        names = [f"{type}Channel MidLine {id}", f"{type}Channel UpLine {id}", f"{type}Channel DownLine {id}",
+                 f"{type}Channel InfoTxt {id}"]
         self.chart_tool.delete(names)
 
     def redraw_extremums(self):
@@ -119,10 +124,28 @@ class TrendChannels(RealTimeTool):
             self.last_local_max = self.local_max[-1]
             print(f"Local Max Time {self.data[self.local_max[-1]]['Time']}")
 
+    def correct_end_of_week(self, candle):
+        if candle['Time'] - self.data[-1]['Time'] > max(self.data[-1]['Time'] - self.data[-2]['Time'],
+                                                        self.data[-2]['Time'] - self.data[-3]['Time']):
+            if self.last_bull_channel['DownLine']['EndTime'] > self.data[-1]['Time']:
+                self.last_bull_channel['DownLine']['EndTime'] += (candle['Time'] - self.data[-1]['Time']) -\
+                                                                 (self.data[-1]['Time'] - self.data[-2]['Time'])
+                self.bull_channel_id -= 1
+                self.delete_channel("Bull", self.bull_channel_id)
+                self.draw_channels([self.last_bull_channel], "Bull", self.bull_color)
+            if self.last_bear_channel['UpLine']['EndTime'] > self.data[-1]['Time']:
+                self.last_bear_channel['UpLine']['EndTime'] += (candle['Time'] - self.data[-1]['Time']) -\
+                                                               (self.data[-1]['Time'] - self.data[-2]['Time'])
+                self.bear_channel_id -= 1
+                self.delete_channel("Bear", self.bear_channel_id)
+                self.draw_channels([self.last_bear_channel], "Bear", self.bear_color)
+
     def draw_channels(self, channels, type, color):
         mid_names, mid_s_time, mid_e_time, mid_s_price, mid_e_price = [], [], [], [], []
         up_names, up_s_time, up_e_time, up_s_price, up_e_price = [], [], [], [], []
         down_names, down_s_time, down_e_time, down_s_price, down_e_price = [], [], [], [], []
+        names_err, text_err, time_err, price_err = [], [], [], []
+        anchor = self.chart_tool.EnumAnchor.Bottom
         for i in range(len(channels)):
             if type == "Bull":
                 channel_id = self.bull_channel_id
@@ -146,14 +169,24 @@ class TrendChannels(RealTimeTool):
             down_s_price.append(channels[i]['DownLine']['StartPrice'])
             down_e_time.append(channels[i]['DownLine']['EndTime'])
             down_e_price.append(channels[i]['DownLine']['EndPrice'])
+            # Error Text
+            names_err.append(f"{type}Channel InfoTxt {channel_id}")
+            text_err.append(f"Slope:{channels[i]['Info']['Slope']},TN:{channels[i]['Info']['TopNears']},"
+                            f"DN:{channels[i]['Info']['DownNears']}")
             if type == "Bull":
+                time_err.append(channels[i]['UpLine']['EndTime'])
+                price_err.append(channels[i]['UpLine']['EndPrice'])
                 self.bull_channel_id += 1
             elif type == "Bear":
+                time_err.append(channels[i]['DownLine']['EndTime'])
+                price_err.append(channels[i]['DownLine']['EndPrice'])
                 self.bear_channel_id += 1
+                anchor = self.chart_tool.EnumAnchor.Top
 
         self.chart_tool.trend_line(mid_names, mid_s_time, mid_s_price, mid_e_time, mid_e_price, style=self.chart_tool.EnumStyle.DashDotDot)
         self.chart_tool.trend_line(up_names, up_s_time, up_s_price, up_e_time, up_e_price, color=color)
         self.chart_tool.trend_line(down_names, down_s_time, down_s_price, down_e_time, down_e_price, color=color)
+        self.chart_tool.text(names_err, time_err, price_err, text_err, font_size=8, anchor=anchor)
 
     def draw_local_extremum(self, local_min, local_max):
 

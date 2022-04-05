@@ -207,3 +207,25 @@ def find_next_extremum(extremums, index):
         else:
             end = middle
     return end
+
+
+def get_max_between(price, min_extremums):
+    max_betweens = []
+    for i in range(len(min_extremums)-1):
+        max_price = max(price[min_extremums[i]:min_extremums[i + 1] + 1])
+        for j in range(min_extremums[i], min_extremums[i+1]+1):
+            if price[j] == max_price:
+                max_betweens.append(j)
+                break
+    return max_betweens
+
+
+def get_min_between(price, max_extremums):
+    min_betweens = []
+    for i in range(len(max_extremums)-1):
+        min_price = min(price[max_extremums[i]:max_extremums[i + 1] + 1])
+        for j in range(max_extremums[i], max_extremums[i+1]+1):
+            if price[j] == min_price:
+                min_betweens.append(j)
+                break
+    return min_betweens

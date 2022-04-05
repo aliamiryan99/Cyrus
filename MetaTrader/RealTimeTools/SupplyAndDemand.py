@@ -1,6 +1,13 @@
 import copy
 
+import pandas as pd
+from time import sleep
+from datetime import datetime
+
+from Shared.Functions import Functions
+
 from Configuration.Trade.OnlineConfig import Config
+from Configuration.Tools.MetaTraderRealTimeToolsConfig import ChartConfig
 
 from MetaTrader.MetaTraderBase import MetaTraderBase
 from MetaTrader.RealTimeTools.RealTimeTool import RealTimeTool
@@ -19,6 +26,19 @@ class SupplyAndDemand(RealTimeTool):
                  swing_filter, fresh_window, atr_window, risk, fresh_limitation, free_risk_enable, touch_trade_enable,
                  candlestick_trade_enable, trend_filter_enable):
         super().__init__(chart_tool, data)
+
+        self.s_time_frame = "D1"
+        chart_tool.connector.history_db = {}
+        chart_tool.connector.send_hist_request(symbol, Config.timeframes_dic[self.s_time_frame], 500)
+        ws = pd.to_datetime('now')
+        while symbol + '_' + self.s_time_frame not in chart_tool.connector.history_db.keys():
+            sleep(0.01)
+            if (pd.to_datetime('now') - ws).total_seconds() > 20:
+                break
+
+        self.s_data = chart_tool.connector.history_db[symbol + '_' + self.s_time_frame]
+        for item in self.s_data:
+            item['Time'] = datetime.strptime(item['Time'], ChartConfig.date_format)
 
         self.free_risk_enable = free_risk_enable
         self.touch_trade_enable = touch_trade_enable
@@ -111,9 +131,10 @@ class SupplyAndDemand(RealTimeTool):
         self.draw_sources(self.demand_sources, self.demand_color)
         self.draw_sharps(self.result_down + self.result2_down)
         self.draw_sources(self.supply_sources, self.supply_color)
-        self.draw_candlestick(self.detected_candlesticks)
 
         self.open_buy_trades_cnt, self.open_sell_trades_cnt = 0, 0
+
+        self.data = self.data[-self.fresh_window:]
 
     def on_tick(self, time, bid, ask):
         if self.touch_trade_enable:
@@ -126,11 +147,13 @@ class SupplyAndDemand(RealTimeTool):
     def on_data(self, candle):
         self.data.pop(0)
 
+        self.update_second_data(self.data[-1])
+
         self.update_fresh_sources(self.fresh_demand_sources['Sources'], candle, 'Demand')
         self.update_fresh_sources(self.fresh_supply_sources['Sources'], candle, 'Supply')
 
-        self.find_movements(self.data[-self.fresh_window:], self.atr_window)
-        self.find_new_source(self.data[-self.fresh_window:])
+        self.find_movements(self.data, self.atr_window)
+        self.find_new_source(self.data)
 
         self.redraw_sources(self.fresh_demand_sources['Sources'], self.demand_color)
         self.redraw_sources(self.fresh_supply_sources['Sources'], self.supply_color)
@@ -152,11 +175,11 @@ class SupplyAndDemand(RealTimeTool):
         detected_candlesticks = CandleSticks.get_candlesticks(self.data[-4:])
         if len(detected_candlesticks) != 0 and detected_candlesticks[-1]['Time'] > self.last_candlestick['Time']:
             self.last_candlestick = detected_candlesticks[-1]
-            self.draw_candlestick([self.last_candlestick])
 
             for i in range(len(self.fresh_demand_sources['Sources'])):
                 fresh_demand = self.fresh_demand_sources['Sources'][i]
                 if self.last_candlestick['Directions'][0] >= 0 and fresh_demand['Touched']:
+                    self.draw_candlestick([self.last_candlestick])
                     fresh_movement = self.fresh_demand_sources['Movements'][i]
                     tp = (fresh_movement['ExtPrice'] - price) * 10 ** Config.symbols_pip[self.symbol]
                     atr = get_body_mean(self.data, len(self.data) - 1)
@@ -176,6 +199,7 @@ class SupplyAndDemand(RealTimeTool):
             for i in range(len(self.fresh_supply_sources['Sources'])):
                 fresh_supply = self.fresh_supply_sources['Sources'][i]
                 if self.last_candlestick['Directions'][0] <= 0 and fresh_supply['Touched']:
+                    self.draw_candlestick([self.last_candlestick])
                     fresh_movement = self.fresh_supply_sources['Movements'][i]
                     tp = (price - fresh_movement['ExtPrice']) * 10 ** Config.symbols_pip[self.symbol]
                     atr = get_body_mean(self.data, len(self.data) - 1)
@@ -275,11 +299,11 @@ class SupplyAndDemand(RealTimeTool):
         self.open_sell_trades_cnt = len(self.chart_tool.open_sell_trades)
 
     def check_trend(self):
-        open, high, low, close = get_ohlc(self.data)
-        self.local_min_asyc, self.local_max_asyc = get_local_extermums_asymetric(self.data, 50, 10, 1)
+        open, high, low, close = get_ohlc(self.s_data)
+        self.local_min_asyc, self.local_max_asyc = get_local_extermums_asymetric(self.s_data, 50, 10, 1)
         bullish, bearish = detect_trend(self.local_max_asyc, self.local_min_asyc, high, low)
         self.chart_tool.delete(["TrendLabel"])
-        if bullish[-1] > bearish[-1]:
+        if len(bearish) == 0 or (len(bullish) != 0 and bullish[-1] > bearish[-1]):
             self.chart_tool.label(["TrendLabel"], [50], [20], ['Bullish'], color="50,50,250"
                                   , corner=self.chart_tool.EnumBaseCorner.RightUpper)
             self.trend = 1
@@ -491,3 +515,17 @@ class SupplyAndDemand(RealTimeTool):
                 names2.append(f"LocalMaxPython{self.last_max_id}")
                 self.last_max_id += 1
             self.chart_tool.arrow_down(names2, times2, prices2, anchor=self.chart_tool.EnumArrowAnchor.Bottom, color="211,83,12")
+
+    def update_second_data(self, candle):
+        time_identifier = Functions.get_time_id(candle['Time'], self.s_time_frame)
+        s_time_identifier = Functions.get_time_id(self.s_data[-1]['Time'], self.s_time_frame)
+        if time_identifier != s_time_identifier:
+            new_candle = {"Time": candle['Time'], "Open": candle['Open'], "High": candle['High'],
+                           "Low": candle['Low'], "Close": candle['Close'], "Volume": candle['Volume']}
+            self.s_data.pop(0)
+            self.s_data.append(new_candle)
+        else:
+            self.s_data[-1]['High'] = max(self.s_data[-1]['High'], candle['High'])
+            self.s_data[-1]['Low'] = min(self.s_data[-1]['Low'], candle['Low'])
+            self.s_data[-1]['Close'] = candle['Close']
+            self.s_data[-1]['Volume'] += candle['Volume']
